@@ -10,44 +10,25 @@
 #include <aurora/gfx.h>
 #include <aurora/input.h>
 
-class MouseHandler : public Au::Input::MouseHandler
-{
-public:
-    void KeyUp(Au::Input::KEYCODE key)
-    {
-    }
-    
-    void KeyDown(Au::Input::KEYCODE key)
-    {
-    }
-    
-    void Move(int x, int y)
-    {        
-
-    }
-    
-    void Wheel(short value)
-    {
-    }
-};
-
-class KeyboardHandler : public Au::Input::KeyboardHandler
-{
-public:
-    void KeyUp(Au::Input::KEYCODE key)
-    {
-        std::cout << "Keyboard UP" << key <<std::endl;
-    }
-    
-    void KeyDown(Au::Input::KEYCODE key)
-    {
-        std::cout << "Keyboard DOWN" << key <<std::endl;
-    }
-};
-
 class GameState
 {
 public:
+    class MouseHandler : public Au::Input::MouseHandler
+    {
+    public:
+        void KeyUp(Au::Input::KEYCODE key) { PostMouseKeyUp(key); }
+        void KeyDown(Au::Input::KEYCODE key) { PostMouseKeyDown(key); }
+        void Move(int x, int y) { PostMouseMove(x, y); }
+        void Wheel(short value) { PostMouseWheel(value); }
+    };
+
+    class KeyboardHandler : public Au::Input::KeyboardHandler
+    {
+    public:
+        void KeyUp(Au::Input::KEYCODE key) { PostKeyUp(key); }
+        void KeyDown(Au::Input::KEYCODE key) { PostKeyDown(key); }
+    };
+    
     virtual ~GameState(){}
 
     virtual void OnInit() = 0;
