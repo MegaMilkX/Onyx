@@ -35,7 +35,7 @@ public:
     virtual void OnSwitch() = 0;
     virtual void OnCleanup() = 0;
     virtual void OnUpdate() = 0;
-    virtual void OnRender() = 0;
+    virtual void OnRender(Au::GFX::Device* device) = 0;
     
     virtual void MouseKeyUp(Au::Input::KEYCODE key) {}
     virtual void MouseKeyDown(Au::Input::KEYCODE key) {}
@@ -71,7 +71,7 @@ public:
             stateStack.top()->OnUpdate();
             
             gfxDevice.Clear();
-            stateStack.top()->OnRender();
+            stateStack.top()->OnRender(&gfxDevice);
             gfxDevice.SwapBuffers();
         }
         return result;
@@ -82,6 +82,8 @@ public:
         gfxDevice.Cleanup();
         Au::Window::Destroy(window);
     }
+    
+    Au::GFX::Device* GFXDevice() { return &gfxDevice; }
     
     static void PostMouseKeyUp(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyUp(key); }
     static void PostMouseKeyDown(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyDown(key); }
