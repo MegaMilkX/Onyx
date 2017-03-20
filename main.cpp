@@ -1,4 +1,5 @@
 #include "game_state.h"
+#include "object.h"
 #include <aurora/media/fbx.h>
 #include <aurora/transform.h>
 #include <iostream>
@@ -164,6 +165,8 @@ public:
         uniLightOmniRGB.Set(Au::Math::Vec3f(0.8f, 0.6f, 0.8f), 2);
         
         lx = 0.0f; ly = 0.0f;
+        
+        Object* object = scene.CreateObject();
     }
     virtual void OnSwitch()
     {
@@ -190,8 +193,12 @@ public:
     virtual void MouseMove(int x, int y)
     {
         uniLightOmniPos.Set(Au::Math::Vec3f(lx += x * 0.01f, ly -= y * 0.01f, 2.5f), 0);
+        model.Rotate(x * 0.01f, Au::Math::Vec3f(0, 1, 0));
+        model.Rotate(y * 0.01f, model.GetTransform() * Au::Math::Vec3f(1, 0, 0));
     }
 private:
+    Object scene;
+
     Au::GFX::RenderState* renderState;
     Au::GFX::Mesh* mesh;
     Au::Math::Transform model;
@@ -208,6 +215,20 @@ private:
     float zfar = 100.0f;
     
     float lx, ly;
+};
+
+class StateGame : public GameState
+{
+public:
+    virtual void OnInit() 
+    {
+        
+    }
+    virtual void OnCleanup() {}
+    virtual void OnUpdate() {}
+    virtual void OnRender(Au::GFX::Device* device) {}
+private:
+    Object scene;
 };
 
 int main()
