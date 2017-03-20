@@ -31,11 +31,11 @@ public:
     
     virtual ~GameState(){}
 
-    virtual void OnInit() = 0;
-    virtual void OnSwitch() = 0;
-    virtual void OnCleanup() = 0;
-    virtual void OnUpdate() = 0;
-    virtual void OnRender(Au::GFX::Device* device) = 0;
+    virtual void OnInit() {};
+    virtual void OnSwitch() {};
+    virtual void OnCleanup() {};
+    virtual void OnUpdate() {};
+    virtual void OnRender(Au::GFX::Device* device) {};
     
     virtual void MouseKeyUp(Au::Input::KEYCODE key) {}
     virtual void MouseKeyDown(Au::Input::KEYCODE key) {}
