@@ -140,6 +140,8 @@ Au::GFX::RenderState* CreateRenderState(Au::GFX::Device* gfxDevice)
     return renderState;
 }
 
+class Gameplay;
+
 class StateTest : public GameState
 {
 public:
@@ -196,6 +198,15 @@ public:
         model.Rotate(x * 0.01f, Au::Math::Vec3f(0, 1, 0));
         model.Rotate(y * 0.01f, model.GetTransform() * Au::Math::Vec3f(1, 0, 0));
     }
+    
+    virtual void KeyDown(Au::Input::KEYCODE key)
+    {
+        if(key == Au::Input::KEY_1)
+        {
+            GameState::Pop();
+            GameState::Push<Gameplay>();
+        }
+    }
 private:
     Object scene;
 
@@ -217,7 +228,7 @@ private:
     float lx, ly;
 };
 
-class StateGame : public GameState
+class Gameplay : public GameState
 {
 public:
     virtual void OnInit() 
@@ -227,6 +238,15 @@ public:
     virtual void OnCleanup() {}
     virtual void OnUpdate() {}
     virtual void OnRender(Au::GFX::Device* device) {}
+    
+    virtual void KeyDown(Au::Input::KEYCODE key)
+    {
+        if(key == Au::Input::KEY_2)
+        {
+            GameState::Pop();
+            GameState::Push<StateTest>();
+        }
+    }
 private:
     Object scene;
 };
