@@ -52,6 +52,14 @@ public:
         stateStack.push(state);
     }
     
+    static void Pop()
+    {
+        if(stateStack.empty())
+            return;
+        delete stateStack.top();
+        stateStack.pop();
+    }
+    
     static void Init()
     {
         window = Au::Window::Create("Onyx", 1280, 720);
