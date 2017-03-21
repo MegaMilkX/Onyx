@@ -5,6 +5,11 @@
 #include <iostream>
 #include <fstream>
 
+typedef Au::Math::Vec4f vec4;
+typedef Au::Math::Vec3f vec3;
+typedef Au::Math::Vec2f vec2;
+typedef Au::Math::Mat4f mat4;
+typedef Au::Math::Mat3f mat3;
 Au::GFX::Mesh* LoadMesh(Au::GFX::Device* gfxDevice, const std::string& path)
 {
     Au::GFX::Mesh* mesh = gfxDevice->CreateMesh();
