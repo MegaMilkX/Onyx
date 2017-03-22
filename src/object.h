@@ -6,17 +6,33 @@
 
 #include "typeindex.h"
 
-#include "component.h"
-
 class Object
 {
 public:
+    class Component
+    {
+    friend Object;
+    public:
+        virtual ~Component() {}
+        Object* GetObject() { return object; }
+    private:
+        Object* object;
+    };
+    
     Object() : parent(0) {}
     Object(Object* parent) : parent(parent) {}
     ~Object()
     {
         for(unsigned i = 0; i < objects.size(); ++i)
             delete objects[i];
+    }
+    
+    Object* Root()
+    {
+        if(!parent)
+            return this;
+        else
+            return parent->Root();
     }
     
     Object* CreateObject()
@@ -33,6 +49,8 @@ public:
         if (it == components.end())
         {
             T* component = new T();
+            component->object = this;
+            component->OnCreate();
             components.insert(std::make_pair(TypeInfo<T>::Index(), component));
             return component;
         }
