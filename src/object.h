@@ -14,7 +14,7 @@ public:
     friend Object;
     public:
         virtual ~Component() {}
-        Object* GetObject() { return object; }
+        Object* GetParentObject() { return object; }
     private:
         Object* object;
     };

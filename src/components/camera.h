@@ -13,6 +13,7 @@ public:
     void Render(Au::GFX::Device* device)
     {
         gfxScene->Render(
+            device,
             perspective,
             transform->GetTransform()
         );
@@ -20,8 +21,8 @@ public:
 
     virtual void OnCreate()
     {
-        transform = GetObject()->GetComponent<Transform>();
-        gfxScene = GetObject()->Root()->GetComponent<GFXScene>();
+        transform = GetParentObject()->GetComponent<Transform>();
+        gfxScene = GetParentObject()->Root()->GetComponent<GFXScene>();
     }
 private:
     Au::Math::Mat4f perspective;
