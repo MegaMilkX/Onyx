@@ -1,11 +1,11 @@
 #ifndef COMPONENT_MESH_H
 #define COMPONENT_MESH_H
 
-#include "../object.h"
+#include "../scene_object.h"
 #include "transform.h"
 #include "gfxscene.h"
 
-class Mesh : public Object::Component
+class Mesh : public SceneObject::Component
 {
 public:
     virtual void OnCreate()

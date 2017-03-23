@@ -4,10 +4,10 @@
 #include <aurora/gfx.h>
 
 #include "transform.h"
-#include "../object.h"
+#include "../scene_object.h"
 #include "gfxscene.h"
 
-class Camera : public Object::Component
+class Camera : public SceneObject::Component
 {
 public:
     void Render(Au::GFX::Device* device)

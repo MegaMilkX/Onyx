@@ -2,7 +2,7 @@
 #define STATE_TEST_H
 
 #include "game_state.h"
-#include "object.h"
+#include "scene_object.h"
 
 #include <aurora/transform.h>
 #include <iostream>
@@ -38,7 +38,7 @@ public:
         
         lx = 0.0f; ly = 0.0f;
         
-        Object* object = scene.CreateObject();
+        SceneObject* object = scene.CreateSceneObject();
     }
     virtual void OnSwitch()
     {
@@ -78,7 +78,7 @@ public:
         }
     }
 private:
-    Object scene;
+    SceneObject scene;
 
     Au::GFX::RenderState* renderState;
     Au::GFX::Mesh* mesh;

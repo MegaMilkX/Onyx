@@ -3,9 +3,9 @@
 
 #include <aurora/math.h>
 
-#include "../object.h"
+#include "../scene_object.h"
 
-class Transform : public Object::Component
+class Transform : public SceneObject::Component
 {
 public:
     Au::Math::Mat4f GetTransform()

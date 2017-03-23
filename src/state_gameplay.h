@@ -2,7 +2,7 @@
 #define STATE_GAMEPLAY_H
 
 #include "game_state.h"
-#include "object.h"
+#include "scene_object.h"
 
 #include "state_test.h"
 
@@ -19,7 +19,7 @@ public:
     {
         //camera = scene.CreateObject()->GetComponent<Camera>();
         //Mesh* mesh = scene.CreateObject()->GetComponent<Mesh>();
-        Transform* transform = scene.CreateObject()->GetComponent<Transform>();
+        Transform* transform = scene.CreateSceneObject()->GetComponent<Transform>();
         
         gfxScene = scene.GetComponent<GFXScene>();
         GFXRenderUnit renderUnit;
@@ -52,7 +52,7 @@ public:
         }
     }
 private:
-    Object scene;
+    SceneObject scene;
     GFXScene* gfxScene;
     Camera* camera;
     

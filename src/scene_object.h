@@ -1,33 +1,33 @@
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef SCENE_OBJECT_H
+#define SCENE_OBJECT_H
 
 #include <vector>
 #include <map>
 
 #include "typeindex.h"
 
-class Object
+class SceneObject
 {
 public:
     class Component
     {
-    friend Object;
+    friend SceneObject;
     public:
         virtual ~Component() {}
-        Object* GetParentObject() { return object; }
+        SceneObject* GetParentObject() { return object; }
     private:
-        Object* object;
+        SceneObject* object;
     };
     
-    Object() : parent(0) {}
-    Object(Object* parent) : parent(parent) {}
-    ~Object()
+    SceneObject() : parent(0) {}
+    SceneObject(SceneObject* parent) : parent(parent) {}
+    ~SceneObject()
     {
         for(unsigned i = 0; i < objects.size(); ++i)
             delete objects[i];
     }
     
-    Object* Root()
+    SceneObject* Root()
     {
         if(!parent)
             return this;
@@ -35,9 +35,9 @@ public:
             return parent->Root();
     }
     
-    Object* CreateObject()
+    SceneObject* CreateSceneObject()
     {
-        Object* o = new Object(this);
+        SceneObject* o = new SceneObject(this);
         objects.push_back(o);
         return o;
     }
@@ -58,8 +58,8 @@ public:
             return (T*)it->second;
     }
 private:
-    Object* parent;
-    std::vector<Object*> objects;
+    SceneObject* parent;
+    std::vector<SceneObject*> objects;
     std::map<typeindex, Component*> components;
 };
 

@@ -5,12 +5,12 @@
 
 #include <aurora/math.h>
 #include <aurora/transform.h>
-#include "../object.h"
+#include "../scene_object.h"
 
 #include "gfxscene/gfxrenderunit.h"
 
 class Mesh;
-class GFXScene : public Object::Component
+class GFXScene : public SceneObject::Component
 {
 friend Mesh;
 public:
