@@ -42,6 +42,10 @@ public:
     Au::Math::Quat Rotation();
     Au::Math::Vec3f Scale();
     
+    Au::Math::Vec3f Right();
+    Au::Math::Vec3f Up();
+    Au::Math::Vec3f Back();
+    
     Au::Math::Mat4f GetTransform();
 
     virtual void OnCreate()

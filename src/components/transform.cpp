@@ -40,6 +40,13 @@ Au::Math::Quat Transform::Rotation()
 Au::Math::Vec3f Transform::Scale()
 { return _scale; }
 
+Au::Math::Vec3f Transform::Right()
+{ return GetTransform()[0]; }
+Au::Math::Vec3f Transform::Up()
+{ return GetTransform()[1]; }
+Au::Math::Vec3f Transform::Back()
+{ return GetTransform()[2]; }
+
 Au::Math::Mat4f Transform::GetTransform()
 {
     Au::Math::Mat4f localTransform = 
