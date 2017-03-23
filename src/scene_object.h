@@ -19,8 +19,8 @@ public:
         SceneObject* object;
     };
     
-    SceneObject() : parent(0) {}
-    SceneObject(SceneObject* parent) : parent(parent) {}
+    SceneObject() : parentObject(0) {}
+    SceneObject(SceneObject* parent) : parentObject(parent) {}
     ~SceneObject()
     {
         for(unsigned i = 0; i < objects.size(); ++i)
@@ -29,10 +29,10 @@ public:
     
     SceneObject* Root()
     {
-        if(!parent)
+        if(!parentObject)
             return this;
         else
-            return parent->Root();
+            return parentObject->Root();
     }
     
     SceneObject* CreateSceneObject()
@@ -58,7 +58,7 @@ public:
             return (T*)it->second;
     }
 private:
-    SceneObject* parent;
+    SceneObject* parentObject;
     std::vector<SceneObject*> objects;
     std::map<typeindex, Component*> components;
 };
