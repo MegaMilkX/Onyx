@@ -9,9 +9,12 @@ class Transform : public SceneObject::Component
 {
 public:
     Transform()
-    : _parent(0) {}
+    : Transform(0) {}
     Transform(Transform* parent)
-    : _parent(parent) 
+    : _parent(parent),
+    _position(0.0f, 0.0f, 0.0f),
+    _rotation(0.0f, 0.0f, 0.0f, 1.0f),
+    _scale(1.0f, 1.0f, 1.0f)
     {
         if(_parent)
             _parent->_addChild(this);
