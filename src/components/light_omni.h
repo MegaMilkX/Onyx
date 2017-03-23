@@ -2,6 +2,7 @@
 #define COMPONENT_LIGHT_OMNI_H
 
 #include "../scene_object.h"
+#include "gfxscene.h"
 
 #include <aurora/math.h>
 
@@ -16,9 +17,13 @@ public:
     {
         intensity = i;
     }
+    
+    Au::Math::Vec3f Color()
+    { return color; }
 
     void OnCreate()
     {
+        GetParentObject()->Root()->GetComponent<GFXScene>()->AddLightOmni(this);
     }
 private:
     Au::Math::Vec3f color;
