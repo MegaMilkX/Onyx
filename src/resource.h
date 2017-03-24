@@ -86,10 +86,19 @@ public:
     }
     
 private:
-    std::map<std::string, T*> resources;
-    std::map<std::string, int> referenceCount;
-    std::vector<std::string> searchPaths;
-    std::vector<Reader*> readers;
+    static std::map<std::string, T*> resources;
+    static std::map<std::string, int> referenceCount;
+    static std::vector<std::string> searchPaths;
+    static std::vector<Reader*> readers;
 };
+
+template<typename T>
+std::map<std::string, T*> Resource::resources;
+template<typename T>
+std::map<std::string, int> Resource::referenceCount;
+template<typename T>
+std::vector<std::string> Resource::searchPaths;
+template<typename T>
+std::vector<Reader*> Resource::readers;
 
 #endif
