@@ -54,7 +54,8 @@ public:
                 std::string filename = 
                     searchPaths[i] + 
                     "\\" + 
-                    name + 
+                    name +
+                    "." +
                     readers[j]->extension;
                 resource = readers[j]->(filename);
                 if(resource)
