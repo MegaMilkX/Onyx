@@ -94,12 +94,12 @@ private:
 };
 
 template<typename T>
-std::map<std::string, T*> Resource::resources;
+std::map<std::string, T*> Resource<T>::resources;
 template<typename T>
-std::map<std::string, int> Resource::referenceCount;
+std::map<std::string, int> Resource<T>::referenceCount;
 template<typename T>
-std::vector<std::string> Resource::searchPaths;
+std::vector<std::string> Resource<T>::searchPaths;
 template<typename T>
-std::vector<Reader*> Resource::readers;
+std::vector<typename Resource<T>::Reader*> Resource<T>::readers;
 
 #endif
