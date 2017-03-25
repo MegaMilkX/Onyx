@@ -15,7 +15,7 @@ public:
         virtual ~Reader() {}
         virtual void* operator(const std::string& filename) = 0;
     private:
-        std:string extension;
+        std::string extension;
     };
 
     static void AddSearchPath(const std::string& path)
