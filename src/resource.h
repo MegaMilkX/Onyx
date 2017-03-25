@@ -57,7 +57,7 @@ public:
                     name +
                     "." +
                     readers[j]->extension;
-                resource = readers[j]->(filename);
+                resource = (T*)readers[j]->operator()(filename);
                 if(resource)
                     goto resourceFound;
             }
