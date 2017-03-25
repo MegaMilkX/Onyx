@@ -13,7 +13,7 @@ public:
     friend Resource;
     public:
         virtual ~Reader() {}
-        virtual void* operator(const std::string& filename) = 0;
+        virtual void* operator()(const std::string& filename) = 0;
     private:
         std::string extension;
     };
