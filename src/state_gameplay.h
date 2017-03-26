@@ -21,15 +21,29 @@ public:
     
     virtual void OnInit() 
     {
-        //camera = scene.CreateObject()->GetComponent<Camera>();
-        //Mesh* mesh = scene.CreateObject()->GetComponent<Mesh>();
-        Transform* transform = scene.CreateSceneObject()->GetComponent<Transform>();
-        gfxScene = scene.GetComponent<GFXScene>();
-        GFXRenderUnit renderUnit;
-        renderUnit.transform = transform;
-        renderUnit.mesh = LoadMesh(GFXDevice(), "miku.fbx");
-        renderUnit.renderState = CreateRenderState(GFXDevice());
-        gfxScene->AddRenderUnit(renderUnit);
+        Resource<MeshData>::AddSearchPath("data");
+        Resource<MeshData>::AddReader<MeshReaderFBX>("fbx");
+        MeshData* meshData = Resource<MeshData>::Get("miku");
+        Au::GFX::Mesh* gfxMesh = GFXDevice()->CreateMesh();
+        gfxMesh->Format(
+            Au::Position() << 
+            Au::Normal() << 
+            Au::ColorRGB() << 
+            Au::BoneWeight4() << 
+            Au::BoneIndex4()
+        );
+        meshData->FillMesh(gfxMesh);
+        
+        Au::GFX::RenderState* renderState = CreateRenderState(GFXDevice());
+        
+        Mesh* mesh = scene.CreateSceneObject()->GetComponent<Mesh>();
+        mesh->SetMesh(gfxMesh);
+        mesh->SetRenderState(renderState);
+        
+        mesh2 = scene.CreateSceneObject()->GetComponent<Mesh>();
+        mesh2->SetMesh(gfxMesh);
+        mesh2->SetRenderState(renderState);
+        mesh2->GetParentObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
         
         camera = scene.CreateSceneObject()->GetComponent<Camera>();
         camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
@@ -39,10 +53,13 @@ public:
         light->Intensity(1.0f);
         
         LightOmni* light2 = scene.CreateSceneObject()->GetComponent<LightOmni>();
-        light2->Color(0.6f, 0.2f, 0.8f);
-        light2->GetParentObject()->GetComponent<Transform>()->Position(-2.0f, 1.5f, 0.0f);
+        light2->Color(0.8f, 0.4f, 1.0f);
+        light2->GetParentObject()->GetComponent<Transform>()->Position(-0.5f, 1.7f, 0.5f);
     }
-    virtual void OnCleanup() {}
+    virtual void OnCleanup() 
+    {
+        Resource<MeshData>::Free("miku");
+    }
     virtual void OnUpdate() 
     {
         Transform* camTrans = camera->GetParentObject()->GetComponent<Transform>();
@@ -54,6 +71,8 @@ public:
             camTrans->Translate(camTrans->Back() * 0.001f);
         if(camMoveFlags & 8)
             camTrans->Translate(camTrans->Right() * 0.001f);
+        
+        mesh2->GetParentObject()->GetComponent<Transform>()->Rotate(0.001f, 0.0f, 1.0f, 0.0f);
     }
     virtual void OnRender(Au::GFX::Device* device)
     {
@@ -92,6 +111,7 @@ private:
     SceneObject scene;
     GFXScene* gfxScene;
     Camera* camera;
+    Mesh* mesh2;
     
     float fov = 1.6f;
     float zfar = 100.0f;
