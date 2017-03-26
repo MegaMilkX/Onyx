@@ -89,7 +89,7 @@ Au::GFX::RenderState* CreateRenderState(Au::GFX::Device* gfxDevice)
             
             fragPos = vec3(MatrixModel * vec4(Position, 1.0));
             color = ColorRGB;
-            normal = (MatrixModel * vec4(Normal, 1.0)).xyz;
+            normal = (MatrixModel * vec4(Normal, 0.0)).xyz;
             gl_Position = MatrixProjection * MatrixView * MatrixModel * vec4(Position, 1.0);
     })");
     std::cout << shaderVertex->StatusString() << std::endl;
