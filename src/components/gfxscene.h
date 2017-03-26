@@ -3,11 +3,10 @@
 
 #include <vector>
 
+#include <aurora/gfx.h>
 #include <aurora/math.h>
 #include <aurora/transform.h>
 #include "../scene_object.h"
-
-#include "gfxscene/gfxrenderunit.h"
 
 class Mesh;
 class LightOmni;
@@ -15,8 +14,6 @@ class GFXScene : public SceneObject::Component
 {
 friend Mesh;
 public:
-    void AddRenderUnit(GFXRenderUnit renderUnit);
-
     void Render(Au::GFX::Device* device, 
         const Au::Math::Mat4f& perspective,
         const Au::Math::Mat4f& transform);
@@ -37,13 +34,28 @@ public:
             }
         }
     }
+    
+    void AddMesh(Mesh* mesh)
+    {
+        RemoveMesh(mesh);
+        meshes.push_back(mesh);
+    }
+    void RemoveMesh(Mesh* mesh)
+    {
+        for(unsigned i = 0; i < meshes.size(); ++i)
+        {
+            if(meshes[i] == mesh)
+            {
+                meshes.erase(meshes.begin() + i);
+                break;
+            }
+        }
+    }
         
     virtual void OnCreate();
 private:
-    void AddMesh(Mesh* mesh);
     std::vector<Mesh*> meshes;
     std::vector<LightOmni*> lightsOmni;
-    std::vector<GFXRenderUnit> renderUnits;
     
     Au::GFX::Uniform uniModelMat4f;
     Au::GFX::Uniform uniViewMat4f;

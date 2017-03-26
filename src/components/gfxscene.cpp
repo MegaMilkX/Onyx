@@ -13,15 +13,6 @@ void GFXScene::OnCreate()
     uniLightOmniRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniRGB", 3);    
 }
 
-void GFXScene::AddMesh(Mesh* mesh)
-{
-    meshes.push_back(mesh);
-}
-
-void GFXScene::AddRenderUnit(GFXRenderUnit renderUnit)
-{
-    renderUnits.push_back(renderUnit);
-}
 #include <iostream>
 void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection,
         const Au::Math::Mat4f& transform)
@@ -32,13 +23,13 @@ void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection
         uniLightOmniPos.Set(lightsOmni[j]->GetParentObject()->GetComponent<Transform>()->Position(), j);
     }
     
-    for(unsigned i = 0; i < renderUnits.size(); ++i)
+    for(unsigned i = 0; i < meshes.size(); ++i)
     {        
-        device->Bind(renderUnits[i].renderState);
-        device->Set(uniModelMat4f, renderUnits[i].transform->GetTransform());
+        device->Bind(meshes[i]->renderState);
+        device->Set(uniModelMat4f, meshes[i]->GetParentObject()->GetComponent<Transform>()->GetTransform());
         device->Set(uniViewMat4f, Au::Math::Inverse(transform));
         device->Set(uniProjMat4f, projection);        
-        device->Bind(renderUnits[i].mesh);
+        device->Bind(meshes[i]->mesh);
         device->Render();
     }
 }
