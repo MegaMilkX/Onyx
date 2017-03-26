@@ -114,7 +114,9 @@ Au::GFX::RenderState* CreateRenderState(Au::GFX::Device* gfxDevice)
             {
                 vec3 lightDir = normalize(LightOmniPos[i] - fragPos);
                 float diff = max(dot(normal, lightDir), 0.0);
-                vec3 diffuse = diff * LightOmniRGB[i];
+                float dist = distance(LightOmniPos[i], fragPos);
+                vec3 diffuse = LightOmniRGB[i] * diff * (1.0 / (1.0 + 0.5 * dist + 3.0 * dist * dist));
+                
                 result += diffuse;
             }
             
