@@ -11,6 +11,8 @@
 #include "components/mesh.h"
 #include "components/light_omni.h"
 
+#include "components/luascript.h"
+
 #include "util.h"
 
 class Gameplay : public GameState
@@ -23,6 +25,13 @@ public:
     {
         Resource<MeshData>::AddSearchPath("data");
         Resource<MeshData>::AddReader<MeshReaderFBX>("fbx");
+        
+        Resource<ScriptData>::AddSearchPath("data");
+        Resource<ScriptData>::AddReader<ScriptReaderLUA>("lua");
+        
+        //LuaScript* script = scene.GetComponent<LuaScript>();
+        //script->Relay("Init");
+        
         MeshData* meshData = Resource<MeshData>::Get("miku");
         Au::GFX::Mesh* gfxMesh = GFXDevice()->CreateMesh();
         gfxMesh->Format(
