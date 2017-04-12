@@ -41,11 +41,18 @@ public:
     : _next(0) {}
     ~LuaScript()
     {
+        SceneObject* root = GetParentObject()->Root();
+        LuaScript* rootScript = root->GetComponent<LuaScript>();
+        rootScript->_unlink(this);
         _state.Cleanup();
     }
     
     virtual void OnCreate()
     {
+        SceneObject* root = GetParentObject()->Root();
+        LuaScript* rootScript = root->GetComponent<LuaScript>();
+        rootScript->_link(this);
+        
         _state.Init();
         _state.Bind(&SceneObject::Root, "Root");
         _state.Bind(&SceneObject::CreateSceneObject, "CreateObject");
@@ -56,10 +63,32 @@ public:
     
     void Relay(const std::string& func)
     {
+        _state.Call(func);
         if(_next) _next->Relay(func);
     }
     
 private:
+    void _link(LuaScript* script)
+    {
+        if(script == this)
+            return;
+        
+        if(_next == 0)
+            _next = script;
+        else
+            _next->_link(script);
+    }
+    
+    void _unlink(LuaScript* script)
+    {
+        if(_next == 0)
+            return;
+        if(_next == script)
+            _next = script->_next;
+        else
+            _next->_unlink(script);
+    }
+
     Au::Lua _state;
     LuaScript* _next;
 };
