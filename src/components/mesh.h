@@ -111,8 +111,8 @@ public:
 
     virtual void OnCreate()
     {
-        transform = GetParentObject()->GetComponent<Transform>();
-        gfxScene = GetParentObject()->Root()->GetComponent<GFXScene>();
+        transform = GetObject()->GetComponent<Transform>();
+        gfxScene = GetObject()->Root()->GetComponent<GFXScene>();
         gfxScene->AddMesh(this);
     }
 private:

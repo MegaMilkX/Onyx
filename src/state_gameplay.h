@@ -55,18 +55,18 @@ public:
         mesh2 = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh2->SetMesh(gfxMesh);
         mesh2->SetRenderState(renderState);
-        mesh2->GetParentObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
+        mesh2->GetObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
         
         camera = scene.CreateSceneObject()->GetComponent<Camera>();
         camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
-        camera->GetParentObject()->GetComponent<Transform>()->Translate(0.0f, 1.5f, 7.0f);
-        LightOmni* light = camera->GetParentObject()->GetComponent<LightOmni>();
+        camera->GetObject()->GetComponent<Transform>()->Translate(0.0f, 1.5f, 7.0f);
+        LightOmni* light = camera->GetObject()->GetComponent<LightOmni>();
         light->Color(0.2f, 0.8f, 0.6f);
         light->Intensity(1.0f);
         
         LightOmni* light2 = scene.CreateSceneObject()->GetComponent<LightOmni>();
         light2->Color(0.8f, 0.4f, 1.0f);
-        light2->GetParentObject()->GetComponent<Transform>()->Position(-0.5f, 1.7f, 0.5f);
+        light2->GetObject()->GetComponent<Transform>()->Position(-0.5f, 1.7f, 0.5f);
     }
     virtual void OnCleanup() 
     {
@@ -74,7 +74,7 @@ public:
     }
     virtual void OnUpdate() 
     {
-        Transform* camTrans = camera->GetParentObject()->GetComponent<Transform>();
+        Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
         if(camMoveFlags & 1)
             camTrans->Translate(-camTrans->Back() * 0.001f);
         if(camMoveFlags & 2)
@@ -84,7 +84,7 @@ public:
         if(camMoveFlags & 8)
             camTrans->Translate(camTrans->Right() * 0.001f);
         
-        mesh2->GetParentObject()->GetComponent<Transform>()->Rotate(0.001f, 0.0f, 1.0f, 0.0f);
+        mesh2->GetObject()->GetComponent<Transform>()->Rotate(0.001f, 0.0f, 1.0f, 0.0f);
     }
     virtual void OnRender(Au::GFX::Device* device)
     {
@@ -114,7 +114,7 @@ public:
     
     virtual void MouseMove(int x, int y)
     {
-        Transform* camTrans = camera->GetParentObject()->GetComponent<Transform>();
+        Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
         
         camTrans->Rotate(-x * 0.005f, Au::Math::Vec3f(0, 1, 0));
         camTrans->Rotate(-y * 0.005f, camTrans->GetTransform() * Au::Math::Vec3f(1, 0, 0));

@@ -23,7 +23,7 @@ public:
 
     void OnCreate()
     {
-        GetParentObject()->Root()->GetComponent<GFXScene>()->AddLightOmni(this);
+        GetObject()->Root()->GetComponent<GFXScene>()->AddLightOmni(this);
     }
 private:
     Au::Math::Vec3f color;

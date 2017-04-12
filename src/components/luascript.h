@@ -41,7 +41,7 @@ public:
     : _next(0) {}
     ~LuaScript()
     {
-        SceneObject* root = GetParentObject()->Root();
+        SceneObject* root = GetObject()->Root();
         LuaScript* rootScript = root->GetComponent<LuaScript>();
         rootScript->_unlink(this);
         _state.Cleanup();
@@ -49,7 +49,7 @@ public:
     
     virtual void OnCreate()
     {
-        SceneObject* root = GetParentObject()->Root();
+        SceneObject* root = GetObject()->Root();
         LuaScript* rootScript = root->GetComponent<LuaScript>();
         rootScript->_link(this);
         
@@ -61,9 +61,10 @@ public:
         _state.Bind(&SceneObject::GetComponent<Camera>, "Camera");
     }
     
-    void Relay(const std::string& func)
+    template<typename... Args>
+    void Relay(const std::string& func, Args... args)
     {
-        _state.Call(func);
+        _state.Call(func, args...);
         if(_next) _next->Relay(func);
     }
     

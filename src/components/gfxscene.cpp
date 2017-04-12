@@ -20,13 +20,13 @@ void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection
     for(unsigned j = 0; j < 3 && j < lightsOmni.size(); ++j)
     {
         uniLightOmniRGB.Set(lightsOmni[j]->Color(), j);
-        uniLightOmniPos.Set(lightsOmni[j]->GetParentObject()->GetComponent<Transform>()->Position(), j);
+        uniLightOmniPos.Set(lightsOmni[j]->GetObject()->GetComponent<Transform>()->Position(), j);
     }
     
     for(unsigned i = 0; i < meshes.size(); ++i)
     {        
         device->Bind(meshes[i]->renderState);
-        device->Set(uniModelMat4f, meshes[i]->GetParentObject()->GetComponent<Transform>()->GetTransform());
+        device->Set(uniModelMat4f, meshes[i]->GetObject()->GetComponent<Transform>()->GetTransform());
         device->Set(uniViewMat4f, Au::Math::Inverse(transform));
         device->Set(uniProjMat4f, projection);        
         device->Bind(meshes[i]->mesh);

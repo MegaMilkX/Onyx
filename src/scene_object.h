@@ -14,7 +14,7 @@ public:
     friend SceneObject;
     public:
         virtual ~Component() {}
-        SceneObject* GetParentObject() { return object; }
+        SceneObject* GetObject() { return object; }
     private:
         SceneObject* object;
     };
