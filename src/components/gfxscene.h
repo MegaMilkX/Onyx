@@ -14,6 +14,12 @@ class GFXScene : public SceneObject::Component
 {
 friend Mesh;
 public:
+    bool Init(Au::GFX::Device* gfxDevice)
+    {
+        _gfxDevice = gfxDevice;        
+        return true;
+    }
+
     void Render(Au::GFX::Device* device, 
         const Au::Math::Mat4f& perspective,
         const Au::Math::Mat4f& transform);
@@ -54,6 +60,8 @@ public:
         
     virtual void OnCreate();
 private:
+    Au::GFX::Device* _gfxDevice;
+
     std::vector<Mesh*> meshes;
     std::vector<LightOmni*> lightsOmni;
     

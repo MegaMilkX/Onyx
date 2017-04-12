@@ -29,6 +29,9 @@ public:
         Resource<ScriptData>::AddSearchPath("data");
         Resource<ScriptData>::AddReader<ScriptReaderLUA>("lua");
         
+        gfxScene = scene.GetComponent<GFXScene>();
+        gfxScene->Init(GFXDevice());
+        
         //LuaScript* script = scene.GetComponent<LuaScript>();
         //script->Relay("Init");
         
