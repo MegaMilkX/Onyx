@@ -9,6 +9,7 @@
 #include "components/transform.h"
 #include "components/camera.h"
 #include "components/mesh.h"
+#include "components/material.h"
 #include "components/light_omni.h"
 
 #include "components/luascript.h"
@@ -51,11 +52,13 @@ public:
         Mesh* mesh = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh->SetMesh(gfxMesh);
         mesh->SetRenderState(renderState);
+        Material* mat = mesh->GetObject()->GetComponent<Material>();
         
         mesh2 = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh2->SetMesh(gfxMesh);
         mesh2->SetRenderState(renderState);
         mesh2->GetObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
+        mesh2->GetObject()->GetComponent<Material>();
         
         camera = scene.CreateSceneObject()->GetComponent<Camera>();
         camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
