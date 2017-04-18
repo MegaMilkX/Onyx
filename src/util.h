@@ -17,7 +17,7 @@ Au::GFX::Mesh* LoadMesh(Au::GFX::Device* gfxDevice, const std::string& path)
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
-    std::vector<char> buffer(size);
+    std::vector<char> buffer((unsigned int)size);
     if(file.read(buffer.data(), size))
     {
         Au::Media::FBX::Reader fbxReader;
@@ -37,7 +37,7 @@ Au::GFX::Mesh* LoadMesh(Au::GFX::Device* gfxDevice, const std::string& path)
             mesh->IndexData(indices);
             
             Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
-            for(unsigned i = 0; i < skin.DeformerCount(); ++i)
+            for(int i = 0; i < skin.DeformerCount(); ++i)
             {
                 Au::Media::FBX::SkinDeformer* deformer = 
                     skin.GetDeformer(i);

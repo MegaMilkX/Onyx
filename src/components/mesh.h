@@ -58,7 +58,7 @@ public:
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
-        std::vector<char> buffer(size);
+        std::vector<char> buffer((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
             meshData = new MeshData();
@@ -77,7 +77,7 @@ public:
                 meshData->SetIndices(fbxMesh.GetIndices<unsigned short>());
                 
                 Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
-                for(unsigned i = 0; i < skin.DeformerCount(); ++i)
+                for(int i = 0; i < skin.DeformerCount(); ++i)
                 {
                     Au::Media::FBX::SkinDeformer* deformer = 
                         skin.GetDeformer(i);
