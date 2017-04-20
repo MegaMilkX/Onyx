@@ -53,6 +53,10 @@ public:
         mesh->SetMesh(gfxMesh);
         mesh->SetRenderState(renderState);
         Material* mat = mesh->GetObject()->GetComponent<Material>();
+        mat->SetLayer(100, "AmbientColor");
+        mat->SetLayer(101, "LightOmniLambert");
+        mat->SetLayer(102, "LightOmniLambert");
+        mat->Finalize();
         
         mesh2 = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh2->SetMesh(gfxMesh);
