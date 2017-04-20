@@ -81,7 +81,7 @@ public:
                     continue;
                 blendSnip.RenameInput("first", firstInput);
                 blendSnip.RenameInput("second", layers[i].name);
-                firstInput = blendSnip.name + std::to_string(i);
+                firstInput = blendSnip.name + std::to_string(i - 1);
                 blendSnip.RenameOutput("result", firstInput);
                 specFragSnips.push_back(blendSnip);
             }
