@@ -104,8 +104,8 @@ public:
         vshader = Au::GLSLStitch::Finalize(vSnip);
         fshader = Au::GLSLStitch::Finalize(fSnip);
         
-        vshader = std::string("#version 130\n") + vshader;
-        fshader = std::string("#version 130\n") + fshader;
+        vshader = std::string("#version 140\n") + vshader;
+        fshader = std::string("#version 140\n") + fshader;
         
         std::cout << "== VERTEX =========" << std::endl;
         std::cout << vshader << std::endl;
@@ -120,12 +120,11 @@ public:
         std::cout << shaderFragment->StatusString() << std::endl;
         
         renderState = gfxDevice->CreateRenderState();
-        renderState->AttribFormat(Au::Position() << Au::Normal() << Au::ColorRGB());
         renderState->SetShader(shaderVertex);
         renderState->SetShader(shaderFragment);
-        
         _gatherUniforms(vSnip);
         _gatherUniforms(fSnip);
+        _deductAttribFormat(vSnip);
         
         std::cout << renderState->StatusString() << std::endl;
     }
@@ -154,6 +153,78 @@ private:
     Au::GFX::RenderState* renderState;
 
     std::vector<Layer> layers;
+    
+    std::vector<Au::AttribInfo>& _getAttribList()
+    {
+        static std::vector<Au::AttribInfo> attribs =
+            _getAttribListInit();
+        return attribs;
+    }
+    
+    static bool _compareAttribByNameLen(const Au::AttribInfo& first, const Au::AttribInfo& second)
+    { return first.name.size() > second.name.size(); }
+    
+    std::vector<Au::AttribInfo> _getAttribListInit()
+    {
+        std::vector<Au::AttribInfo> result;
+        
+        result.push_back(Au::Position());
+        result.push_back(Au::Normal());
+        result.push_back(Au::Tangent());
+        result.push_back(Au::Bitangent());
+        result.push_back(Au::UV());
+        result.push_back(Au::UVW());
+        result.push_back(Au::ColorRGBA());
+        result.push_back(Au::ColorRGB());
+        result.push_back(Au::BoneWeight4());
+        result.push_back(Au::BoneIndex4());
+        
+        std::sort(result.begin(), result.end(), &_compareAttribByNameLen);
+        
+        return result;
+    }
+    
+    int _tryMatchStr(
+        const std::string& str, 
+        std::string& token
+        )
+    {
+        if(str.size() < token.size())
+            return 0;
+        
+        for(unsigned i = 0; i < token.size(); ++i)
+        {
+            if(token[i] != str[i])
+                return 0;
+        }
+
+        return token.size();
+    }
+    
+    void _deductAttribFormat(Au::GLSLStitch::Snippet& snip)
+    {
+        Au::AttribFormat attribFormat;
+        std::vector<Au::AttribInfo> attribs = _getAttribList();
+                
+        for(unsigned i = 0; i < snip.inputs.size(); ++i)
+        {
+            Au::GLSLStitch::Variable& var =
+                snip.inputs[i];
+        
+            for(unsigned j = 0; j < attribs.size(); ++j)
+            {
+                Au::AttribInfo& attr = attribs[j];
+                int r = _tryMatchStr(var.name, attr.name);
+                if(r)
+                {
+                    attribFormat << attr;
+                    break;
+                }
+            }
+        }
+        //attribFormat.Print();
+        renderState->AttribFormat(attribFormat);
+    }
     
     void _gatherUniforms(Au::GLSLStitch::Snippet& snip)
     {
