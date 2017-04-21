@@ -11,6 +11,9 @@ R"(
         MatrixView * 
         MatrixModel *
         vec4(Position, 1.0);
+#vertex PositionModel
+    in vec3 Position;
+    out vec4 PositionModel = vec4(Position, 1.0);
 #vertex NormalModel
     in vec3 Normal;
     uniform mat4 MatrixModel;
@@ -21,24 +24,44 @@ R"(
     uniform mat4 MatrixModel;
     out vec3 FragPosWorld;
     FragPosWorld = vec3(MatrixModel * vec4(Position, 1.0));
+#fragment AmbientColor
+    uniform vec3 UniformAmbientColor;
+    out vec4 AmbientColor = vec4(UniformAmbientColor, 1.0);
 #fragment LightDirection
-    uniform vec3 LightPosition;
+    uniform vec3 LightOmniPos;
     in vec3 FragPosWorld;
     out vec3 LightDirection;
-    LightDirection = normalize(LightPosition - FragPosWorld);
+    LightDirection = normalize(LightOmniPos - FragPosWorld);
 #fragment LightOmniLambert
     in vec3 NormalModel;
-    uniform vec3 LightRGB;
-    uniform vec3 LightPosition;
+    uniform vec3 LightOmniRGB;
+    uniform vec3 LightOmniPos;
     in vec3 FragPosWorld;
     in vec3 LightDirection;
-    out vec3 LightOmniLambert;
+    out vec4 LightOmniLambert;
     float diff = max(dot(NormalModel, LightDirection), 0.0);
-    float dist = distance(LightPosition, FragPosWorld);
+    float dist = distance(LightOmniPos, FragPosWorld);
     LightOmniLambert = 
-        LightRGB * 
-        diff *
-        (1.0 / (1.0 + 0.5 * dist + 3.0 * dist * dist));
+        vec4(
+            LightOmniRGB * 
+            diff *
+            (1.0 / (1.0 + 0.5 * dist + 3.0 * dist * dist)),
+            1.0
+        );
+#fragment RimLight
+    in mat4 MatrixView;
+    in vec4 PositionWorld;
+    in vec3 NormalModel;
+    out vec4 RimLight;
+    vec3 n = normalize(mat3(MatrixView) * NormalModel);
+    vec3 p = vec3(MatrixView * PositionWorld);
+    vec3 v = normalize(-p);
+    float vdn = 1.0 - max(dot(v, n), 0.0);
+    RimLight = vec4(vdn, vdn, vdn, 1.0);
+        
+#fragment DebugRed
+    out vec4 DebugRed = vec4(1.0, 0.0, 0.0, 1.0);
+        
 #generic multiply
     in vec4 first;
     in vec4 second;
