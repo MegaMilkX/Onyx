@@ -54,7 +54,7 @@ public:
         mesh->SetRenderState(renderState);
         Material* mat = mesh->GetObject()->GetComponent<Material>();
         mat->SetLayer(100, "AmbientColor");
-        mat->SetLayer(101, "LightOmniLambert");
+        //mat->SetLayer(101, "RimLight");
         mat->SetLayer(102, "LightOmniLambert");
         mat->Finalize();
         
@@ -62,13 +62,16 @@ public:
         mesh2->SetMesh(gfxMesh);
         mesh2->SetRenderState(renderState);
         mesh2->GetObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
-        mesh2->GetObject()->GetComponent<Material>();
+        mat = mesh2->GetObject()->GetComponent<Material>();
+        mat->SetLayer(100, "DebugRed");
+        mat->SetLayer(101, "LightOmniLambert");
+        mat->Finalize();
         
         camera = scene.CreateSceneObject()->GetComponent<Camera>();
         camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
         camera->GetObject()->GetComponent<Transform>()->Translate(0.0f, 1.5f, 7.0f);
         LightOmni* light = camera->GetObject()->GetComponent<LightOmni>();
-        light->Color(0.2f, 0.8f, 0.6f);
+        light->Color(0.6f, 1.0f, 0.8f);
         light->Intensity(1.0f);
         
         LightOmni* light2 = scene.CreateSceneObject()->GetComponent<LightOmni>();
