@@ -6,7 +6,6 @@
 
 void GFXScene::OnCreate()
 {
-    uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
     uniViewMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixView");
     uniProjMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixProjection");
     
@@ -28,13 +27,11 @@ void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection
     
     uniAmbientColor = Au::Math::Vec3f(0.1f, 0.1f, 0.1f);
     
+    device->Set(uniViewMat4f, Au::Math::Inverse(transform));
+    device->Set(uniProjMat4f, projection);
+    
     for(unsigned i = 0; i < meshes.size(); ++i)
     {
-        meshes[i]->GetObject()->GetComponent<Material>()->Bind(device);
-        device->Set(uniModelMat4f, meshes[i]->GetObject()->GetComponent<Transform>()->GetTransform());
-        device->Set(uniViewMat4f, Au::Math::Inverse(transform));
-        device->Set(uniProjMat4f, projection);
-        device->Bind(meshes[i]->mesh);
-        device->Render();
+        meshes[i]->Render(device);
     }
 }

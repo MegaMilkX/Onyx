@@ -8,6 +8,7 @@
 #include "../scene_object.h"
 #include "transform.h"
 #include "gfxscene.h"
+#include "material.h"
 
 #include "../resource.h"
 
@@ -97,7 +98,9 @@ class Mesh : public SceneObject::Component
 friend GFXScene;
 public:
     Mesh()
-    {}
+    {
+        uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
+    }
     
     ~Mesh()
     {
@@ -106,8 +109,14 @@ public:
     
     void SetMesh(Au::GFX::Mesh* mesh)
     { this->mesh = mesh; }
-    void SetRenderState(Au::GFX::RenderState* rs)
-    { renderState = rs; }
+    
+    void Render(Au::GFX::Device* device)
+    {
+        GetObject()->GetComponent<Material>()->Bind(device);
+        device->Set(uniModelMat4f, GetObject()->GetComponent<Transform>()->GetTransform());
+        device->Bind(mesh);
+        device->Render();
+    }
 
     virtual void OnCreate()
     {
@@ -120,7 +129,7 @@ private:
     GFXScene* gfxScene;
     
     Au::GFX::Mesh* mesh;
-    Au::GFX::RenderState* renderState;
+    Au::GFX::Uniform uniModelMat4f;
 };
 
 #endif

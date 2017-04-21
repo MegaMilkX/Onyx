@@ -67,7 +67,6 @@ private:
     std::vector<Mesh*> meshes;
     std::vector<LightOmni*> lightsOmni;
     
-    Au::GFX::Uniform uniModelMat4f;
     Au::GFX::Uniform uniViewMat4f;
     Au::GFX::Uniform uniProjMat4f;
     Au::GFX::Uniform uniLightOmniPos;
