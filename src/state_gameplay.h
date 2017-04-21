@@ -47,20 +47,16 @@ public:
         );
         meshData->FillMesh(gfxMesh);
         
-        Au::GFX::RenderState* renderState = CreateRenderState(GFXDevice());
-        
         Mesh* mesh = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh->SetMesh(gfxMesh);
-        mesh->SetRenderState(renderState);
         Material* mat = mesh->GetObject()->GetComponent<Material>();
         mat->SetLayer(100, "AmbientColor");
-        //mat->SetLayer(101, "RimLight");
+        mat->SetLayer(101, "RimLight");
         mat->SetLayer(102, "LightOmniLambert");
         mat->Finalize();
         
         mesh2 = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh2->SetMesh(gfxMesh);
-        mesh2->SetRenderState(renderState);
         mesh2->GetObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
         mat = mesh2->GetObject()->GetComponent<Material>();
         mat->SetLayer(100, "DebugRed");
