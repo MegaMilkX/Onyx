@@ -1,6 +1,7 @@
 #ifndef COMPONENT_MATERIAL_H
 #define COMPONENT_MATERIAL_H
 
+#include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -8,6 +9,7 @@
 #include <aurora/glslstitch.h>
 
 #include "../scene_object.h"
+#include "gfxscene.h"
 
 class Material : public SceneObject::Component
 {
@@ -15,7 +17,7 @@ public:
     struct Layer
     {
         Layer(int index, const std::string& name)
-        : index(index), name(name), blend("multiply") {}
+        : index(index), name(name), blend("add") {}
         
         bool operator<(const Layer& other)
         {
@@ -102,10 +104,35 @@ public:
         vshader = Au::GLSLStitch::Finalize(vSnip);
         fshader = Au::GLSLStitch::Finalize(fSnip);
         
+        vshader = std::string("#version 130\n") + vshader;
+        fshader = std::string("#version 130\n") + fshader;
+        
         std::cout << "== VERTEX =========" << std::endl;
         std::cout << vshader << std::endl;
         std::cout << "== FRAGMENT =======" << std::endl;
         std::cout << fshader << std::endl;
+        
+        Au::GFX::Shader* shaderVertex = gfxDevice->CreateShader(Au::GFX::Shader::VERTEX);
+        shaderVertex->Source(vshader);
+        std::cout << shaderVertex->StatusString() << std::endl;
+        Au::GFX::Shader* shaderFragment = gfxDevice->CreateShader(Au::GFX::Shader::PIXEL);
+        shaderFragment->Source(fshader);
+        std::cout << shaderFragment->StatusString() << std::endl;
+        
+        renderState = gfxDevice->CreateRenderState();
+        renderState->AttribFormat(Au::Position() << Au::Normal() << Au::ColorRGB());
+        renderState->SetShader(shaderVertex);
+        renderState->SetShader(shaderFragment);
+        
+        _gatherUniforms(vSnip);
+        _gatherUniforms(fSnip);
+        
+        std::cout << renderState->StatusString() << std::endl;
+    }
+    
+    void Bind(Au::GFX::Device* device)
+    {
+        device->Bind(renderState);
     }
     
     virtual void OnCreate()
@@ -118,10 +145,47 @@ public:
             genericSnips
         );
         
-        
+        gfxScene = GetObject()->Root()->GetComponent<GFXScene>();
+        gfxDevice = gfxScene->GetDevice();
     }
 private:
+    GFXScene* gfxScene;
+    Au::GFX::Device* gfxDevice;
+    Au::GFX::RenderState* renderState;
+
     std::vector<Layer> layers;
+    
+    void _gatherUniforms(Au::GLSLStitch::Snippet& snip)
+    {
+        for(unsigned i = 0; i < snip.other.size(); ++i)
+        {
+            Au::GLSLStitch::Variable& var =
+                snip.other[i];
+            
+            //if(var.type == "bool")
+            //    renderState->AddUniform<bool>(var.name);
+            //else 
+            if(var.type == "int")
+                renderState->AddUniform<int>(var.name);
+            else if(var.type == "uint")
+                renderState->AddUniform<unsigned int>(var.name);
+            else if(var.type == "float")
+                renderState->AddUniform<float>(var.name);
+            //else if(var.type == "double")
+            //    renderState->AddUniform<double>(var.name);
+            else if(var.type == "vec2")
+                renderState->AddUniform<Au::Math::Vec2f>(var.name);
+            else if(var.type == "vec3")
+                renderState->AddUniform<Au::Math::Vec3f>(var.name);
+            else if(var.type == "vec4")
+                renderState->AddUniform<Au::Math::Vec4f>(var.name);
+            else if(var.type == "mat3")
+                renderState->AddUniform<Au::Math::Mat3f>(var.name);
+            else if(var.type == "mat4")
+                renderState->AddUniform<Au::Math::Mat4f>(var.name);
+            
+        }
+    }
     
     bool _getGenericSnippet(const std::string& name, Au::GLSLStitch::Snippet& snip)
     {
