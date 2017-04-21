@@ -24,6 +24,7 @@ R"(
     uniform mat4 MatrixModel;
     out vec3 FragPosWorld;
     FragPosWorld = vec3(MatrixModel * vec4(Position, 1.0));
+    
 #fragment AmbientColor
     uniform vec3 UniformAmbientColor;
     out vec4 AmbientColor = vec4(UniformAmbientColor, 1.0);
@@ -49,15 +50,13 @@ R"(
             1.0
         );
 #fragment RimLight
-    in mat4 MatrixView;
-    in vec4 PositionWorld;
+    uniform mat4 MatrixView;
     in vec3 NormalModel;
+    in vec3 FragPosWorld;
     out vec4 RimLight;
-    vec3 n = normalize(mat3(MatrixView) * NormalModel);
-    vec3 p = vec3(MatrixView * PositionWorld);
-    vec3 v = normalize(-p);
-    float vdn = 1.0 - max(dot(v, n), 0.0);
-    RimLight = vec4(vdn, vdn, vdn, 1.0);
+    vec3 camPos = inverse(MatrixView)[3].xyz;
+    float diff = max(0.3 - dot(NormalModel, normalize(camPos - FragPosWorld)), 0.0);
+    RimLight = vec4(diff, diff, diff, 1.0);
         
 #fragment DebugRed
     out vec4 DebugRed = vec4(1.0, 0.0, 0.0, 1.0);
