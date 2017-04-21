@@ -19,6 +19,8 @@ public:
         _gfxDevice = gfxDevice;        
         return true;
     }
+    
+    Au::GFX::Device* GetDevice() { return _gfxDevice; }
 
     void Render(Au::GFX::Device* device, 
         const Au::Math::Mat4f& perspective,
@@ -70,6 +72,8 @@ private:
     Au::GFX::Uniform uniProjMat4f;
     Au::GFX::Uniform uniLightOmniPos;
     Au::GFX::Uniform uniLightOmniRGB;
+    
+    Au::GFX::Uniform uniAmbientColor;
 };
 
 #endif
