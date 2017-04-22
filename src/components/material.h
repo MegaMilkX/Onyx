@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <set>
 
 #include <aurora/glslstitch.h>
 #include <aurora/lua.h>
@@ -61,8 +62,9 @@ public:
         
     }
     
-    Au::GFX::RenderState* Finalize(Au::GFX::Device* gfxDevice)
+    Au::GFX::RenderState* Finalize(GFXScene* gfxScene)
     {
+        Au::GFX::Device* gfxDevice = gfxScene->GetDevice();
         Au::GFX::RenderState* renderState;
         std::vector<Au::GLSLStitch::Snippet> specFragSnips = fragSnips;
         
@@ -126,8 +128,13 @@ public:
         vshader = Au::GLSLStitch::Finalize(vSnip);
         fshader = Au::GLSLStitch::Finalize(fSnip);
         
-        vshader = std::string("#version 140\n") + vshader;
-        fshader = std::string("#version 140\n") + fshader;
+        renderState = gfxDevice->CreateRenderState();  
+
+        std::string pp;
+        _setupPreprocessorDirectives(vSnip, pp, gfxScene);
+        vshader = pp + vshader;
+        _setupPreprocessorDirectives(fSnip, pp, gfxScene);
+        fshader = pp + fshader;
         
         std::cout << "== VERTEX =========" << std::endl;
         std::cout << vshader << std::endl;
@@ -141,11 +148,12 @@ public:
         shaderFragment->Source(fshader);
         std::cout << shaderFragment->StatusString() << std::endl;
         
-        renderState = gfxDevice->CreateRenderState();
+        
         renderState->SetShader(shaderVertex);
         renderState->SetShader(shaderFragment);
-        _gatherUniforms(vSnip, renderState);
-        _gatherUniforms(fSnip, renderState);
+        
+        _gatherUniforms(vSnip, renderState, gfxScene);
+        _gatherUniforms(fSnip, renderState, gfxScene);
         _deductAttribFormat(vSnip, renderState);
         
         std::cout << renderState->StatusString() << std::endl;
@@ -229,35 +237,86 @@ private:
         _attribFormat = attribFormat;
     }
     
-    void _gatherUniforms(Au::GLSLStitch::Snippet& snip, Au::GFX::RenderState* renderState)
+    int _toInt(const std::string& str)
+    {
+        long int i;
+        char* end;
+        i = strtol(str.c_str(), &end, 10);
+        return (int)i;
+    }
+    
+    void _setupPreprocessorDirectives(
+        Au::GLSLStitch::Snippet& snip, 
+        std::string& pp,
+        GFXScene* gfxScene)
+    {
+        pp = "";
+        std::set<std::string> lines;
+        for(unsigned i = 0; i < snip.other.size(); ++i)
+        {
+            Au::GLSLStitch::Variable& var =
+                snip.other[i];
+                
+            int sz = 0;
+            sz = _toInt(var.arraySize);
+            if(sz == 0 && !var.arraySize.empty())
+            {
+                sz = gfxScene->GetInt(var.arraySize);
+                lines.insert(std::string("#define ") + 
+                    var.arraySize + 
+                    " " + 
+                    std::to_string(sz) + 
+                    "\n");
+            }
+        }
+        
+        std::set<std::string>::iterator it = lines.begin();
+        for(it; it != lines.end(); ++it)
+        { pp += (*it); }
+        
+        pp = std::string("#version 140\n") + pp;
+    }
+    
+    void _gatherUniforms(
+        Au::GLSLStitch::Snippet& snip, 
+        Au::GFX::RenderState* renderState,
+        GFXScene* gfxScene)
     {
         for(unsigned i = 0; i < snip.other.size(); ++i)
         {
             Au::GLSLStitch::Variable& var =
                 snip.other[i];
             
+            int sz = 0;
+            sz = _toInt(var.arraySize);
+            if(sz == 0)
+            {
+                sz = gfxScene->GetInt(var.arraySize);
+            }
+            
+            if(sz == 0) sz = 1;
+            
             //if(var.type == "bool")
-            //    renderState->AddUniform<bool>(var.name);
+            //    renderState->AddUniform<bool>(var.name, sz);
             //else 
             if(var.type == "int")
-                renderState->AddUniform<int>(var.name);
+                renderState->AddUniform<int>(var.name, sz);
             else if(var.type == "uint")
-                renderState->AddUniform<unsigned int>(var.name);
+                renderState->AddUniform<unsigned int>(var.name, sz);
             else if(var.type == "float")
-                renderState->AddUniform<float>(var.name);
+                renderState->AddUniform<float>(var.name, sz);
             //else if(var.type == "double")
-            //    renderState->AddUniform<double>(var.name);
+            //    renderState->AddUniform<double>(var.name, sz);
             else if(var.type == "vec2")
-                renderState->AddUniform<Au::Math::Vec2f>(var.name);
+                renderState->AddUniform<Au::Math::Vec2f>(var.name, sz);
             else if(var.type == "vec3")
-                renderState->AddUniform<Au::Math::Vec3f>(var.name);
+                renderState->AddUniform<Au::Math::Vec3f>(var.name, sz);
             else if(var.type == "vec4")
-                renderState->AddUniform<Au::Math::Vec4f>(var.name);
+                renderState->AddUniform<Au::Math::Vec4f>(var.name, sz);
             else if(var.type == "mat3")
-                renderState->AddUniform<Au::Math::Mat3f>(var.name);
+                renderState->AddUniform<Au::Math::Mat3f>(var.name, sz);
             else if(var.type == "mat4")
-                renderState->AddUniform<Au::Math::Mat4f>(var.name);
-            
+                renderState->AddUniform<Au::Math::Mat4f>(var.name, sz);
         }
     }
     

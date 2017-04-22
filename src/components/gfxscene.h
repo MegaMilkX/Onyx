@@ -16,7 +16,8 @@ friend Mesh;
 public:
     bool Init(Au::GFX::Device* gfxDevice)
     {
-        _gfxDevice = gfxDevice;        
+        _gfxDevice = gfxDevice;     
+        SetInt("LIGHT_OMNI_COUNT", 1);
         return true;
     }
     
@@ -30,6 +31,7 @@ public:
     {
         RemoveLightOmni(light);
         lightsOmni.push_back(light);
+        SetInt("LIGHT_OMNI_COUNT", lightsOmni.size());
     }
     void RemoveLightOmni(LightOmni* light)
     {
@@ -41,6 +43,7 @@ public:
                 break;
             }
         }
+        SetInt("LIGHT_OMNI_COUNT", lightsOmni.size());
     }
     
     void AddMesh(Mesh* mesh)
@@ -59,6 +62,11 @@ public:
             }
         }
     }
+    
+    void SetInt(const std::string& name, int value)
+    { _intMap[name] = value; }
+    int GetInt(const std::string& name)
+    { return _intMap[name]; }
         
     virtual void OnCreate();
 private:
@@ -66,6 +74,8 @@ private:
 
     std::vector<Mesh*> meshes;
     std::vector<LightOmni*> lightsOmni;
+    
+    std::map<std::string, int> _intMap;
     
     Au::GFX::Uniform uniViewMat4f;
     Au::GFX::Uniform uniProjMat4f;

@@ -129,7 +129,7 @@ public:
     void SetMaterial(Material* mat)
     {
         this->material = mat;
-        this->renderState = mat->Finalize(gfxScene->GetDevice());
+        this->renderState = mat->Finalize(gfxScene);
         if(meshData)
             _setupMesh();
     }

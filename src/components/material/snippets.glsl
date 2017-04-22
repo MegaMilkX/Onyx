@@ -29,26 +29,33 @@ R"(
     uniform vec3 UniformAmbientColor;
     out vec4 AmbientColor = vec4(UniformAmbientColor, 1.0);
 #fragment LightDirection
-    uniform vec3 LightOmniPos;
+    uniform vec3 LightOmniPos[LIGHT_OMNI_COUNT];
     in vec3 FragPosWorld;
-    out vec3 LightDirection;
-    LightDirection = normalize(LightOmniPos - FragPosWorld);
+    out vec3 LightDirection[LIGHT_OMNI_COUNT];
+    for(int i = 0; i < LIGHT_OMNI_COUNT; i++)
+    {
+        LightDirection[i] = normalize(LightOmniPos[i] - FragPosWorld);
+    }
 #fragment LightOmniLambert
     in vec3 NormalModel;
-    uniform vec3 LightOmniRGB;
-    uniform vec3 LightOmniPos;
+    uniform vec3 LightOmniRGB[LIGHT_OMNI_COUNT];
+    uniform vec3 LightOmniPos[LIGHT_OMNI_COUNT];
     in vec3 FragPosWorld;
-    in vec3 LightDirection;
-    out vec4 LightOmniLambert;
-    float diff = max(dot(NormalModel, LightDirection), 0.0);
-    float dist = distance(LightOmniPos, FragPosWorld);
-    LightOmniLambert = 
-        vec4(
-            LightOmniRGB * 
-            diff *
-            (1.0 / (1.0 + 0.5 * dist + 3.0 * dist * dist)),
-            1.0
-        );
+    in vec3 LightDirection[LIGHT_OMNI_COUNT];
+    out vec4 LightOmniLambert = vec4(0.0, 0.0, 0.0, 1.0);
+    
+    for(int i = 0; i < LIGHT_OMNI_COUNT; i++)
+    {
+        float diff = max(dot(NormalModel, LightDirection[i]), 0.0);
+        float dist = distance(LightOmniPos[i], FragPosWorld);
+        LightOmniLambert += 
+            vec4(
+                LightOmniRGB[i] * 
+                diff *
+                (1.0 / (1.0 + 0.5 * dist + 3.0 * dist * dist)),
+                1.0
+            );
+    }
 #fragment RimLight
     uniform mat4 MatrixView;
     in vec3 NormalModel;
