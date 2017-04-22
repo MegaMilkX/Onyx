@@ -30,38 +30,28 @@ public:
         Resource<ScriptData>::AddSearchPath("data");
         Resource<ScriptData>::AddReader<ScriptReaderLUA>("lua");
         
+        Resource<Material>::AddSearchPath("data");
+        Resource<Material>::AddReader<MaterialReaderLUA>("lua");
+        
         gfxScene = scene.GetComponent<GFXScene>();
         gfxScene->Init(GFXDevice());
+        
+        Material mat;
+        mat.SetLayer(100, "AmbientColor");
+        mat.SetLayer(101, "RimLight");
+        mat.SetLayer(102, "LightOmniLambert");
         
         //LuaScript* script = scene.GetComponent<LuaScript>();
         //script->Relay("Init");
         
-        MeshData* meshData = Resource<MeshData>::Get("miku");
-        Au::GFX::Mesh* gfxMesh = GFXDevice()->CreateMesh();
-        gfxMesh->Format(
-            Au::Position() << 
-            Au::Normal() << 
-            Au::ColorRGB() << 
-            Au::BoneWeight4() << 
-            Au::BoneIndex4()
-        );
-        meshData->FillMesh(gfxMesh);
-        
         Mesh* mesh = scene.CreateSceneObject()->GetComponent<Mesh>();
-        mesh->SetMesh(gfxMesh);
-        Material* mat = mesh->GetObject()->GetComponent<Material>();
-        mat->SetLayer(100, "AmbientColor");
-        mat->SetLayer(101, "RimLight");
-        mat->SetLayer(102, "LightOmniLambert");
-        mat->Finalize();
+        mesh->SetMesh("miku");
+        mesh->SetMaterial("material");
         
         mesh2 = scene.CreateSceneObject()->GetComponent<Mesh>();
-        mesh2->SetMesh(gfxMesh);
+        mesh2->SetMesh("teapot");
+        mesh2->SetMaterial("material1");
         mesh2->GetObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
-        mat = mesh2->GetObject()->GetComponent<Material>();
-        mat->SetLayer(100, "DebugRed");
-        mat->SetLayer(101, "LightOmniLambert");
-        mat->Finalize();
         
         camera = scene.CreateSceneObject()->GetComponent<Camera>();
         camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
