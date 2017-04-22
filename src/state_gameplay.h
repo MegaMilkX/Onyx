@@ -37,6 +37,8 @@ public:
         
         gfxScene = scene.GetComponent<GFXScene>();
         gfxScene->Init(GFXDevice());
+        gfxScene->AmbientColor(0.1f, 0.1f, 0.1f);
+        gfxScene->RimColor(0.4f, 0.4f, 0.8f);
         
         Material mat;
         mat.SetLayer(100, "AmbientColor");
@@ -63,6 +65,10 @@ public:
         LightOmni* light2 = scene.CreateSceneObject()->GetComponent<LightOmni>();
         light2->Color(0.8f, 0.4f, 1.0f);
         light2->GetObject()->GetComponent<Transform>()->Position(-0.5f, 1.7f, 0.5f);
+        
+        LightDirect* ld = scene.CreateSceneObject()->GetComponent<LightDirect>();
+        ld->Color(0.8f, 0.6f, 0.4f);
+        ld->Direction(0.0, -1.0f, 0.0f);
         
         Mesh* mesh = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh->SetMesh("miku");
