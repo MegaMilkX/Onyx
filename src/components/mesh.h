@@ -98,6 +98,12 @@ class Mesh : public SceneObject::Component
 friend GFXScene;
 public:
     Mesh()
+    : transform(0),
+    gfxScene(0),
+    material(0),
+    meshData(0),
+    renderState(0),
+    mesh(0)
     {
         uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
     }
@@ -107,13 +113,32 @@ public:
         
     }
     
-    void SetMesh(Au::GFX::Mesh* mesh)
-    { this->mesh = mesh; }
+    void SetMesh(const std::string& name)
+    { SetMesh(Resource<MeshData>::Get(name)); }
+    
+    void SetMesh(MeshData* meshData)
+    { 
+        this->meshData = meshData;
+        if(material)
+            _setupMesh();
+    }
+    
+    void SetMaterial(const std::string& name)
+    { SetMaterial(Resource<Material>::Get(name)); }
+    
+    void SetMaterial(Material* mat)
+    {
+        this->material = mat;
+        this->renderState = mat->Finalize(gfxScene->GetDevice());
+        if(meshData)
+            _setupMesh();
+    }
     
     void Render(Au::GFX::Device* device)
     {
-        GetObject()->GetComponent<Material>()->Bind(device);
-        device->Set(uniModelMat4f, GetObject()->GetComponent<Transform>()->GetTransform());
+        uniModelMat4f = GetObject()->GetComponent<Transform>()->GetTransform();
+        
+        device->Bind(renderState);
         device->Bind(mesh);
         device->Render();
     }
@@ -125,10 +150,21 @@ public:
         gfxScene->AddMesh(this);
     }
 private:
+    void _setupMesh()
+    {
+        mesh = gfxScene->GetDevice()->CreateMesh();
+        mesh->Format(material->AttribFormat());
+        meshData->FillMesh(mesh);
+    }
+
     Transform* transform;
     GFXScene* gfxScene;
     
+    Material* material;
+    MeshData* meshData;
+    Au::GFX::RenderState* renderState;
     Au::GFX::Mesh* mesh;
+    
     Au::GFX::Uniform uniModelMat4f;
 };
 

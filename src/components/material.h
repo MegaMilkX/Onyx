@@ -7,17 +7,20 @@
 #include <algorithm>
 
 #include <aurora/glslstitch.h>
+#include <aurora/lua.h>
 
 #include "../scene_object.h"
 #include "gfxscene.h"
 
-class Material : public SceneObject::Component
+#include "../resource.h"
+
+class Material
 {
 public:
     struct Layer
     {
-        Layer(int index, const std::string& name)
-        : index(index), name(name), blend("add") {}
+        Layer(int index, const std::string& name, const std::string& blend)
+        : index(index), name(name), blend(blend) {}
         
         bool operator<(const Layer& other)
         {
@@ -28,10 +31,28 @@ public:
         std::string name;
         std::string blend;
     };
-
-    void SetLayer(int index, const std::string& name)
+    
+    Material()
     {
-        layers.push_back(Layer(index, name));
+        Au::GLSLStitch::MakeSnippets(
+            #include "material/snippets.glsl"
+            ,
+            vertSnips,
+            fragSnips,
+            genericSnips
+        );
+    }
+    
+    Au::AttribFormat AttribFormat()
+    { return _attribFormat; }
+
+    void SetLayer(
+        int index, 
+        const std::string& name, 
+        const std::string& blend = "add"
+        )
+    {
+        layers.push_back(Layer(index, name, blend));
         std::sort(layers.begin(), layers.end());
     }
     
@@ -40,8 +61,9 @@ public:
         
     }
     
-    void Finalize()
+    Au::GFX::RenderState* Finalize(Au::GFX::Device* gfxDevice)
     {
+        Au::GFX::RenderState* renderState;
         std::vector<Au::GLSLStitch::Snippet> specFragSnips = fragSnips;
         
         std::string vshader;
@@ -67,7 +89,7 @@ public:
         
         if(layers.empty())
         {
-            return;
+            
         }
         else if(layers.size() == 1)
         {
@@ -122,37 +144,17 @@ public:
         renderState = gfxDevice->CreateRenderState();
         renderState->SetShader(shaderVertex);
         renderState->SetShader(shaderFragment);
-        _gatherUniforms(vSnip);
-        _gatherUniforms(fSnip);
-        _deductAttribFormat(vSnip);
+        _gatherUniforms(vSnip, renderState);
+        _gatherUniforms(fSnip, renderState);
+        _deductAttribFormat(vSnip, renderState);
         
         std::cout << renderState->StatusString() << std::endl;
-    }
-    
-    void Bind(Au::GFX::Device* device)
-    {
-        device->Bind(renderState);
-    }
-    
-    virtual void OnCreate()
-    {
-        Au::GLSLStitch::MakeSnippets(
-            #include "material/snippets.glsl"
-            ,
-            vertSnips,
-            fragSnips,
-            genericSnips
-        );
         
-        gfxScene = GetObject()->Root()->GetComponent<GFXScene>();
-        gfxDevice = gfxScene->GetDevice();
+        return renderState;
     }
 private:
-    GFXScene* gfxScene;
-    Au::GFX::Device* gfxDevice;
-    Au::GFX::RenderState* renderState;
-
     std::vector<Layer> layers;
+    Au::AttribFormat _attribFormat;
     
     std::vector<Au::AttribInfo>& _getAttribList()
     {
@@ -201,7 +203,7 @@ private:
         return token.size();
     }
     
-    void _deductAttribFormat(Au::GLSLStitch::Snippet& snip)
+    void _deductAttribFormat(Au::GLSLStitch::Snippet& snip, Au::GFX::RenderState* renderState)
     {
         Au::AttribFormat attribFormat;
         std::vector<Au::AttribInfo> attribs = _getAttribList();
@@ -224,9 +226,10 @@ private:
         }
         //attribFormat.Print();
         renderState->AttribFormat(attribFormat);
+        _attribFormat = attribFormat;
     }
     
-    void _gatherUniforms(Au::GLSLStitch::Snippet& snip)
+    void _gatherUniforms(Au::GLSLStitch::Snippet& snip, Au::GFX::RenderState* renderState)
     {
         for(unsigned i = 0; i < snip.other.size(); ++i)
         {
@@ -273,6 +276,33 @@ private:
     std::vector<Au::GLSLStitch::Snippet> fragSnips;
     std::vector<Au::GLSLStitch::Snippet> genericSnips;
     
+};
+
+class MaterialReaderLUA : public Resource<Material>::Reader
+{
+public:
+    Material* operator()(const std::string& filename)
+    {
+        Material* material = 0;
+        
+        std::ifstream file(filename, std::ios::binary | std::ios::ate);
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<char> buffer((unsigned int)size);
+        if(file.read(buffer.data(), size))
+        {
+            material = new Material();
+            
+            Au::Lua lua;
+            lua.Init();
+            lua.Bind(&Material::SetLayer, "SetLayer");
+            lua.SetGlobal(material, "Material");
+            lua.LoadSource(std::string(buffer.begin(), buffer.end()));
+            lua.Cleanup();
+        }
+        
+        return material;
+    }
 };
 
 #endif
