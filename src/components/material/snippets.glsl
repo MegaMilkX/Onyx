@@ -55,7 +55,7 @@ R"(
     in vec3 FragPosWorld;
     out vec4 RimLight;
     vec3 camPos = inverse(MatrixView)[3].xyz;
-    float diff = max(0.3 - dot(NormalModel, normalize(camPos - FragPosWorld)), 0.0);
+    float diff = max(0.5 - dot(NormalModel, normalize(camPos - FragPosWorld)), 0.0);
     RimLight = vec4(diff, diff, diff, 1.0);
         
 #fragment DebugRed
