@@ -11,8 +11,12 @@ void GFXScene::OnCreate()
     
     uniLightOmniPos = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniPos");
     uniLightOmniRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniRGB");
+    
+    uniLightDirect = Au::GFX::GetUniform<Au::Math::Vec3f>("LightDirect");
+    uniLightDirectRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightDirectRGB");
 
     uniAmbientColor = Au::GFX::GetUniform<Au::Math::Vec3f>("UniformAmbientColor");
+    uniRimColor = Au::GFX::GetUniform<Au::Math::Vec3f>("RimColor");
 }
 
 #include <iostream>
@@ -25,7 +29,14 @@ void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection
         uniLightOmniPos[i] = lightsOmni[i]->GetObject()->GetComponent<Transform>()->Position();
     }
     
-    uniAmbientColor = Au::Math::Vec3f(0.1f, 0.1f, 0.1f);
+    for(unsigned i = 0; i < lightsDirect.size(); ++i)
+    {
+        uniLightDirectRGB[i] = lightsDirect[i]->Color();
+        uniLightDirect[i] = lightsDirect[i]->Direction();
+    }
+    
+    uniAmbientColor = ambientColor;
+    uniRimColor = rimColor;
     
     uniViewMat4f = Au::Math::Inverse(transform);
     uniProjMat4f = projection;

@@ -56,14 +56,26 @@ R"(
                 1.0
             );
     }
+#fragment LightDirectLambert
+    in vec3 NormalModel;
+    uniform vec3 LightDirectRGB[LIGHT_DIRECT_COUNT];
+    uniform vec3 LightDirect[LIGHT_DIRECT_COUNT];
+    out vec4 LightDirectLambert = vec4(0.0, 0.0, 0.0, 1.0);
+    
+    for(int i = 0; i < LIGHT_DIRECT_COUNT; ++i)
+    {
+        float diff = max(dot(NormalModel, -LightDirect[i]), 0.0);
+        LightDirectLambert += vec4(LightDirectRGB[i] * diff, 1.0);
+    }
 #fragment RimLight
+    uniform vec3 RimColor;
     uniform mat4 MatrixView;
     in vec3 NormalModel;
     in vec3 FragPosWorld;
     out vec4 RimLight;
     vec3 camPos = inverse(MatrixView)[3].xyz;
     float diff = max(0.5 - dot(NormalModel, normalize(camPos - FragPosWorld)), 0.0);
-    RimLight = vec4(diff, diff, diff, 1.0);
+    RimLight = vec4(RimColor * diff, 1.0);
         
 #fragment DebugRed
     out vec4 DebugRed = vec4(1.0, 0.0, 0.0, 1.0);
