@@ -27,8 +27,8 @@ void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection
     
     uniAmbientColor = Au::Math::Vec3f(0.1f, 0.1f, 0.1f);
     
-    device->Set(uniViewMat4f, Au::Math::Inverse(transform));
-    device->Set(uniProjMat4f, projection);
+    uniViewMat4f = Au::Math::Inverse(transform);
+    uniProjMat4f = projection;
     
     for(unsigned i = 0; i < meshes.size(); ++i)
     {
