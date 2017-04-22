@@ -30,7 +30,10 @@ public:
         const Au::Math::Mat4f& transform);
         
     void AmbientColor(float r, float g, float b)
-    { ambientColor = Au::Math::Vec3f(r, g, b); }
+    { 
+        ambientColor = Au::Math::Vec3f(r, g, b);
+        glClearColor (r, g, b, 1.0f);        
+    }
     void RimColor(float r, float g, float b)
     { rimColor = Au::Math::Vec3f(r, g, b); }
 
