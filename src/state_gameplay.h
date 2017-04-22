@@ -1,6 +1,8 @@
 #ifndef STATE_GAMEPLAY_H
 #define STATE_GAMEPLAY_H
 
+#include <stdlib.h>
+
 #include "game_state.h"
 #include "scene_object.h"
 
@@ -44,6 +46,24 @@ public:
         //LuaScript* script = scene.GetComponent<LuaScript>();
         //script->Relay("Init");
         
+        camera = scene.CreateSceneObject()->GetComponent<Camera>();
+        camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
+        camera->GetObject()->GetComponent<Transform>()->Translate(0.0f, 1.5f, 7.0f);
+        LightOmni* light = camera->GetObject()->GetComponent<LightOmni>();
+        light->Color(0.6f, 1.0f, 0.8f);
+        light->Intensity(1.0f);
+        
+        for(unsigned i = 0; i < 10; ++i)
+        {
+            LightOmni* l = scene.CreateSceneObject()->GetComponent<LightOmni>();
+            l->Color(rand()%100 * 0.01f, rand()%100 * 0.01f, rand()%100 * 0.01f);
+            l->GetObject()->GetComponent<Transform>()->Position(rand()%300 * 0.01f - 1.5f, rand()%300 * 0.01f, rand()%300 * 0.01f - 1.5f);
+        }
+        
+        LightOmni* light2 = scene.CreateSceneObject()->GetComponent<LightOmni>();
+        light2->Color(0.8f, 0.4f, 1.0f);
+        light2->GetObject()->GetComponent<Transform>()->Position(-0.5f, 1.7f, 0.5f);
+        
         Mesh* mesh = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh->SetMesh("miku");
         mesh->SetMaterial("material");
@@ -53,16 +73,7 @@ public:
         mesh2->SetMaterial("material1");
         mesh2->GetObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
         
-        camera = scene.CreateSceneObject()->GetComponent<Camera>();
-        camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
-        camera->GetObject()->GetComponent<Transform>()->Translate(0.0f, 1.5f, 7.0f);
-        LightOmni* light = camera->GetObject()->GetComponent<LightOmni>();
-        light->Color(0.6f, 1.0f, 0.8f);
-        light->Intensity(1.0f);
         
-        LightOmni* light2 = scene.CreateSceneObject()->GetComponent<LightOmni>();
-        light2->Color(0.8f, 0.4f, 1.0f);
-        light2->GetObject()->GetComponent<Transform>()->Position(-0.5f, 1.7f, 0.5f);
     }
     virtual void OnCleanup() 
     {
