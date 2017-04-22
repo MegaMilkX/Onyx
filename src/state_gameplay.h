@@ -40,11 +40,6 @@ public:
         gfxScene->AmbientColor(0.1f, 0.1f, 0.1f);
         gfxScene->RimColor(0.4f, 0.4f, 0.8f);
         
-        Material mat;
-        mat.SetLayer(100, "AmbientColor");
-        mat.SetLayer(101, "RimLight");
-        mat.SetLayer(102, "LightOmniLambert");
-        
         //LuaScript* script = scene.GetComponent<LuaScript>();
         //script->Relay("Init");
         
@@ -77,7 +72,7 @@ public:
         mesh2 = scene.CreateSceneObject()->GetComponent<Mesh>();
         mesh2->SetMesh("teapot");
         mesh2->SetMaterial("material1");
-        mesh2->GetObject()->GetComponent<Transform>()->Translate(-6.0f, 0.0f, 0.0f);
+        mesh2->GetObject()->GetComponent<Transform>()->Translate(-2.5f, 0.0f, 1.5f);
         
         
     }
