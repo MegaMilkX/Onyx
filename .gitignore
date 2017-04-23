@@ -51,13 +51,14 @@ qt.conf
 [Rr]elease/
 [Rr]eleaseLibStatic/
 x64/
-build/
+build/*
+!build/data/
 bld/
 [Bb]in/
 [Oo]bj/
 
 #other
-data/
+!data/
 
 # Roslyn cache directories
 *.ide/
