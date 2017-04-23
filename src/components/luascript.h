@@ -4,6 +4,12 @@
 #include "../scene_object.h"
 #include "../resource.h"
 
+#include "transform.h"
+#include "gfxscene.h"
+#include "camera.h"
+#include "light_omni.h"
+#include "mesh.h"
+
 #include <aurora/lua.h>
 
 class ScriptData
@@ -12,7 +18,7 @@ public:
     ScriptData(const std::string& source)
     : source(source)
     {}
-    std::string Get() { return source; }
+    std::string& Get() { return source; }
 private:
     std::string source;
 };
@@ -34,6 +40,11 @@ public:
     }
 };
 
+inline void LuaPrint(const std::string& msg)
+{
+    std::cout << msg << std::endl;
+}
+
 class LuaScript : public SceneObject::Component
 {
 public:
@@ -47,6 +58,17 @@ public:
         _state.Cleanup();
     }
     
+    void SetScript(const std::string& name)
+    {
+        ScriptData* sd = Resource<ScriptData>::Get(name);
+        if(!sd)
+            return;
+        
+        _state.SetGlobal(GetObject(), "SceneObject");
+        _state.LoadSource(sd->Get());
+        _state.Call("Init");
+    }
+    
     virtual void OnCreate()
     {
         SceneObject* root = GetObject()->Root();
@@ -54,11 +76,43 @@ public:
         rootScript->_link(this);
         
         _state.Init();
+        
+        _state.Bind(&LuaPrint, "Print");
+        
         _state.Bind(&SceneObject::Root, "Root");
         _state.Bind(&SceneObject::CreateSceneObject, "CreateObject");
         _state.Bind(&SceneObject::GetComponent<LuaScript>, "Script");
         _state.Bind(&SceneObject::GetComponent<Transform>, "Transform");
         _state.Bind(&SceneObject::GetComponent<Camera>, "Camera");
+        _state.Bind(&SceneObject::GetComponent<LightOmni>, "LightOmni");
+        _state.Bind(&SceneObject::GetComponent<LightDirect>, "LightDirect");
+        _state.Bind(&SceneObject::GetComponent<GFXScene>, "GFXScene");
+        _state.Bind(&SceneObject::GetComponent<Mesh>, "Mesh");
+        
+        _state.Bind<Transform, void, float, float, float>(&Transform::Translate, "Translate");
+        _state.Bind<Transform, void, float, float, float, float>(&Transform::Rotate, "Rotate");
+        _state.Bind<Transform, void, float, float, float>(&Transform::Position, "Position");
+        _state.Bind<Transform, void, float, float, float>(&Transform::Rotation, "Rotation");
+        _state.Bind<Transform, void, float>(&Transform::Scale, "Scale");
+        _state.Bind<Transform, SceneObject*>(&Transform::GetObject, "GetObject");
+        
+        _state.Bind(&Camera::Perspective, "Perspective");
+        _state.Bind<Camera, SceneObject*>(&Camera::GetObject, "GetObject");
+        
+        _state.Bind<LightOmni, void, float, float, float>(&LightOmni::Color, "Color");
+        _state.Bind<LightOmni, SceneObject*>(&LightOmni::GetObject, "GetObject");
+        
+        _state.Bind<LightDirect, void, float, float, float>(&LightDirect::Color, "Color");
+        _state.Bind<LightDirect, void, float, float, float>(&LightDirect::Direction, "Direction");
+        _state.Bind<LightDirect, SceneObject*>(&LightDirect::GetObject, "GetObject");
+        
+        _state.Bind(&GFXScene::AmbientColor, "AmbientColor");
+        _state.Bind(&GFXScene::RimColor, "RimColor");
+        _state.Bind<GFXScene, SceneObject*>(&GFXScene::GetObject, "GetObject");
+        
+        _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMesh, "SetMesh");
+        _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMaterial, "SetMaterial");
+        _state.Bind<Mesh, SceneObject*>(&Mesh::GetObject, "GetObject");
     }
     
     template<typename... Args>
