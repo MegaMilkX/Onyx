@@ -50,8 +50,8 @@ public:
         {
             T* component = new T();
             component->object = this;
-            component->OnCreate();
             components.insert(std::make_pair(TypeInfo<T>::Index(), component));
+            component->OnCreate();
             return component;
         }
         else
