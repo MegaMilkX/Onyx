@@ -40,8 +40,8 @@ public:
         gfxScene->AmbientColor(0.1f, 0.1f, 0.1f);
         gfxScene->RimColor(0.4f, 0.4f, 0.8f);
         
-        camera = scene.CreateSceneObject()->GetComponent<Camera>();
-        camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 100.0f);
+        camera = scene.CreateObject()->GetComponent<Camera>();
+        camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 1000.0f);
         camera->GetObject()->GetComponent<Transform>()->Translate(0.0f, 1.5f, 7.0f);
         LightOmni* light = camera->GetObject()->GetComponent<LightOmni>();
         light->Color(0.6f, 1.0f, 0.8f);
@@ -49,6 +49,8 @@ public:
         
         script = scene.GetComponent<LuaScript>();
         script->SetScript("scene");
+        
+        
     }
     virtual void OnCleanup() 
     {

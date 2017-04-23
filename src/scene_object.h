@@ -35,7 +35,7 @@ public:
             return parentObject->Root();
     }
     
-    SceneObject* CreateSceneObject()
+    SceneObject* CreateObject()
     {
         SceneObject* o = new SceneObject(this);
         objects.push_back(o);

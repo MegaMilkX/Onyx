@@ -80,7 +80,7 @@ public:
         _state.Bind(&LuaPrint, "Print");
         
         _state.Bind(&SceneObject::Root, "Root");
-        _state.Bind(&SceneObject::CreateSceneObject, "CreateObject");
+        _state.Bind(&SceneObject::CreateObject, "CreateObject");
         _state.Bind(&SceneObject::GetComponent<LuaScript>, "Script");
         _state.Bind(&SceneObject::GetComponent<Transform>, "Transform");
         _state.Bind(&SceneObject::GetComponent<Camera>, "Camera");

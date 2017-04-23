@@ -38,7 +38,7 @@ public:
         
         lx = 0.0f; ly = 0.0f;
         
-        SceneObject* object = scene.CreateSceneObject();
+        SceneObject* object = scene.CreateObject();
     }
     virtual void OnSwitch()
     {
