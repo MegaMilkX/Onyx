@@ -22,10 +22,7 @@ Init = function()
     mesh:SetMesh("miku");
     mesh:SetMaterial("material");
     
-    teapot = SceneObject:CreateObject():Mesh();
-    teapot:SetMesh("teapot");
-    teapot:SetMaterial("material1");
-    teapot:GetObject():Transform():Translate(-2.5, 0.0, 1.5);
+    teapot = SceneObject:CreateObject():Script():SetScript("teapot");
     
     mesh = SceneObject:CreateObject():Mesh();
     mesh:SetMesh("env");
@@ -35,5 +32,5 @@ Init = function()
 end
 
 Update = function()
-    teapot:GetObject():Transform():Rotate(0.001, 0.0, 1.0, 0.0);
+    
 end
