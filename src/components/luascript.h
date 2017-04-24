@@ -89,6 +89,9 @@ public:
         _state.Bind(&SceneObject::GetComponent<GFXScene>, "GFXScene");
         _state.Bind(&SceneObject::GetComponent<Mesh>, "Mesh");
         
+        _state.Bind(&LuaScript::SetScript, "SetScript");
+        _state.Bind<LuaScript, SceneObject*>(&LuaScript::GetObject, "GetObject");
+        
         _state.Bind<Transform, void, float, float, float>(&Transform::Translate, "Translate");
         _state.Bind<Transform, void, float, float, float, float>(&Transform::Rotate, "Rotate");
         _state.Bind<Transform, void, float, float, float>(&Transform::Position, "Position");
