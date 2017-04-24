@@ -35,7 +35,7 @@ Shlwapi.lib ^
 legacy_stdio_definitions.lib ^
 Opengl32.lib ^
 aurora.lib ^
-liblua.lib <== HERE IT IS
+liblua.lib                                        <== HERE IT IS
 ```
 9. Now you can run "build exe > out.txt"
 10. See out.txt for any errors
