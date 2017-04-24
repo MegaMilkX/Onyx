@@ -9,7 +9,7 @@ Visual Studio 2013 or later must be installed
 4. Download lua https://www.lua.org/download.html and build it. Or use a prebuilt package (https://sourceforge.net/projects/luabinaries/files/5.3.3/Windows%20Libraries/Static/)
 5. Download https://github.com/MegaMilkX/Onyx/archive/master.zip 
 6. Check include and library directories in build.bat
-```
+```batch
 set INCLUDE_PATHS=/I "%~dp0\..\Aurora\include" ^
 /I "%~dp0\..\lib\lua\include"
 set LIB_PATHS=/LIBPATH:"%~dp0\..\Aurora\lib" ^
@@ -17,7 +17,7 @@ set LIB_PATHS=/LIBPATH:"%~dp0\..\Aurora\lib" ^
 ```
 7. Change them according to your directory setup
 8. Change liblua.lib according to your lua lib name
-```
+```batch
 set LIBRARIES=kernel32.lib ^
 user32.lib ^
 gdi32.lib ^
