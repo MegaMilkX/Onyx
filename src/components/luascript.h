@@ -10,6 +10,8 @@
 #include "light_omni.h"
 #include "mesh.h"
 
+#include "animation.h"
+
 #include <aurora/lua.h>
 
 class ScriptData
@@ -88,6 +90,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<LightDirect>, "LightDirect");
         _state.Bind(&SceneObject::GetComponent<GFXScene>, "GFXScene");
         _state.Bind(&SceneObject::GetComponent<Mesh>, "Mesh");
+        _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
         
         _state.Bind(&LuaScript::SetScript, "SetScript");
         _state.Bind<LuaScript, SceneObject*>(&LuaScript::GetObject, "GetObject");
@@ -116,6 +119,9 @@ public:
         _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMesh, "SetMesh");
         _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMaterial, "SetMaterial");
         _state.Bind<Mesh, SceneObject*>(&Mesh::GetObject, "GetObject");
+        
+        _state.Bind<Animation, void, const std::string&>(&Animation::SetAnimData, "SetAnimData");
+        _state.Bind<Animation, SceneObject*>(&Animation::GetObject, "GetObject");
     }
     
     template<typename... Args>
