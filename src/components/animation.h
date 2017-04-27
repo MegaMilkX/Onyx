@@ -38,6 +38,11 @@ class Animation : public SceneObject::Component
 public:
     void SetAnimData(const std::string& name)
     {
+        SetAnimData(Resource<AnimData>::Get(name));
+    }
+    
+    void SetAnimData(AnimData* data)
+    {
         
     }
     
