@@ -23,10 +23,11 @@ Init = function()
     mesh:SetMaterial("material");
     
     teapot = SceneObject:CreateObject():Script():SetScript("teapot");
+    sphere = SceneObject:CreateObject():Script():SetScript("sphere");
     
-    mesh = SceneObject:CreateObject():Mesh();
-    mesh:SetMesh("env");
-    mesh:SetMaterial("material");
+    --mesh = SceneObject:CreateObject():Mesh();
+    --mesh:SetMesh("env");
+    --mesh:SetMaterial("material");
     
     Print("Done");
 end
