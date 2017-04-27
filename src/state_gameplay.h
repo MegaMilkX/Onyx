@@ -16,6 +16,8 @@
 
 #include "components/luascript.h"
 
+#include "components/animation.h"
+
 #include "util.h"
 
 class Gameplay : public GameState
@@ -34,6 +36,9 @@ public:
         
         Resource<Material>::AddSearchPath("data");
         Resource<Material>::AddReader<MaterialReaderLUA>("lua");
+        
+        Resource<AnimData>::AddSearchPath("data");
+        Resource<AnimData>::AddReader<AnimDataReaderFBX>("fbx");
         
         gfxScene = scene.GetComponent<GFXScene>();
         gfxScene->Init(GFXDevice());
