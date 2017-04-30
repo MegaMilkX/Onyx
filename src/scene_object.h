@@ -44,16 +44,26 @@ public:
     template<typename T>
     T* GetComponent()
     {
+        T* c = FindComponent<T>();
+        if (!c)
+        {
+            c = new T();
+            c->object = this;
+            components.insert(std::make_pair(TypeInfo<T>::Index(), c));
+            c->OnCreate();
+            return c;
+        }
+        else
+            return c;
+    }
+    
+    template<typename T>
+    T* FindComponent()
+    {
         std::map<typeindex, Component*>::iterator it;
         it = components.find(TypeInfo<T>::Index());
-        if (it == components.end())
-        {
-            T* component = new T();
-            component->object = this;
-            components.insert(std::make_pair(TypeInfo<T>::Index(), component));
-            component->OnCreate();
-            return component;
-        }
+        if(it == components.end())
+            return 0;
         else
             return (T*)it->second;
     }
