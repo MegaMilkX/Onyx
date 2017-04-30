@@ -18,7 +18,7 @@ R"(
     in vec3 Normal;
     uniform mat4 MatrixModel;
     out vec3 NormalModel;
-    NormalModel = (MatrixModel * vec4(Normal, 0.0)).xyz;
+    NormalModel = normalize((MatrixModel * vec4(Normal, 0.0)).xyz);
 #vertex FragPosWorld
     in vec3 Position;
     uniform mat4 MatrixModel;
