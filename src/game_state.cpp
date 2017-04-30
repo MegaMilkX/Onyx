@@ -1,5 +1,8 @@
 #include "game_state.h"
 
+float GameState::deltaTime;
+Au::Timer GameState::timer;
+
 std::stack<GameState*> GameState::stateStack;
 
 Au::Window* GameState::window;

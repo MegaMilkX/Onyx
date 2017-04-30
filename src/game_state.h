@@ -10,6 +10,8 @@
 #include <aurora/gfx.h>
 #include <aurora/input.h>
 
+#include <aurora/timer.h>
+
 class GameState
 {
 public:
@@ -71,6 +73,7 @@ public:
     
     static bool Update()
     {
+        timer.Start();
         bool result = !window->Destroyed();
         if(result)
         {
@@ -82,6 +85,7 @@ public:
             stateStack.top()->OnRender(&gfxDevice);
             gfxDevice.SwapBuffers();
         }
+        deltaTime = timer.End() / 1000000.0f;
         return result;
     }
     
@@ -90,6 +94,8 @@ public:
         gfxDevice.Cleanup();
         Au::Window::Destroy(window);
     }
+    
+    float DeltaTime() { return deltaTime; }
     
     Au::GFX::Device* GFXDevice() { return &gfxDevice; }
     
@@ -100,6 +106,9 @@ public:
     static void PostKeyUp(Au::Input::KEYCODE key) { stateStack.top()->KeyUp(key); }
     static void PostKeyDown(Au::Input::KEYCODE key) { stateStack.top()->KeyDown(key); }
 private:
+    static float deltaTime;
+    static Au::Timer timer;
+
     static std::stack<GameState*> stateStack;
 
     static Au::Window* window;
