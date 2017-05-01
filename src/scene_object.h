@@ -35,6 +35,11 @@ public:
             return parentObject->Root();
     }
     
+    bool IsRoot()
+    {
+        return this == Root();
+    }
+    
     SceneObject* CreateObject()
     {
         SceneObject* o = new SceneObject(this);
