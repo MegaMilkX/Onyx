@@ -21,6 +21,9 @@ int main()
     Resource<AnimData>::AddSearchPath("data");
     Resource<AnimData>::AddReader<AnimDataReaderFBX>("fbx");
     
+    Resource<SkeletonData>::AddSearchPath("data");
+    Resource<SkeletonData>::AddReader<SkeletonDataReaderFBX>("fbx");
+    
     GameState::Init();
     GameState::Push<Gameplay>();
     while(GameState::Update());
