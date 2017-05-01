@@ -27,19 +27,7 @@ public:
     : camMoveFlags(0) {}
     
     virtual void OnInit() 
-    {
-        Resource<MeshData>::AddSearchPath("data");
-        Resource<MeshData>::AddReader<MeshReaderFBX>("fbx");
-        
-        Resource<ScriptData>::AddSearchPath("data");
-        Resource<ScriptData>::AddReader<ScriptReaderLUA>("lua");
-        
-        Resource<Material>::AddSearchPath("data");
-        Resource<Material>::AddReader<MaterialReaderLUA>("lua");
-        
-        Resource<AnimData>::AddSearchPath("data");
-        Resource<AnimData>::AddReader<AnimDataReaderFBX>("fbx");
-        
+    {        
         gfxScene = scene.GetComponent<GFXScene>();
         gfxScene->Init(GFXDevice());
         gfxScene->AmbientColor(0.1f, 0.1f, 0.1f);
