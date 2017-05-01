@@ -6,7 +6,7 @@ Init = function()
     --SceneObject:Transform():Translate(2.5, 0.0, 1.5);
     
     anim = SceneObject:Animation();
-    anim:SetAnimData("skin");
+    anim:SetAnimData("frame15");
 end
 
 Update = function()
