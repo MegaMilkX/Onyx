@@ -11,14 +11,40 @@
 
 struct AnimData
 {
+    unsigned ChildCount() { return children.size(); }
     AnimData& GetChild(const std::string& name)
-    { return children[name]; }
+    { 
+        AnimData& data = children[name];
+        data.Name(name);
+        return data;
+    }
+    AnimData& GetChild(unsigned i)
+    {
+        std::map<std::string, AnimData>::iterator it =
+            children.begin();
+        for(unsigned j = 0; j < i; ++j)
+            ++it;
+        return it->second;
+    }
+    unsigned AnimCount() { return anims.size(); }
     Au::Curve& GetAnim(const std::string& name)
     { return anims[name]; }
+    Au::Curve& GetAnim(unsigned i)
+    {
+        std::map<std::string, Au::Curve>::iterator it =
+            anims.begin();
+        for(unsigned j = 0; j < i; ++j)
+            ++it;
+        return it->second;
+    }
     void FrameRate(float fps) { this->fps = fps; }
     float FrameRate() { return fps; }
     
+    std::string& Name() { return name; }
+    void Name(const std::string& name) { this->name = name; }
+    
 private:
+    std::string name;
     std::map<std::string, AnimData> children;
     std::map<std::string, Au::Curve> anims;
     float fps;
@@ -74,34 +100,16 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                             propName = "Rotation";
                         else if(curveNode->GetPropertyName() == "Lcl Scaling")
                             propName = "Scale";
-                                                
+                        
+                        Au::Curve& propCurve = animData->GetChild(objectName).GetAnim(stackName)[propName];
+                        
                         unsigned curveCount = curveNode->CurveCount();
                         for(unsigned k = 0; k < curveCount; ++k)
                         {
-                            Au::Media::FBX::AnimationCurve* curve = 
+                            Au::Media::FBX::AnimationCurve* fbxCurve = 
                                 curveNode->GetCurve(k);
                                 
-                            std::string curveName = curve->GetName();
-                            if(curveName == "d|X")
-                                curveName = "x";
-                            else if(curveName == "d|Y")
-                                curveName = "y";
-                            else if(curveName == "d|Z")
-                                curveName = "z";
-                            
-                            unsigned keyCount = curve->KeyframeCount();
-                            for(unsigned l = 0; l < keyCount; ++l)
-                            {
-                                Au::Media::FBX::Keyframe* kf =
-                                    curve->GetKeyframe(l);
-                                float frame = (float)(kf->frame / timePerFrame);
-                                float value = kf->value;
-                                
-                                animData->GetChild(objectName).GetAnim(stackName)
-                                    [propName]
-                                    [curveName]
-                                    [frame] = value;
-                            }
+                            FillPropCurve(propCurve, fbxCurve, timePerFrame);
                         }
                     }
                 }
@@ -109,6 +117,29 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
         }
         
         return animData;
+    }
+
+private:
+    void FillPropCurve(Au::Curve& curve, Au::Media::FBX::AnimationCurve* fbxCurve, double timePerFrame)
+    {
+        std::string elemName = fbxCurve->GetName();
+        if(elemName == "d|X")
+            elemName = "x";
+        else if(elemName == "d|Y")
+            elemName = "y";
+        else if(elemName == "d|Z")
+            elemName = "z";
+        
+        unsigned keyCount = fbxCurve->KeyframeCount();
+        for(unsigned l = 0; l < keyCount; ++l)
+        {
+            Au::Media::FBX::Keyframe* kf =
+                fbxCurve->GetKeyframe(l);
+            float frame = (float)(kf->frame / timePerFrame);
+            float value = kf->value;
+            
+            curve[elemName][frame] = value;
+        }
     }
 };
 
@@ -123,6 +154,19 @@ public:
     void SetAnimData(AnimData* data)
     {
         animData = data;
+        
+        for(unsigned i = 0; i < animData->ChildCount(); ++i)
+        {
+            AnimData& childData = animData->GetChild(i);
+            SceneObject* o = GetObject()->FindObject(childData.Name());
+            if(!o)
+                continue;
+            for(unsigned j = 0; j < childData.AnimCount(); ++j)
+            {
+                Au::Curve& anim = childData.GetAnim(j);
+                o->GetComponent<Animation>()->SetAnim(anim.Name(), anim);
+            }
+        }
     }
     
     void SetAnim(const std::string& name, Au::Curve& curve)
