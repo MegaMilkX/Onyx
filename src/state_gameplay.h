@@ -64,14 +64,19 @@ public:
     {
         script->Relay("Update");
         Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
+        Au::Math::Vec3f t(0.0f, 0.0f, 0.0f);
         if(camMoveFlags & 1)
-            camTrans->Translate(-camTrans->Back() * 5.1f * DeltaTime());
+            t += -camTrans->Back();
         if(camMoveFlags & 2)
-            camTrans->Translate(-camTrans->Right() * 5.1f * DeltaTime());
+            t += -camTrans->Right();
         if(camMoveFlags & 4)
-            camTrans->Translate(camTrans->Back() * 5.1f * DeltaTime());
+            t += camTrans->Back();
         if(camMoveFlags & 8)
-            camTrans->Translate(camTrans->Right() * 5.1f * DeltaTime());
+            t += camTrans->Right();
+        
+        t = Au::Math::Normalize(t);
+        t = t * 7.1f * DeltaTime();
+        camTrans->Translate(t);
     }
     virtual void OnRender(Au::GFX::Device* device)
     {
