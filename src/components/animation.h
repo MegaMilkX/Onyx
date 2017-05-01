@@ -11,7 +11,16 @@
 
 struct AnimData
 {
-    Au::Curve curve;
+    AnimData& GetChild(const std::string& name)
+    { return children[name]; }
+    Au::Curve& GetAnim(const std::string& name)
+    { return anims[name]; }
+    void FrameRate(float fps) { this->fps = fps; }
+    float FrameRate() { return fps; }
+    
+private:
+    std::map<std::string, AnimData> children;
+    std::map<std::string, Au::Curve> anims;
     float fps;
 };
 
@@ -36,16 +45,14 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
             std::vector<Au::Media::FBX::AnimationStack> stacks =
                 fbxReader.GetAnimationStacks();
             double fps = fbxReader.GetFrameRate();
-            std::cout << filename << std::endl;
-            std::cout << "FPS: " << fps << std::endl;
+            
             double timePerFrame = Au::Media::FBX::TimeSecond / fps;
-            animData->fps = (float)fps;
+            animData->FrameRate((float)fps);
             for(unsigned i = 0; i < stacks.size(); ++i)
             {
                 std::string stackName = stacks[i].GetName();
-                std::cout << stackName << std::endl;
+                
                 double length = stacks[i].GetLength() / timePerFrame;
-                std::cout << "Length: " << length << std::endl;
                 
                 int layerCount = stacks[i].LayerCount();
                 if(layerCount > 0)
@@ -59,7 +66,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                             layer->GetCurveNode(j);
                         
                         std::string objectName = curveNode->GetObjectName();
-                        animData->curve[objectName][stackName].Length((float)length);
+                        animData->GetChild(objectName).GetAnim(stackName).Length((float)length);
                         std::string propName = "";
                         if(curveNode->GetPropertyName() == "Lcl Translation")
                             propName = "Position";
@@ -67,9 +74,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                             propName = "Rotation";
                         else if(curveNode->GetPropertyName() == "Lcl Scaling")
                             propName = "Scale";
-                        std::cout << objectName << std::endl;
-                        std::cout << propName << std::endl;
-                        
+                                                
                         unsigned curveCount = curveNode->CurveCount();
                         for(unsigned k = 0; k < curveCount; ++k)
                         {
@@ -83,7 +88,6 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                                 curveName = "y";
                             else if(curveName == "d|Z")
                                 curveName = "z";
-                            std::cout << curveName << std::endl;
                             
                             unsigned keyCount = curve->KeyframeCount();
                             for(unsigned l = 0; l < keyCount; ++l)
@@ -92,10 +96,8 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                                     curve->GetKeyframe(l);
                                 float frame = (float)(kf->frame / timePerFrame);
                                 float value = kf->value;
-                                std::cout << frame << ": " << value << std::endl;
-                                animData->curve
-                                    [objectName]
-                                    [stackName]
+                                
+                                animData->GetChild(objectName).GetAnim(stackName)
                                     [propName]
                                     [curveName]
                                     [frame] = value;
@@ -154,7 +156,7 @@ public:
     void Play(const std::string& name){ anim = &anims[name]; }
     
     void Tick(float time)
-    {
+    {        
         cursor += time * fps;
         int loopCount = (int)(cursor / anim->Length());
         float overflow = loopCount * anim->Length();
@@ -178,16 +180,52 @@ public:
         t->Scale(sx.value, sy.value, sz.value);
     }
     
+    void Update(float time)
+    {
+        for(unsigned i = 0; i < children.size(); ++i)
+            children[i]->Tick(time);
+    }
+    
+    ~Animation()
+    {
+        GetObject()->Root()->GetComponent<Animation>()->_removeChild(this);
+    }
+    
     virtual void OnCreate()
     {
-        
+        if(GetObject()->IsRoot())
+        {
+            return;
+        }
+        anim = &anims[""];
+        GetObject()->Root()->GetComponent<Animation>()->_addChild(this);
     }
 private:
+    void _addChild(Animation* anim)
+    {
+        _removeChild(anim);
+        children.push_back(anim);
+    }
+    
+    void _removeChild(Animation* anim)
+    {
+        for(unsigned i = 0; i < children.size(); ++i)
+        {
+            if(children[i] == anim)
+            {
+                children.erase(children.begin() + i);
+                break;
+            }
+        }
+    }
+
     AnimData* animData;
     float cursor;
     float fps;
     Au::Curve* anim;
     std::map<std::string, Au::Curve> anims;
+    
+    std::vector<Animation*> children;
 };
 
 #endif
