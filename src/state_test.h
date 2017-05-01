@@ -17,7 +17,7 @@ class StateTest : public GameState
 public:
     virtual void OnInit()
     {
-        mesh = LoadMesh(GFXDevice(), "miku.fbx");
+        mesh = LoadMesh(GFXDevice(), "data\\miku.fbx");
         renderState = CreateRenderState(GFXDevice());
         
         projection = Au::Math::Perspective(fov, 16.0f/9.0f, 0.1f, zfar);
