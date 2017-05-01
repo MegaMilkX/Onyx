@@ -6,6 +6,8 @@
 
 #include "typeindex.h"
 
+#undef GetObject
+
 class SceneObject
 {
 public:
@@ -72,7 +74,29 @@ public:
         else
             return (T*)it->second;
     }
+    
+    void Name(const std::string& name) { this->name = name; }
+    std::string Name() { return name; }
+    
+    SceneObject* FindObject(const std::string& name)
+    {
+        SceneObject* o = 0;
+        for(unsigned i = 0; i < objects.size(); ++i)
+        {
+            if(objects[i]->Name() == name)
+            {
+                o = objects[i];
+                break;
+            }
+            else if(o = objects[i]->FindObject(name))
+            {
+                break;
+            }
+        }
+        return o;
+    }
 private:
+    std::string name;
     SceneObject* parentObject;
     std::vector<SceneObject*> objects;
     std::map<typeindex, Component*> components;
