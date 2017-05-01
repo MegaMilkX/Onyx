@@ -62,6 +62,8 @@ public:
     }
     virtual void OnUpdate() 
     {
+        scene.GetComponent<Animation>()->Update(DeltaTime());
+        
         script->Relay("Update");
         Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
         Au::Math::Vec3f t(0.0f, 0.0f, 0.0f);
