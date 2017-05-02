@@ -17,12 +17,12 @@ public:
     _scale(1.0f, 1.0f, 1.0f)
     {
         if(_parent)
-            _parent->_addChild(this);
+            AttachTo(parent);
     }
     ~Transform()
     {
         if(_parent)
-            _parent->_removeChild(this);
+            _parent->Detach(this);
     }
     
     void Translate(float x, float y, float z);
@@ -46,15 +46,29 @@ public:
     Au::Math::Vec3f Up();
     Au::Math::Vec3f Back();
     
+    void SetTransform(Au::Math::Mat4f& t);
     Au::Math::Mat4f GetTransform();
-
-    virtual void OnCreate()
+    
+    void AttachTo(Transform* parent)
+    { parent->Attach(this); }
+    void Attach(Transform* trans)
     {
-        
+        Detach(trans);
+        _children.push_back(trans);
+        trans->_parent = this;
     }
+    void Detach(Transform* trans)
+    {
+        for(unsigned i = 0; i < _children.size(); ++i)
+            if(_children[i] == trans)
+            {
+                _children[i]->_parent = 0;
+                _children.erase(_children.begin() + i);
+            }
+    }
+
+    virtual void OnCreate();
 private:
-    void _addChild(Transform* transform);
-    void _removeChild(Transform* transform);
 
     Au::Math::Vec3f _position;
     Au::Math::Quat _rotation;

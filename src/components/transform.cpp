@@ -1,5 +1,7 @@
 #include "transform.h"
 
+#include "mesh.h"
+
 void Transform::Translate(float x, float y, float z)
 { Translate(Au::Math::Vec3f(x, y, z)); }
 void Transform::Translate(const Au::Math::Vec3f& vec)
@@ -52,6 +54,11 @@ Au::Math::Vec3f Transform::Up()
 Au::Math::Vec3f Transform::Back()
 { return GetTransform()[2]; }
 
+void Transform::SetTransform(Au::Math::Mat4f& t)
+{
+    _position = Au::Math::Vec3f(t[3].x, t[3].y, t[3].z);
+}
+
 Au::Math::Mat4f Transform::GetTransform()
 {
     Au::Math::Mat4f localTransform = 
@@ -67,20 +74,7 @@ Au::Math::Mat4f Transform::GetTransform()
     return _transform;
 }
 
-void Transform::_addChild(Transform* transform)
+void Transform::OnCreate()
 {
-    _removeChild(transform);
-    _children.push_back(transform);
-}
-
-void Transform::_removeChild(Transform* transform)
-{
-    for(unsigned i = 0; i < _children.size(); ++i)
-    {
-        if(_children[i] == transform)
-        {
-            _children.erase(_children.begin() + i);
-            break;
-        }
-    }
+    GetObject()->GetComponent<DebugTransformIcon>();
 }
