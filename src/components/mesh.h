@@ -12,6 +12,8 @@
 
 #include "../resource.h"
 
+#undef GetObject
+
 class MeshData
 {
 public:
@@ -149,7 +151,7 @@ public:
         gfxScene = GetObject()->Root()->GetComponent<GFXScene>();
         gfxScene->AddMesh(this);
     }
-private:
+protected:
     void _setupMesh()
     {
         mesh = gfxScene->GetDevice()->CreateMesh();
@@ -166,6 +168,82 @@ private:
     Au::GFX::Mesh* mesh;
     
     Au::GFX::Uniform uniModelMat4f;
+};
+
+class DebugTransformIcon : public Mesh
+{
+public:
+
+    virtual void OnCreate()
+    {
+        Mesh::OnCreate();
+        static Au::GFX::Mesh* m = 
+            CreateCrossMesh();
+        static Au::GFX::RenderState* rs = 
+            CreateCrossRS();
+            
+        mesh = m;
+        renderState = rs;
+    }
+protected:
+    Au::GFX::Mesh* CreateCrossMesh()
+    {
+        Au::GFX::Device& gfxDevice = *GetObject()->Root()->GetComponent<GFXScene>()->GetDevice();
+        std::vector<float> vertices =
+        { -1.0f, 0.0f, 0.0f,
+          1.0f, 0.0f, 0.0f,
+          0.0f, -1.0f, 0.0f,
+          0.0f, 1.0f, 0.0f,
+          0.0f, 0.0f, -1.0f,
+          0.0f, 0.0f, 1.0f };
+
+        std::vector<unsigned short> indices =
+        { 0, 1, 2, 3, 4, 5 };
+
+        Au::GFX::Mesh* mesh = gfxDevice.CreateMesh();
+        mesh->PrimitiveType(Au::GFX::Mesh::LINE);
+        mesh->Format(Au::Position());
+        mesh->VertexData(vertices.data(), vertices.size()/3);
+        mesh->IndexData(indices);
+        
+        return mesh;
+    }
+    
+    Au::GFX::RenderState* CreateCrossRS()
+    {
+        Au::GFX::Device& gfxDevice = *GetObject()->Root()->GetComponent<GFXScene>()->GetDevice();
+        Au::GFX::Shader* shaderVertex = gfxDevice.CreateShader(Au::GFX::Shader::VERTEX);
+        shaderVertex->Source(R"(#version 140
+            uniform mat4 MatrixModel;
+            uniform mat4 MatrixView;
+            uniform mat4 MatrixProjection;
+            in vec3 Position;
+            void main()
+            {
+                gl_Position = MatrixProjection * MatrixView * MatrixModel * vec4(Position, 1.0);
+            })");
+        std::cout << shaderVertex->StatusString() << std::endl;
+        
+        Au::GFX::Shader* shaderPixel = gfxDevice.CreateShader(Au::GFX::Shader::PIXEL);
+        shaderPixel->Source(R"(#version 140
+            out vec4 fragOut;
+            void main()
+            {            
+                fragOut = vec4(1.0, 1.0, 1.0, 1.0);
+            })");
+        std::cout << shaderPixel->StatusString() << std::endl;
+        
+        Au::GFX::RenderState* renderState = gfxDevice.CreateRenderState();
+        renderState->AttribFormat(Au::Position());
+        renderState->SetShader(shaderVertex);
+        renderState->SetShader(shaderPixel);
+        renderState->AddUniform<Au::Math::Mat4f>("MatrixModel");
+        renderState->AddUniform<Au::Math::Mat4f>("MatrixView");
+        renderState->AddUniform<Au::Math::Mat4f>("MatrixProjection");
+        //renderState->DepthTest(false);
+        
+        return renderState;
+    }
 };
 
 #endif
