@@ -156,7 +156,7 @@ public:
         SCALE    = 4
     };
     
-    Animation() : props(NONE), fps(0.0f) {}
+    Animation() : cursor(0.0f), props(NONE), fps(0.0f) {}
 
     void SetAnimData(const std::string& name)
     {
@@ -210,37 +210,41 @@ public:
     }
     
     void FrameRate(float fps) { this->fps = fps; }
-    void Play(const std::string& name){ anim = &anims[name]; }
+    void Play(const std::string& name)
+    { 
+        anim = anims[name];
+        cursor = 0.0f;
+    }
     
     void Tick(float time)
-    {        
+    {
         cursor += time * fps;
-        int loopCount = (int)(cursor / anim->Length());
-        float overflow = loopCount * anim->Length();
+        int loopCount = (int)(cursor / anim.Length());
+        float overflow = loopCount * anim.Length();
         cursor -= overflow;
         
-        anim->Evaluate(cursor);
+        anim.Evaluate(cursor);
 
         Transform* t = GetObject()->GetComponent<Transform>();
         if(props & POSITION)
         {
-            Au::Curve& px = (*anim)["Position"]["x"];
-            Au::Curve& py = (*anim)["Position"]["y"];
-            Au::Curve& pz = (*anim)["Position"]["z"];
+            Au::Curve& px = anim["Position"]["x"];
+            Au::Curve& py = anim["Position"]["y"];
+            Au::Curve& pz = anim["Position"]["z"];
             t->Position(px.value, py.value, pz.value);
         }
         if(props & ROTATION)
         {
-            Au::Curve& rx = (*anim)["Rotation"]["x"];
-            Au::Curve& ry = (*anim)["Rotation"]["y"];
-            Au::Curve& rz = (*anim)["Rotation"]["z"];
+            Au::Curve& rx = anim["Rotation"]["x"];
+            Au::Curve& ry = anim["Rotation"]["y"];
+            Au::Curve& rz = anim["Rotation"]["z"];
             t->Rotation(rx.value, ry.value, rz.value);
         }
         if(props & SCALE)
         {
-            Au::Curve& sx = (*anim)["Scale"]["x"];
-            Au::Curve& sy = (*anim)["Scale"]["y"];
-            Au::Curve& sz = (*anim)["Scale"]["z"];
+            Au::Curve& sx = anim["Scale"]["x"];
+            Au::Curve& sy = anim["Scale"]["y"];
+            Au::Curve& sz = anim["Scale"]["z"];
             t->Scale(sx.value, sy.value, sz.value);
         }
     }
@@ -248,7 +252,9 @@ public:
     void Update(float time)
     {
         for(unsigned i = 0; i < children.size(); ++i)
+        {
             children[i]->Tick(time);
+        }
     }
     
     ~Animation()
@@ -262,7 +268,7 @@ public:
         {
             return;
         }
-        anim = &anims[""];
+        anim = anims[""];
         GetObject()->Root()->GetComponent<Animation>()->_addChild(this);
     }
 private:
@@ -289,7 +295,7 @@ private:
     AnimData* animData;
     float cursor;
     float fps;
-    Au::Curve* anim;
+    Au::Curve anim;
     std::map<std::string, Au::Curve> anims;
     
     std::vector<Animation*> children;
