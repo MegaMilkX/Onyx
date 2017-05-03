@@ -24,12 +24,7 @@ void Transform::Position(float x, float y, float z)
 void Transform::Position(const Au::Math::Vec3f& position)
 { _position = position; }
 void Transform::Rotation(float x, float y, float z)
-{
-    Au::Math::Quat qx = AngleAxis(x, Au::Math::Vec3f(1.0f, 0.0f, 0.0f));
-    Au::Math::Quat qy = AngleAxis(y, Au::Math::Vec3f(0.0f, 1.0f, 0.0f));
-    Au::Math::Quat qz = AngleAxis(z, Au::Math::Vec3f(0.0f, 0.0f, 1.0f));
-    _rotation = qx * qy * qz;
-}
+{ _rotation = EulerToQuat(Au::Math::Vec3f(x, y, z)); }
 void Transform::Rotation(const Au::Math::Quat& rotation)
 { _rotation = rotation; }
 
