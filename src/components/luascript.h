@@ -11,6 +11,7 @@
 #include "mesh.h"
 
 #include "animation.h"
+#include "skeleton.h"
 
 #include <aurora/lua.h>
 
@@ -83,6 +84,7 @@ public:
         
         _state.Bind(&SceneObject::Root, "Root");
         _state.Bind(&SceneObject::CreateObject, "CreateObject");
+        _state.Bind(&SceneObject::FindObject, "FindObject");
         _state.Bind(&SceneObject::GetComponent<LuaScript>, "Script");
         _state.Bind(&SceneObject::GetComponent<Transform>, "Transform");
         _state.Bind(&SceneObject::GetComponent<Camera>, "Camera");
@@ -91,6 +93,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<GFXScene>, "GFXScene");
         _state.Bind(&SceneObject::GetComponent<Mesh>, "Mesh");
         _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
+        _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
         
         _state.Bind(&LuaScript::SetScript, "SetScript");
         _state.Bind<LuaScript, SceneObject*>(&LuaScript::GetObject, "GetObject");
@@ -122,6 +125,9 @@ public:
         
         _state.Bind<Animation, void, const std::string&>(&Animation::SetAnimData, "SetAnimData");
         _state.Bind<Animation, SceneObject*>(&Animation::GetObject, "GetObject");
+        
+        _state.Bind<Skeleton, void, const std::string&>(&Skeleton::SetData, "SetData");
+        _state.Bind<Skeleton, SceneObject*>(&Skeleton::GetObject, "GetObject");
     }
     
     template<typename... Args>
