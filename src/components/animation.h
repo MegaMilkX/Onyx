@@ -146,6 +146,16 @@ private:
 class Animation : public SceneObject::Component
 {
 public:
+    enum ANIM_PROPS
+    {
+        NONE     = 0,
+        POSITION = 1,
+        ROTATION = 2,
+        SCALE    = 4
+    };
+    
+    Animation() : props(NONE), fps(0.0f) {}
+
     void SetAnimData(const std::string& name)
     {
         SetAnimData(Resource<AnimData>::Get(name));
@@ -154,7 +164,7 @@ public:
     void SetAnimData(AnimData* data)
     {
         animData = data;
-        
+        FrameRate(animData->FrameRate());
         for(unsigned i = 0; i < animData->ChildCount(); ++i)
         {
             AnimData& childData = animData->GetChild(i);
@@ -165,6 +175,7 @@ public:
             {
                 Au::Curve& anim = childData.GetAnim(j);
                 o->GetComponent<Animation>()->SetAnim(anim.Name(), anim);
+                o->GetComponent<Animation>()->FrameRate(animData->FrameRate());
             }
         }
     }
@@ -182,15 +193,15 @@ public:
                 GetObject()->GetComponent<Transform>();
             if(propName == "Position")
             {
-
+                props = ANIM_PROPS((int)props | (int)POSITION);
             }
             else if(propName == "Rotation")
             {
-
+                props = ANIM_PROPS((int)props | (int)ROTATION);
             }
             else if(propName == "Scale")
             {
-
+                props = ANIM_PROPS((int)props | (int)SCALE);
             }
         }
         Play(name);
@@ -207,21 +218,29 @@ public:
         cursor -= overflow;
         
         anim->Evaluate(cursor);
-        
-        Au::Curve& px = (*anim)["Position"]["x"];
-        Au::Curve& py = (*anim)["Position"]["y"];
-        Au::Curve& pz = (*anim)["Position"]["z"];
-        Au::Curve& rx = (*anim)["Rotation"]["x"];
-        Au::Curve& ry = (*anim)["Rotation"]["y"];
-        Au::Curve& rz = (*anim)["Rotation"]["z"];
-        Au::Curve& sx = (*anim)["Scale"]["x"];
-        Au::Curve& sy = (*anim)["Scale"]["y"];
-        Au::Curve& sz = (*anim)["Scale"]["z"];
-        
+
         Transform* t = GetObject()->GetComponent<Transform>();
-        t->Position(px.value, py.value, pz.value);
-        t->Rotation(rx.value, ry.value, rz.value);
-        t->Scale(sx.value, sy.value, sz.value);
+        if(props & POSITION)
+        {
+            Au::Curve& px = (*anim)["Position"]["x"];
+            Au::Curve& py = (*anim)["Position"]["y"];
+            Au::Curve& pz = (*anim)["Position"]["z"];
+            t->Position(px.value, py.value, pz.value);
+        }
+        if(props & ROTATION)
+        {
+            Au::Curve& rx = (*anim)["Rotation"]["x"];
+            Au::Curve& ry = (*anim)["Rotation"]["y"];
+            Au::Curve& rz = (*anim)["Rotation"]["z"];
+            t->Rotation(rx.value, ry.value, rz.value);
+        }
+        if(props & SCALE)
+        {
+            Au::Curve& sx = (*anim)["Scale"]["x"];
+            Au::Curve& sy = (*anim)["Scale"]["y"];
+            Au::Curve& sz = (*anim)["Scale"]["z"];
+            t->Scale(sx.value, sy.value, sz.value);
+        }
     }
     
     void Update(float time)
@@ -262,6 +281,8 @@ private:
             }
         }
     }
+    
+    ANIM_PROPS props;
 
     AnimData* animData;
     float cursor;
