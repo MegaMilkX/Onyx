@@ -44,17 +44,19 @@ public:
         script = scene.GetComponent<LuaScript>();
         script->SetScript("scene");
         
-        AnimData* animData = Resource<AnimData>::Get("frame15");
+        
         SceneObject* animTest = scene.CreateObject();
+        
+        Mesh* m = animTest->GetComponent<Mesh>();
+        m->SetMesh("teapot");
+        m->SetMaterial("material");
+        
+        AnimData* animData = Resource<AnimData>::Get("frame15");
         Animation* anim = animTest->GetComponent<Animation>();
         anim->SetAnim("test", animData->GetChild("Sphere001").GetAnim("Take 001"));
         anim->FrameRate(animData->FrameRate());
         anim->Play("test");
-        Mesh* m = animTest->GetComponent<Mesh>();
-        m->SetMesh("teapot");
-        m->SetMaterial("material");
-        Skeleton* skel = animTest->GetComponent<Skeleton>();
-        skel->SetData("skin");
+        //anim->SetAnimData("skin");
     }
     virtual void OnCleanup() 
     {
