@@ -192,20 +192,33 @@ protected:
     {
         Au::GFX::Device& gfxDevice = *GetObject()->Root()->GetComponent<GFXScene>()->GetDevice();
         std::vector<float> vertices =
-        { -1.0f, 0.0f, 0.0f,
-          1.0f, 0.0f, 0.0f,
-          0.0f, -1.0f, 0.0f,
-          0.0f, 1.0f, 0.0f,
-          0.0f, 0.0f, -1.0f,
-          0.0f, 0.0f, 1.0f };
+        { 
+            -1.0f, 0.0f, 0.0f, 
+            1.0f, 0.0f, 0.0f, 
+            0.0f, -1.0f, 0.0f, 
+            0.0f, 1.0f, 0.0f, 
+            0.0f, 0.0f, -1.0f, 
+            0.0f, 0.0f, 1.0f
+        };
+          
+        std::vector<float> colors =
+        {
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f
+        };
 
         std::vector<unsigned short> indices =
         { 0, 1, 2, 3, 4, 5 };
 
         Au::GFX::Mesh* mesh = gfxDevice.CreateMesh();
         mesh->PrimitiveType(Au::GFX::Mesh::LINE);
-        mesh->Format(Au::Position());
-        mesh->VertexData(vertices.data(), vertices.size()/3);
+        mesh->Format(Au::Position() << Au::ColorRGB());
+        mesh->VertexAttribByInfo(Au::Position(), (unsigned char*)vertices.data(), vertices.size() * sizeof(float));
+        mesh->VertexAttribByInfo(Au::ColorRGB(), (unsigned char*)colors.data(), vertices.size() * sizeof(float));
         mesh->IndexData(indices);
         
         return mesh;
@@ -220,23 +233,27 @@ protected:
             uniform mat4 MatrixView;
             uniform mat4 MatrixProjection;
             in vec3 Position;
+            in vec3 ColorRGB;
+            out vec3 color;
             void main()
             {
+                color = ColorRGB;
                 gl_Position = MatrixProjection * MatrixView * MatrixModel * vec4(Position, 1.0);
             })");
         std::cout << shaderVertex->StatusString() << std::endl;
         
         Au::GFX::Shader* shaderPixel = gfxDevice.CreateShader(Au::GFX::Shader::PIXEL);
         shaderPixel->Source(R"(#version 140
+            in vec3 color;
             out vec4 fragOut;
             void main()
             {            
-                fragOut = vec4(1.0, 1.0, 1.0, 1.0);
+                fragOut = vec4(color, 1.0);
             })");
         std::cout << shaderPixel->StatusString() << std::endl;
         
         Au::GFX::RenderState* renderState = gfxDevice.CreateRenderState();
-        renderState->AttribFormat(Au::Position());
+        renderState->AttribFormat(Au::Position() << Au::ColorRGB());
         renderState->SetShader(shaderVertex);
         renderState->SetShader(shaderPixel);
         renderState->AddUniform<Au::Math::Mat4f>("MatrixModel");
