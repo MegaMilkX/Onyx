@@ -26,7 +26,7 @@ Opengl32.lib ^
 aurora.lib ^
 liblua.lib
 
-set COMPILER_ARGS=/D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo
+set COMPILER_ARGS=/D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
 
 setlocal enableextensions enabledelayedexpansion
 
@@ -121,7 +121,8 @@ if %BUILD_TYPE% EQU exe (
     /NOLOGO ^
     %LIB_PATHS% ^
     /TLBID:1 ^
-    /LTCG
+    /LTCG ^
+    /DEBUG:FULL
 ) else if %BUILD_TYPE% EQU lib (
     lib /OUT:..\%BUILDDIR%\%EXENAME%.lib %OBJS% /LTCG
 ) else if %BUILD_TYPE% EQU dll (
@@ -136,7 +137,8 @@ if %BUILD_TYPE% EQU exe (
     /NOLOGO ^
     %LIB_PATHS% ^
     /TLBID:1 ^
-    /LTCG
+    /LTCG ^
+    /DEBUG:FULL
 )
 
 if exist ..\build.txt (
