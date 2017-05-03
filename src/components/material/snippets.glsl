@@ -6,11 +6,13 @@ R"(
     uniform mat4 MatrixView;
     uniform mat4 MatrixProjection;
     out vec4 PositionWorld;
+    
     PositionWorld =  
         MatrixProjection * 
         MatrixView * 
         MatrixModel *
         vec4(Position, 1.0);
+        
 #vertex PositionModel
     in vec3 Position;
     out vec4 PositionModel = vec4(Position, 1.0);
@@ -77,9 +79,23 @@ R"(
     float diff = max(0.5 - dot(NormalModel, normalize(camPos - FragPosWorld)), 0.0);
     RimLight = vec4(RimColor * diff, 1.0);
         
+#generic DistortFishEye
+    in vec2 input;
+    out vec2 output;
+    
+    output = input;
+    vec2 v = output.xy / output.w;
+    
+    float theta = atan(v.y, v.x);
+    float radius = length(v);
+    radius = pow(radius, 0.8);
+    v.x = radius * cos(theta);
+    v.y = radius * sin(theta);
+    output.xy = v.xy * output.w;
+
 #fragment DebugRed
     out vec4 DebugRed = vec4(1.0, 0.0, 0.0, 1.0);
-        
+    
 #generic multiply
     in vec4 first;
     in vec4 second;
