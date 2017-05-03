@@ -1,12 +1,15 @@
 
 Init = function()
-    --mesh = SceneObject:Mesh();
-    --mesh:SetMesh("sphere");
-    --mesh:SetMaterial("material1");
-    --SceneObject:Transform():Translate(2.5, 0.0, 1.5);
+    SceneObject:Transform():Translate(2.5, 0.0, 1.5);
     
-    anim = SceneObject:Animation();
-    anim:SetAnimData("frame15");
+    skel = SceneObject:Skeleton();
+    skel:SetData("skin");
+    
+    SceneObject:Animation():SetAnimData("skin");
+    
+    mesh = SceneObject:FindObject("Bone003"):Mesh();
+    mesh:SetMesh("sphere");
+    mesh:SetMaterial("material1");
 end
 
 Update = function()
