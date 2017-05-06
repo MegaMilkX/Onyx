@@ -52,6 +52,9 @@ Au::Math::Vec3f Transform::Back()
 void Transform::SetTransform(Au::Math::Mat4f& t)
 {
     _position = Au::Math::Vec3f(t[3].x, t[3].y, t[3].z);
+    Au::Math::Mat3f rotMat = ToMat3(t);
+    _rotation = Au::Math::ToQuat(rotMat);
+    _scale = Au::Math::Vec3f(t[0].length(), t[1].length(), t[2].length());
 }
 
 Au::Math::Mat4f Transform::GetTransform()
