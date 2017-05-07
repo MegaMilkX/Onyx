@@ -79,40 +79,37 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
             for(unsigned i = 0; i < stacks.size(); ++i)
             {
                 std::string stackName = stacks[i].GetName();
-                
                 double length = stacks[i].GetLength() / timePerFrame;
                 
-                int layerCount = stacks[i].LayerCount();
-                if(layerCount > 0)
+                std::vector<Au::Media::FBX::SceneNode> nodes = stacks[i].GetAnimatedNodes();
+                for(unsigned j = 0; j < nodes.size(); ++j)
                 {
-                    Au::Media::FBX::AnimationLayer* layer =
-                        stacks[i].GetLayer(0);
-                    
-                    for(unsigned j = 0; j < layer->CurveNodeCount(); ++j)
+                    std::string nodeName = nodes[j].Name();
+                    Au::Curve& anim = animData->GetChild(nodeName).GetAnim(stackName);
+                    float frame = 0.0f;
+                    anim.Length((float)length);
+                    for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
                     {
-                        Au::Media::FBX::AnimationCurveNode* curveNode = 
-                            layer->GetCurveNode(j);
+                        Au::Math::Vec3f pos = 
+                            stacks[i].EvaluatePosition(nodes[j], (int64_t)t);
+                        anim["Position"]["x"][frame] = pos.x;
+                        anim["Position"]["y"][frame] = pos.y;
+                        anim["Position"]["z"][frame] = pos.z;
                         
-                        std::string objectName = curveNode->GetObjectName();
-                        animData->GetChild(objectName).GetAnim(stackName).Length((float)length);
-                        std::string propName = "";
-                        if(curveNode->GetPropertyName() == "Lcl Translation")
-                            propName = "Position";
-                        else if(curveNode->GetPropertyName() == "Lcl Rotation")
-                            propName = "Rotation";
-                        else if(curveNode->GetPropertyName() == "Lcl Scaling")
-                            propName = "Scale";
+                        Au::Math::Quat rot = 
+                            stacks[i].EvaluateRotation(nodes[j], (int64_t)t);
+                        anim["Rotation"]["x"][frame] = rot.x;
+                        anim["Rotation"]["y"][frame] = rot.y;
+                        anim["Rotation"]["z"][frame] = rot.z;
+                        anim["Rotation"]["w"][frame] = rot.w;
                         
-                        Au::Curve& propCurve = animData->GetChild(objectName).GetAnim(stackName)[propName];
+                        Au::Math::Vec3f scale = 
+                            stacks[i].EvaluateScale(nodes[j], (int64_t)t);
+                        anim["Scale"]["x"][frame] = scale.x;
+                        anim["Scale"]["y"][frame] = scale.y;
+                        anim["Scale"]["z"][frame] = scale.z;
                         
-                        unsigned curveCount = curveNode->CurveCount();
-                        for(unsigned k = 0; k < curveCount; ++k)
-                        {
-                            Au::Media::FBX::AnimationCurve* fbxCurve = 
-                                curveNode->GetCurve(k);
-                                
-                            FillPropCurve(propCurve, fbxCurve, timePerFrame);
-                        }
+                        frame += 1.0f;
                     }
                 }
             }
@@ -238,7 +235,17 @@ public:
             Au::Curve& rx = anim["Rotation"]["x"];
             Au::Curve& ry = anim["Rotation"]["y"];
             Au::Curve& rz = anim["Rotation"]["z"];
-            t->Rotation(rx.value, ry.value, rz.value);
+            Au::Curve& rw = anim["Rotation"]["w"];
+            t->Rotation(
+                Au::Math::Normalize(
+                    Au::Math::Quat(
+                        rx.value,
+                        ry.value,
+                        rz.value,
+                        rw.value
+                    )
+                )
+            );
         }
         if(props & SCALE)
         {
