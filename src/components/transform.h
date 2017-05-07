@@ -34,6 +34,7 @@ public:
     void Position(const Au::Math::Vec3f& position);
     void Rotation(float x, float y, float z);
     void Rotation(const Au::Math::Quat& rotation);
+    void Rotation(float x, float y, float z, float w);
     void Scale(float scale);
     void Scale(float x, float y, float z);
     void Scale(const Au::Math::Vec3f& scale);
