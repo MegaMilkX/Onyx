@@ -32,7 +32,7 @@ public:
     static T* Get(const std::string& name)
     {
         T* resource = 0;
-        
+        std::string filename;
         std::map<std::string, T*>::iterator it =
             resources.begin();
         for(it; it != resources.end(); ++it)
@@ -44,6 +44,7 @@ public:
             }
         }
         
+        
         for(unsigned i = 0; i < searchPaths.size(); ++i)
         {
             for(unsigned j = 0; j < readers.size(); ++j)
@@ -51,12 +52,13 @@ public:
                 // TODO: REMOVE PLATFORM DEPENDENT CODE
                 // TODO: RESPECT EMPTY SEARCH PATHS
                 // TODO: MAKE FULL FILE PATH
-                std::string filename = 
+                filename = 
                     searchPaths[i] + 
                     "\\" + 
                     name +
                     "." +
                     readers[j]->extension;
+                
                 resource = (T*)readers[j]->operator()(filename);
                 if(resource)
                     goto resourceFound;
@@ -65,6 +67,7 @@ public:
         
         resourceFound:
         if(resource) referenceCount[name]++;
+        else std::cout << "Resource not found: " << filename << std::endl;
         return resource;
     }
     
