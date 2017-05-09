@@ -80,16 +80,6 @@ public:
                 meshData->SetAttribArray<Au::Position>(fbxMesh.GetVertices());
                 meshData->SetAttribArray<Au::Normal>(fbxMesh.GetNormals(0));
                 meshData->SetIndices(fbxMesh.GetIndices<unsigned short>());
-                
-                Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
-                for(int i = 0; i < skin.DeformerCount(); ++i)
-                {
-                    Au::Media::FBX::SkinDeformer* deformer = 
-                        skin.GetDeformer(i);
-                }
-                //std::vector<int> boneIndices;
-                //std::vector<unsigned char> boneWeights;
-                //std::vector<Au::Media::FBX::Deformer> deformers = fbxMesh.GetDeformers();
             }
         }
         
