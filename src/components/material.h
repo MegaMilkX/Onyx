@@ -362,6 +362,8 @@ public:
             lua.Cleanup();
         }
         
+        file.close();
+        
         return material;
     }
 };

@@ -59,6 +59,8 @@ struct SkeletonDataReaderFBX : public Resource<SkeletonData>::Reader
             //fbxReader.GetHelpers();
         }
         
+        file.close();
+        
         return skel;
     }
     

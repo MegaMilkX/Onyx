@@ -93,6 +93,8 @@ public:
             }
         }
         
+        file.close();
+        
         return meshData;
     }
 };

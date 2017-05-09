@@ -115,6 +115,8 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
             }
         }
         
+        file.close();
+        
         return animData;
     }
 
