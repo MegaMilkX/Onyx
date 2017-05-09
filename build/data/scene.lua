@@ -22,8 +22,9 @@ Init = function()
     mesh:SetMesh("miku");
     mesh:SetMaterial("material");
     
-    teapot = SceneObject:CreateObject():Script():SetScript("teapot");
-    sphere = SceneObject:CreateObject():Script():SetScript("sphere");
+    SceneObject:CreateObject():Script():SetScript("teapot");
+    SceneObject:CreateObject():Script():SetScript("sphere");
+    SceneObject:CreateObject():Script():SetScript("sphere2");
     
     --mesh = SceneObject:CreateObject():Mesh();
     --mesh:SetMesh("env");

@@ -1,16 +1,15 @@
 
 Init = function()
-    SceneObject:Transform():Translate(2.5, 0.0, 1.5);
+    SceneObject:Transform():Translate(6.5, 0.0, 1.5);
+    
+    skel = SceneObject:Skeleton();
+    skel:SetData("skin");
+    
+    --SceneObject:Animation():SetAnimData("skin");
     
     mesh = SceneObject:Mesh();
     mesh:SetMesh("skin");
     mesh:SetMaterial("material");
-
-    SceneObject:Skeleton():SetData("skin");
-    
-    SceneObject:Animation():SetAnimData("skin");
-    
-    
 end
 
 Update = function()
