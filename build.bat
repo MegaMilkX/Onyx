@@ -134,7 +134,8 @@ if %BUILD_TYPE% EQU exe (
     /NOLOGO ^
     %LIB_PATHS% ^
     /TLBID:1 ^
-    /LTCG
+    /LTCG ^
+    /DEBUG
 ) else if %BUILD_TYPE% EQU lib (
     lib /OUT:..\%BUILDDIR%\%EXENAME%.lib %OBJS% /LTCG
 ) else if %BUILD_TYPE% EQU dll (
@@ -148,7 +149,8 @@ if %BUILD_TYPE% EQU exe (
     /NOLOGO ^
     %LIB_PATHS% ^
     /TLBID:1 ^
-    /LTCG
+    /LTCG ^
+    /DEBUG
 )
 
 if exist ..\build.txt (
