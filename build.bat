@@ -4,9 +4,11 @@ REM What's your project name?
 set EXENAME=onyx
 
 set INCLUDE_PATHS=/I "%~dp0\..\Aurora\include" ^
-/I "%~dp0\..\lib\lua\include"
+/I "%~dp0\..\lib\lua\include" ^
+/I "%~dp0\..\lib\fbxsdk\include"
 set LIB_PATHS=/LIBPATH:"%~dp0\..\Aurora\lib" ^
-/LIBPATH:"%~dp0\..\lib\lua\lib"
+/LIBPATH:"%~dp0\..\lib\lua\lib" ^
+/LIBPATH:"%~dp0\..\lib\fbxsdk\lib"
 set LIBRARIES=kernel32.lib ^
 user32.lib ^
 gdi32.lib ^
@@ -24,7 +26,8 @@ Shlwapi.lib ^
 legacy_stdio_definitions.lib ^
 Opengl32.lib ^
 aurora.lib ^
-liblua.lib
+liblua.lib ^
+libfbxsdk.lib
 
 set COMPILER_ARGS=/D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
 
@@ -44,11 +47,22 @@ for /L %%i in (1,1,%ARG_COUNT%) do (
         set BUILD_TYPE=lib
     ) else if !ARGS[%%i]! EQU dll (
         set BUILD_TYPE=dll
+    ) else if !ARGS[%%i]! EQU x86 (
+        set "ARCHITECTURE="
+        set "LINKARCH=X86"
+    ) else if !ARGS[%%i]! EQU x64 (
+        set "ARCHITECTURE=amd64"
+        set "LINKARCH=X64"
     )
 )
 
 if not defined BUILD_TYPE (
     set BUILD_TYPE=exe
+)
+
+if not defined ARCHITECTURE (
+    set "ARCHITECTURE="
+    set "LINKARCH=X86"
 )
 
 set BUILDDIRNAME=build
@@ -79,7 +93,7 @@ if not defined VCVARSALLPATH (
     exit /b 1
 )
 
-if not defined DevEnvDir (call %VCVARSALLPATH%)
+if not defined DevEnvDir (call %VCVARSALLPATH% %ARCHITECTURE%)
 
 REM =============================================
 
@@ -113,32 +127,28 @@ if %BUILD_TYPE% EQU exe (
     link /OUT:"..\%BUILDDIR%\%EXENAME%.exe" ^
     %OBJS% ^
     %LIBRARIES% ^
-    /MACHINE:X86 ^
+    /MACHINE:%LINKARCH% ^
     /OPT:REF ^
-    /SAFESEH ^
     /OPT:ICF ^
     /ERRORREPORT:PROMPT ^
     /NOLOGO ^
     %LIB_PATHS% ^
     /TLBID:1 ^
-    /LTCG ^
-    /DEBUG:FULL
+    /LTCG
 ) else if %BUILD_TYPE% EQU lib (
     lib /OUT:..\%BUILDDIR%\%EXENAME%.lib %OBJS% /LTCG
 ) else if %BUILD_TYPE% EQU dll (
     link /DLL /OUT:"..\%BUILDDIR%\%EXENAME%.dll" ^
     %OBJS% ^
     %LIBRARIES% ^
-    /MACHINE:X86 ^
+    /MACHINE:%LINKARCH% ^
     /OPT:REF ^
-    /SAFESEH ^
     /OPT:ICF ^
     /ERRORREPORT:PROMPT ^
     /NOLOGO ^
     %LIB_PATHS% ^
     /TLBID:1 ^
-    /LTCG ^
-    /DEBUG:FULL
+    /LTCG
 )
 
 if exist ..\build.txt (
