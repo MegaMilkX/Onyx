@@ -5,7 +5,7 @@
 
 #include "transform.h"
 #include "../scene_object.h"
-#include "gfxscene.h"
+#include "renderer.h"
 
 class Camera : public SceneObject::Component
 {
@@ -23,8 +23,7 @@ public:
 
     void Render(Au::GFX::Device* device)
     {
-        gfxScene->Render(
-            device,
+        renderer->Render(
             projection,
             transform->GetTransform()
         );
@@ -33,13 +32,13 @@ public:
     virtual void OnCreate()
     {
         transform = GetObject()->GetComponent<Transform>();
-        gfxScene = GetObject()->Root()->GetComponent<GFXScene>();
+        renderer = GetObject()->Root()->GetComponent<Renderer>();
     }
 private:
     Au::Math::Mat4f projection;
 
     Transform* transform;
-    GFXScene* gfxScene;
+    Renderer* renderer;
 };
 
 #endif

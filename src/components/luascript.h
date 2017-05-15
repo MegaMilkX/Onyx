@@ -5,7 +5,7 @@
 #include "../resource.h"
 
 #include "transform.h"
-#include "gfxscene.h"
+#include "renderer.h"
 #include "camera.h"
 #include "light_omni.h"
 #include "mesh.h"
@@ -90,7 +90,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<Camera>, "Camera");
         _state.Bind(&SceneObject::GetComponent<LightOmni>, "LightOmni");
         _state.Bind(&SceneObject::GetComponent<LightDirect>, "LightDirect");
-        _state.Bind(&SceneObject::GetComponent<GFXScene>, "GFXScene");
+        _state.Bind(&SceneObject::GetComponent<Renderer>, "Renderer");
         _state.Bind(&SceneObject::GetComponent<Mesh>, "Mesh");
         _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
         _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
@@ -115,9 +115,9 @@ public:
         _state.Bind<LightDirect, void, float, float, float>(&LightDirect::Direction, "Direction");
         _state.Bind<LightDirect, SceneObject*>(&LightDirect::GetObject, "GetObject");
         
-        _state.Bind(&GFXScene::AmbientColor, "AmbientColor");
-        _state.Bind(&GFXScene::RimColor, "RimColor");
-        _state.Bind<GFXScene, SceneObject*>(&GFXScene::GetObject, "GetObject");
+        _state.Bind(&Renderer::AmbientColor, "AmbientColor");
+        _state.Bind(&Renderer::RimColor, "RimColor");
+        _state.Bind<Renderer, SceneObject*>(&Renderer::GetObject, "GetObject");
         
         _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMesh, "SetMesh");
         _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMaterial, "SetMaterial");

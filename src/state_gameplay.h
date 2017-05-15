@@ -29,10 +29,10 @@ public:
     
     virtual void OnInit() 
     {        
-        gfxScene = scene.GetComponent<GFXScene>();
-        gfxScene->Init(GFXDevice());
-        gfxScene->AmbientColor(0.1f, 0.1f, 0.1f);
-        gfxScene->RimColor(0.4f, 0.4f, 0.8f);
+        renderer = scene.GetComponent<Renderer>();
+        renderer->Init(GFXDevice());
+        renderer->AmbientColor(0.1f, 0.1f, 0.1f);
+        renderer->RimColor(0.4f, 0.4f, 0.8f);
         
         camera = scene.CreateObject()->GetComponent<Camera>();
         camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 1000.0f);
@@ -117,7 +117,7 @@ public:
     }
 private:
     SceneObject scene;
-    GFXScene* gfxScene;
+    Renderer* renderer;
     Camera* camera;
     LuaScript* script;
     

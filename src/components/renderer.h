@@ -11,10 +11,14 @@
 class Mesh;
 class LightOmni;
 class LightDirect;
-class GFXScene : public SceneObject::Component
+class Renderer : public SceneObject::Component
 {
 friend Mesh;
 public:
+    Renderer()
+    : renderFn(&Renderer::_renderRebuildScene)
+    {}
+
     bool Init(Au::GFX::Device* gfxDevice)
     {
         _gfxDevice = gfxDevice;     
@@ -25,8 +29,7 @@ public:
     
     Au::GFX::Device* GetDevice() { return _gfxDevice; }
 
-    void Render(Au::GFX::Device* device, 
-        const Au::Math::Mat4f& perspective,
+    void Render(const Au::Math::Mat4f& projection,
         const Au::Math::Mat4f& transform);
         
     void AmbientColor(float r, float g, float b)
@@ -107,6 +110,14 @@ public:
         
     virtual void OnCreate();
 private:
+    void _renderRebuildScene(const Au::Math::Mat4f& projection,
+        const Au::Math::Mat4f& transform);
+    void _render(const Au::Math::Mat4f& perspective,
+        const Au::Math::Mat4f& transform);
+
+    void(Renderer::*renderFn)(const Au::Math::Mat4f& projection,
+        const Au::Math::Mat4f& transform);
+
     Au::GFX::Device* _gfxDevice;
 
     std::vector<Mesh*> meshes;

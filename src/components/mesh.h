@@ -7,7 +7,7 @@
 
 #include "../scene_object.h"
 #include "transform.h"
-#include "gfxscene.h"
+#include "renderer.h"
 #include "material.h"
 
 #include "../resource.h"
@@ -91,11 +91,11 @@ public:
 
 class Mesh : public SceneObject::Component
 {
-friend GFXScene;
+friend Renderer;
 public:
     Mesh()
     : transform(0),
-    gfxScene(0),
+    renderer(0),
     material(0),
     meshData(0),
     renderState(0),
@@ -125,7 +125,7 @@ public:
     void SetMaterial(Material* mat)
     {
         this->material = mat;
-        this->renderState = mat->Finalize(gfxScene);
+        this->renderState = mat->Finalize(renderer);
         if(meshData)
             _setupMesh();
     }
@@ -142,19 +142,19 @@ public:
     virtual void OnCreate()
     {
         transform = GetObject()->GetComponent<Transform>();
-        gfxScene = GetObject()->Root()->GetComponent<GFXScene>();
-        gfxScene->AddMesh(this);
+        renderer = GetObject()->Root()->GetComponent<Renderer>();
+        renderer->AddMesh(this);
     }
 protected:
     void _setupMesh()
     {
-        mesh = gfxScene->GetDevice()->CreateMesh();
+        mesh = renderer->GetDevice()->CreateMesh();
         mesh->Format(material->AttribFormat());
         meshData->FillMesh(mesh);
     }
 
     Transform* transform;
-    GFXScene* gfxScene;
+    Renderer* renderer;
     
     Material* material;
     MeshData* meshData;
@@ -182,7 +182,7 @@ public:
 protected:
     Au::GFX::Mesh* CreateCrossMesh()
     {
-        Au::GFX::Device& gfxDevice = *GetObject()->Root()->GetComponent<GFXScene>()->GetDevice();
+        Au::GFX::Device& gfxDevice = *GetObject()->Root()->GetComponent<Renderer>()->GetDevice();
         std::vector<float> vertices =
         { 
             -0.00f, 0.0f, 0.0f, 
@@ -218,7 +218,7 @@ protected:
     
     Au::GFX::RenderState* CreateCrossRS()
     {
-        Au::GFX::Device& gfxDevice = *GetObject()->Root()->GetComponent<GFXScene>()->GetDevice();
+        Au::GFX::Device& gfxDevice = *GetObject()->Root()->GetComponent<Renderer>()->GetDevice();
         Au::GFX::Shader* shaderVertex = gfxDevice.CreateShader(Au::GFX::Shader::VERTEX);
         shaderVertex->Source(R"(#version 140
             uniform mat4 MatrixModel;

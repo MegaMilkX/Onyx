@@ -2,7 +2,7 @@
 #define COMPONENT_LIGHT_OMNI_H
 
 #include "../scene_object.h"
-#include "gfxscene.h"
+#include "renderer.h"
 
 #include <aurora/math.h>
 
@@ -11,7 +11,7 @@ class LightDirect : public SceneObject::Component
 public:
     ~LightDirect()
     {
-        GetObject()->Root()->GetComponent<GFXScene>()->RemoveLightDirect(this);
+        GetObject()->Root()->GetComponent<Renderer>()->RemoveLightDirect(this);
     }
     
     void Color(float r, float g, float b)
@@ -27,7 +27,7 @@ public:
     
     void OnCreate()
     {
-        GetObject()->Root()->GetComponent<GFXScene>()->AddLightDirect(this);
+        GetObject()->Root()->GetComponent<Renderer>()->AddLightDirect(this);
     }
 private:
     Au::Math::Vec3f color;
@@ -39,7 +39,7 @@ class LightOmni : public SceneObject::Component
 public:
     ~LightOmni()
     {
-        GetObject()->Root()->GetComponent<GFXScene>()->RemoveLightOmni(this);
+        GetObject()->Root()->GetComponent<Renderer>()->RemoveLightOmni(this);
     }
 
     void Color(float r, float g, float b)
@@ -56,7 +56,7 @@ public:
 
     void OnCreate()
     {
-        GetObject()->Root()->GetComponent<GFXScene>()->AddLightOmni(this);
+        GetObject()->Root()->GetComponent<Renderer>()->AddLightOmni(this);
     }
 private:
     Au::Math::Vec3f color;

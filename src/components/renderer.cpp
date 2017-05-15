@@ -1,10 +1,10 @@
-#include "gfxscene.h"
+#include "renderer.h"
 
 #include "mesh.h"
 #include "material.h"
 #include "light_omni.h"
 
-void GFXScene::OnCreate()
+void Renderer::OnCreate()
 {
     uniViewMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixView");
     uniProjMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixProjection");
@@ -20,8 +20,28 @@ void GFXScene::OnCreate()
 }
 
 #include <iostream>
-void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection,
+void Renderer::Render(const Au::Math::Mat4f& projection,
         const Au::Math::Mat4f& transform)
+{
+    (this->*renderFn)(projection, transform);
+}
+
+// ===================
+// Private
+// ===================
+
+void Renderer::_renderRebuildScene(
+    const Au::Math::Mat4f& projection,
+    const Au::Math::Mat4f& transform)
+{
+    
+    
+    renderFn = &Renderer::_render;
+}
+
+void Renderer::_render(
+    const Au::Math::Mat4f& projection,
+    const Au::Math::Mat4f& transform)
 {
     for(unsigned i = 0; i < lightsOmni.size(); ++i)
     {
@@ -43,6 +63,6 @@ void GFXScene::Render(Au::GFX::Device* device, const Au::Math::Mat4f& projection
     
     for(unsigned i = 0; i < meshes.size(); ++i)
     {
-        meshes[i]->Render(device);
+        meshes[i]->Render(_gfxDevice);
     }
 }

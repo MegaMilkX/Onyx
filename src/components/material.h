@@ -11,7 +11,7 @@
 #include <aurora/lua.h>
 
 #include "../scene_object.h"
-#include "gfxscene.h"
+#include "renderer.h"
 
 #include "../resource.h"
 
@@ -62,9 +62,9 @@ public:
         
     }
     
-    Au::GFX::RenderState* Finalize(GFXScene* gfxScene)
+    Au::GFX::RenderState* Finalize(Renderer* renderer)
     {
-        Au::GFX::Device* gfxDevice = gfxScene->GetDevice();
+        Au::GFX::Device* gfxDevice = renderer->GetDevice();
         Au::GFX::RenderState* renderState;
         std::vector<Au::GLSLStitch::Snippet> specFragSnips = fragSnips;
         
@@ -131,15 +131,15 @@ public:
         renderState = gfxDevice->CreateRenderState();  
 
         std::string pp;
-        _setupPreprocessorDirectives(vSnip, pp, gfxScene);
+        _setupPreprocessorDirectives(vSnip, pp, renderer);
         vshader = pp + vshader;
-        _setupPreprocessorDirectives(fSnip, pp, gfxScene);
+        _setupPreprocessorDirectives(fSnip, pp, renderer);
         fshader = pp + fshader;
         
-        std::cout << "== VERTEX =========" << std::endl;
-        std::cout << vshader << std::endl;
-        std::cout << "== FRAGMENT =======" << std::endl;
-        std::cout << fshader << std::endl;
+        //std::cout << "== VERTEX =========" << std::endl;
+        //std::cout << vshader << std::endl;
+        //std::cout << "== FRAGMENT =======" << std::endl;
+        //std::cout << fshader << std::endl;
         
         Au::GFX::Shader* shaderVertex = gfxDevice->CreateShader(Au::GFX::Shader::VERTEX);
         shaderVertex->Source(vshader);
@@ -152,8 +152,8 @@ public:
         renderState->SetShader(shaderVertex);
         renderState->SetShader(shaderFragment);
         
-        _gatherUniforms(vSnip, renderState, gfxScene);
-        _gatherUniforms(fSnip, renderState, gfxScene);
+        _gatherUniforms(vSnip, renderState, renderer);
+        _gatherUniforms(fSnip, renderState, renderer);
         _deductAttribFormat(vSnip, renderState);
         
         std::cout << renderState->StatusString() << std::endl;
@@ -248,7 +248,7 @@ private:
     void _setupPreprocessorDirectives(
         Au::GLSLStitch::Snippet& snip, 
         std::string& pp,
-        GFXScene* gfxScene)
+        Renderer* renderer)
     {
         pp = "";
         std::set<std::string> lines;
@@ -261,7 +261,7 @@ private:
             sz = _toInt(var.arraySize);
             if(sz == 0 && !var.arraySize.empty())
             {
-                sz = gfxScene->GetInt(var.arraySize);
+                sz = renderer->GetInt(var.arraySize);
                 lines.insert(std::string("#define ") + 
                     var.arraySize + 
                     " " + 
@@ -280,7 +280,7 @@ private:
     void _gatherUniforms(
         Au::GLSLStitch::Snippet& snip, 
         Au::GFX::RenderState* renderState,
-        GFXScene* gfxScene)
+        Renderer* renderer)
     {
         for(unsigned i = 0; i < snip.other.size(); ++i)
         {
@@ -291,7 +291,7 @@ private:
             sz = _toInt(var.arraySize);
             if(sz == 0)
             {
-                sz = gfxScene->GetInt(var.arraySize);
+                sz = renderer->GetInt(var.arraySize);
             }
             
             if(sz == 0) sz = 1;
