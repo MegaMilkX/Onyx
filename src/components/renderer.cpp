@@ -34,7 +34,10 @@ void Renderer::_renderRebuildScene(
     const Au::Math::Mat4f& projection,
     const Au::Math::Mat4f& transform)
 {
-    
+    for(unsigned i = 0; i < meshes.size(); ++i)
+    {
+        meshes[i]->Build();
+    }
     
     renderFn = &Renderer::_render;
 }

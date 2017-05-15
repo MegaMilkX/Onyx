@@ -94,7 +94,8 @@ class Mesh : public SceneObject::Component
 friend Renderer;
 public:
     Mesh()
-    : transform(0),
+    : dirty(true),
+    transform(0),
     renderer(0),
     material(0),
     meshData(0),
@@ -115,8 +116,7 @@ public:
     void SetMesh(MeshData* meshData)
     { 
         this->meshData = meshData;
-        if(material)
-            _setupMesh();
+        _dirty();
     }
     
     void SetMaterial(const std::string& name)
@@ -125,9 +125,20 @@ public:
     void SetMaterial(Material* mat)
     {
         this->material = mat;
-        this->renderState = mat->Finalize(renderer);
-        if(meshData)
-            _setupMesh();
+        _dirty();
+    }
+    
+    void Build()
+    {
+        if(!dirty)
+            return;
+        dirty = false;
+        if(!material)
+            return;
+        renderState = material->Finalize(renderer);
+        if(!meshData)
+            return;
+        _setupMesh();
     }
     
     void Render(Au::GFX::Device* device)
@@ -146,12 +157,20 @@ public:
         renderer->AddMesh(this);
     }
 protected:
+    void _dirty()
+    {
+        dirty = true;
+        renderer->Dirty();
+    }
+
     void _setupMesh()
     {
         mesh = renderer->GetDevice()->CreateMesh();
         mesh->Format(material->AttribFormat());
         meshData->FillMesh(mesh);
     }
+    
+    bool dirty;
 
     Transform* transform;
     Renderer* renderer;

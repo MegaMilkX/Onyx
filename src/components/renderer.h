@@ -16,8 +16,9 @@ class Renderer : public SceneObject::Component
 friend Mesh;
 public:
     Renderer()
-    : renderFn(&Renderer::_renderRebuildScene)
-    {}
+    {
+        Dirty();
+    }
 
     bool Init(Au::GFX::Device* gfxDevice)
     {
@@ -29,6 +30,8 @@ public:
     
     Au::GFX::Device* GetDevice() { return _gfxDevice; }
 
+    void Dirty() { renderFn = &Renderer::_renderRebuildScene; }
+    
     void Render(const Au::Math::Mat4f& projection,
         const Au::Math::Mat4f& transform);
         
