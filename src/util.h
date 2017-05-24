@@ -36,14 +36,7 @@ Au::GFX::Mesh* LoadMesh(Au::GFX::Device* gfxDevice, const std::string& path)
             std::vector<unsigned short> indices = fbxMesh.GetIndices<unsigned short>();
             mesh->IndexData(indices);
             
-            Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
-            for(int i = 0; i < skin.DeformerCount(); ++i)
-            {
-                Au::Media::FBX::SkinDeformer* deformer = 
-                    skin.GetDeformer(i);
-                    
-                
-            }
+
             //std::vector<int> boneIndices;
             //std::vector<unsigned char> boneWeights;
             //std::vector<Au::Media::FBX::Deformer> deformers = fbxMesh.GetDeformers();
