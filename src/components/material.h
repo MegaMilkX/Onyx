@@ -72,13 +72,13 @@ public:
         std::string fshader;
         
         Au::GLSLStitch::Snippet vSnip = 
-        Au::GLSLStitch::AssembleSnippet(
-            vertSnips,
-            R"(
-                in vec3 PositionWorld;
-                gl_Position = PositionWorld;
-            )"
-        );
+            Au::GLSLStitch::AssembleSnippet(
+                vertSnips,
+                R"(
+                    in vec3 PositionWorld;
+                    gl_Position = PositionWorld;
+                )"
+            );
         
         Au::GLSLStitch::Snippet fSnip =
             Au::GLSLStitch::MakeSnippet(
