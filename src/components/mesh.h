@@ -103,6 +103,11 @@ public:
     mesh(0)
     {
         uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
+        vertexShaderSource =
+            R"(
+                in vec4 PositionWorld;
+                gl_Position = PositionWorld;
+            )";
     }
     
     ~Mesh()
@@ -128,6 +133,9 @@ public:
         _dirty();
     }
     
+    void VertexShaderSource(const std::string& source) { vertexShaderSource = source; }
+    std::string& VertexShaderSource() { return vertexShaderSource; }
+    
     void Build()
     {
         if(!dirty)
@@ -135,7 +143,7 @@ public:
         dirty = false;
         if(!material)
             return;
-        renderState = material->Finalize(renderer);
+        renderState = material->Finalize(renderer, vertexShaderSource);
         if(!meshData)
             return;
         _setupMesh();
@@ -181,6 +189,8 @@ protected:
     Au::GFX::Mesh* mesh;
     
     Au::GFX::Uniform uniModelMat4f;
+    
+    std::string vertexShaderSource;
 };
 
 class DebugTransformIcon : public Mesh

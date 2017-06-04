@@ -62,7 +62,7 @@ public:
         
     }
     
-    Au::GFX::RenderState* Finalize(Renderer* renderer)
+    Au::GFX::RenderState* Finalize(Renderer* renderer, const std::string& vertexShaderSnippet)
     {
         Au::GFX::Device* gfxDevice = renderer->GetDevice();
         Au::GFX::RenderState* renderState;
@@ -74,10 +74,7 @@ public:
         Au::GLSLStitch::Snippet vSnip = 
             Au::GLSLStitch::AssembleSnippet(
                 vertSnips,
-                R"(
-                    in vec3 PositionWorld;
-                    gl_Position = PositionWorld;
-                )"
+                vertexShaderSnippet
             );
         
         Au::GLSLStitch::Snippet fSnip =

@@ -3,6 +3,8 @@
 
 #include "animation.h"
 
+#include "mesh.h"
+
 struct BoneData
 {
     ~BoneData()
@@ -110,6 +112,15 @@ struct SkeletonDataReaderFBX : public Resource<SkeletonData>::Reader
 class Skeleton : public SceneObject::Component
 {
 public:
+    Skeleton()
+    {
+        skinShaderSource =
+            R"(
+                in vec4 PositionWorld;
+                gl_Position = PositionWorld;
+            )";
+    }
+    
     void SetData(const std::string& name)
     {
         SetData(Resource<SkeletonData>::Get(name));
@@ -127,7 +138,9 @@ public:
 
     virtual void OnCreate()
     {
-        
+        GetObject()->
+            GetComponent<Mesh>()->
+                VertexShaderSource(skinShaderSource);
     }
 private:
     void CreateBone(BoneData* bone, SceneObject* parentObject)
@@ -151,6 +164,8 @@ private:
     }
 
     SkeletonData* skelData;
+    
+    std::string skinShaderSource;
 };
 
 #endif
