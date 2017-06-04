@@ -72,14 +72,48 @@ public:
             fbxReader.ReadFile(buffer.data(), buffer.size());
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
+            std::vector<Au::Media::FBX::Bone> bones = fbxReader.GetBones();
+            
             int meshCount = fbxReader.MeshCount();
             if(meshCount > 0)
             {                
                 Au::Media::FBX::Mesh& fbxMesh = fbxReader.GetMesh(0);
+                int vertexCount = fbxMesh.VertexCount();
                 
                 meshData->SetAttribArray<Au::Position>(fbxMesh.GetVertices());
                 meshData->SetAttribArray<Au::Normal>(fbxMesh.GetNormals(0));
                 meshData->SetIndices(fbxMesh.GetIndices<unsigned short>());
+                
+                std::vector<Au::Math::Vec4i> boneIndices;
+                std::vector<Au::Math::Vec4f> boneWeights;
+                std::vector<int> boneDataCount;
+                boneIndices.resize(vertexCount);
+                boneWeights.resize(vertexCount);
+                boneDataCount.resize(vertexCount);
+                for(unsigned j = 0; j < bones.size(); ++j)
+                {
+                    unsigned boneIndex = j;
+                    Au::Media::FBX::Bone& bone = bones[j];
+                    if(bone.meshName != fbxMesh.name)
+                        continue;
+                    
+                    for(unsigned k = 0; k < bone.indices.size() && k < bone.weights.size(); ++k)
+                    {
+                        int32_t vertexIndex = bone.indices[k];
+                        float weight = bone.weights[k];
+                        
+                        int& dataCount = boneDataCount[vertexIndex];
+                        if(dataCount > 3)
+                            continue;
+                        
+                        boneIndices[vertexIndex][dataCount] = boneIndex;
+                        boneWeights[vertexIndex][dataCount] = weight;
+                        dataCount++;
+                    }
+                }
+                
+                meshData->SetAttribArray<Au::BoneIndex4>(boneIndices);
+                meshData->SetAttribArray<Au::BoneWeight4>(boneWeights);
             }
         }
         

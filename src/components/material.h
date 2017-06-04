@@ -133,10 +133,10 @@ public:
         _setupPreprocessorDirectives(fSnip, pp, renderer);
         fshader = pp + fshader;
         
-        //std::cout << "== VERTEX =========" << std::endl;
-        //std::cout << vshader << std::endl;
-        //std::cout << "== FRAGMENT =======" << std::endl;
-        //std::cout << fshader << std::endl;
+        std::cout << "== VERTEX =========" << std::endl;
+        std::cout << vshader << std::endl;
+        std::cout << "== FRAGMENT =======" << std::endl;
+        std::cout << fshader << std::endl;
         
         Au::GFX::Shader* shaderVertex = gfxDevice->CreateShader(Au::GFX::Shader::VERTEX);
         shaderVertex->Source(vshader);

@@ -13,9 +13,25 @@ R"(
         MatrixModel *
         vec4(Position, 1.0);
         
+#vertex SkinWorld
+    in vec3 Position;
+    uniform mat4 MatrixModel;
+    uniform mat4 MatrixView;
+    uniform mat4 MatrixProjection;
+    out vec4 SkinWorld;
+    
+    SkinWorld =  
+        MatrixProjection * 
+        MatrixView * 
+        MatrixModel *
+        vec4(Position, 1.0);
+        
 #vertex PositionModel
     in vec3 Position;
     out vec4 PositionModel = vec4(Position, 1.0);
+#vertex VertexBoneWeight4
+    in vec4 BoneWeight4;
+    out vec4 VertexBoneWeight4 = BoneWeight4;
 #vertex NormalModel
     in vec3 Normal;
     uniform mat4 MatrixModel;
@@ -95,6 +111,10 @@ R"(
 
 #fragment DebugRed
     out vec4 DebugRed = vec4(1.0, 0.0, 0.0, 1.0);
+    
+#fragment DebugBoneWeightColor
+    in vec4 VertexBoneWeight4;
+    out vec4 DebugBoneWeightColor = vec4(VertexBoneWeight4.xyz, 1.0);
     
 #generic multiply
     in vec4 first;

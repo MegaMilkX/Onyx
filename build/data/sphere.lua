@@ -4,7 +4,7 @@ Init = function()
     
     mesh = SceneObject:Mesh();
     mesh:SetMesh("skin");
-    mesh:SetMaterial("material");
+    mesh:SetMaterial("material_skin");
 
     SceneObject:Skeleton():SetData("skin");
     

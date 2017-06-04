@@ -116,8 +116,8 @@ public:
     {
         skinShaderSource =
             R"(
-                in vec4 PositionWorld;
-                gl_Position = PositionWorld;
+                in vec3 SkinWorld;
+                gl_Position = SkinWorld;
             )";
     }
     
