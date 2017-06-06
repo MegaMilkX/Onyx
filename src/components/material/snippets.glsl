@@ -18,12 +18,27 @@ R"(
     uniform mat4 MatrixModel;
     uniform mat4 MatrixView;
     uniform mat4 MatrixProjection;
+    in vec4 BoneIndex4;
+    in vec4 BoneWeight4;
+    uniform mat4 BoneInverseBindTransforms[MAX_BONE_COUNT];
+    uniform mat4 BoneTransforms[MAX_BONE_COUNT];
     out vec4 SkinWorld;
+    
+    int bi0 = int(BoneIndex4.x);
+    int bi1 = int(BoneIndex4.y);
+    int bi2 = int(BoneIndex4.z);
+    int bi3 = int(BoneIndex4.w);
+    mat4 mSkin = 
+        BoneTransforms[bi0] * BoneInverseBindTransforms[bi0] * BoneWeight4.x +
+        BoneTransforms[bi1] * BoneInverseBindTransforms[bi1] * BoneWeight4.y +
+        BoneTransforms[bi2] * BoneInverseBindTransforms[bi2] * BoneWeight4.z +
+        BoneTransforms[bi3] * BoneInverseBindTransforms[bi3] * BoneWeight4.w;
     
     SkinWorld =  
         MatrixProjection * 
         MatrixView * 
         MatrixModel *
+        mSkin *
         vec4(Position, 1.0);
         
 #vertex PositionModel
@@ -32,6 +47,9 @@ R"(
 #vertex VertexBoneWeight4
     in vec4 BoneWeight4;
     out vec4 VertexBoneWeight4 = BoneWeight4;
+#vertex VertexBoneWeight4
+    in vec4 BoneIndex4;
+    out vec4 VertexBoneIndex4 = BoneIndex4;
 #vertex NormalModel
     in vec3 Normal;
     uniform mat4 MatrixModel;
@@ -115,6 +133,10 @@ R"(
 #fragment DebugBoneWeightColor
     in vec4 VertexBoneWeight4;
     out vec4 DebugBoneWeightColor = vec4(VertexBoneWeight4.xyz, 1.0);
+    
+#fragment DebugBoneIndexColor
+    in vec4 VertexBoneIndex4;
+    out vec4 DebugBoneIndexColor = vec4(VertexBoneIndex4.xyz, 1.0);
     
 #generic multiply
     in vec4 first;

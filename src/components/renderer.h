@@ -9,24 +9,16 @@
 #include "../scene_object.h"
 
 class Mesh;
+class Skeleton;
 class LightOmni;
 class LightDirect;
 class Renderer : public SceneObject::Component
 {
 friend Mesh;
 public:
-    Renderer()
-    {
-        Dirty();
-    }
+    Renderer();
 
-    bool Init(Au::GFX::Device* gfxDevice)
-    {
-        _gfxDevice = gfxDevice;     
-        SetInt("LIGHT_OMNI_COUNT", 1);
-        SetInt("LIGHT_DIRECT_COUNT", 1);
-        return true;
-    }
+    bool Init(Au::GFX::Device* gfxDevice);
     
     Au::GFX::Device* GetDevice() { return _gfxDevice; }
 
@@ -43,68 +35,17 @@ public:
     void RimColor(float r, float g, float b)
     { rimColor = Au::Math::Vec3f(r, g, b); }
 
-    void AddLightOmni(LightOmni* light)
-    {
-        RemoveLightOmni(light);
-        lightsOmni.push_back(light);
-        SetInt("LIGHT_OMNI_COUNT", lightsOmni.size());
-        uniLightOmniPos = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniPos", lightsOmni.size());
-        uniLightOmniRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniRGB", lightsOmni.size());
-    }
-    void RemoveLightOmni(LightOmni* light)
-    {
-        for(unsigned i = 0; i < lightsOmni.size(); ++i)
-        {
-            if(lightsOmni[i] == light)
-            {
-                lightsOmni.erase(lightsOmni.begin() + i);
-                break;
-            }
-        }
-        SetInt("LIGHT_OMNI_COUNT", lightsOmni.size());
-        uniLightOmniPos = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniPos", lightsOmni.size());
-        uniLightOmniRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniRGB", lightsOmni.size());
-    }
+    void AddLightOmni(LightOmni* light);
+    void RemoveLightOmni(LightOmni* light);
     
-    void AddLightDirect(LightDirect* light)
-    {
-        RemoveLightDirect(light);
-        lightsDirect.push_back(light);
-        SetInt("LIGHT_DIRECT_COUNT", lightsDirect.size());
-        uniLightDirect = Au::GFX::GetUniform<Au::Math::Vec3f>("LightDirect", lightsDirect.size());
-        uniLightDirectRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightDirectRGB", lightsDirect.size());
-    }
-    void RemoveLightDirect(LightDirect* light)
-    {
-        for(unsigned i = 0; i < lightsDirect.size(); ++i)
-        {
-            if(lightsDirect[i] == light)
-            {
-                lightsDirect.erase(lightsDirect.begin() + i);
-                break;
-            }
-        }
-        SetInt("LIGHT_DIRECT_COUNT", lightsDirect.size());
-        uniLightDirect = Au::GFX::GetUniform<Au::Math::Vec3f>("LightDirect", lightsDirect.size());
-        uniLightDirectRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightDirectRGB", lightsDirect.size());
-    }
+    void AddLightDirect(LightDirect* light);
+    void RemoveLightDirect(LightDirect* light);
     
-    void AddMesh(Mesh* mesh)
-    {
-        RemoveMesh(mesh);
-        meshes.push_back(mesh);
-    }
-    void RemoveMesh(Mesh* mesh)
-    {
-        for(unsigned i = 0; i < meshes.size(); ++i)
-        {
-            if(meshes[i] == mesh)
-            {
-                meshes.erase(meshes.begin() + i);
-                break;
-            }
-        }
-    }
+    void AddMesh(Mesh* mesh);
+    void RemoveMesh(Mesh* mesh);
+    
+    void AddSkeleton(Skeleton* skel);
+    void RemoveSkeleton(Skeleton* skel);
     
     void SetInt(const std::string& name, int value)
     { _intMap[name] = value; }
@@ -124,6 +65,7 @@ private:
     Au::GFX::Device* _gfxDevice;
 
     std::vector<Mesh*> meshes;
+    std::vector<Skeleton*> skeletons;
     std::vector<LightOmni*> lightsOmni;
     std::vector<LightDirect*> lightsDirect;
     

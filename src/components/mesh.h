@@ -84,12 +84,12 @@ public:
                 meshData->SetAttribArray<Au::Normal>(fbxMesh.GetNormals(0));
                 meshData->SetIndices(fbxMesh.GetIndices<unsigned short>());
                 
-                std::vector<Au::Math::Vec4i> boneIndices;
+                std::vector<Au::Math::Vec4f> boneIndices;
                 std::vector<Au::Math::Vec4f> boneWeights;
                 std::vector<int> boneDataCount;
-                boneIndices.resize(vertexCount);
-                boneWeights.resize(vertexCount);
-                boneDataCount.resize(vertexCount);
+                boneIndices.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+                boneWeights.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+                boneDataCount.resize(vertexCount, 0);
                 for(unsigned j = 0; j < bones.size(); ++j)
                 {
                     unsigned boneIndex = j;
@@ -101,15 +101,31 @@ public:
                     {
                         int32_t vertexIndex = bone.indices[k];
                         float weight = bone.weights[k];
+                        if(weight < 0.01f)
+                            continue;
                         
                         int& dataCount = boneDataCount[vertexIndex];
                         if(dataCount > 3)
                             continue;
                         
-                        boneIndices[vertexIndex][dataCount] = boneIndex;
+                        boneIndices[vertexIndex][dataCount] = (float)boneIndex;
                         boneWeights[vertexIndex][dataCount] = weight;
                         dataCount++;
                     }
+                }
+                
+                for(int i = 0; i < vertexCount; ++i)
+                {
+                    Au::Math::Normalize(boneWeights[i]);
+                    /*
+                    std::cout << i << std::endl;
+                    for(unsigned j = 0; j < 4; ++j)
+                        std::cout << boneIndices[i][j] << " ";
+                    std::cout << std::endl;
+                    for(unsigned j = 0; j < 4; ++j)
+                        std::cout << boneWeights[i][j] << " ";
+                    std::cout << std::endl;
+                    */
                 }
                 
                 meshData->SetAttribArray<Au::BoneIndex4>(boneIndices);

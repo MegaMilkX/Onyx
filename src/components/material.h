@@ -271,7 +271,7 @@ private:
         for(it; it != lines.end(); ++it)
         { pp += (*it); }
         
-        pp = std::string("#version 140\n") + pp;
+        pp = std::string("#version 450\n") + pp;
     }
     
     void _gatherUniforms(
@@ -292,6 +292,8 @@ private:
             }
             
             if(sz == 0) sz = 1;
+            
+            std::cout << var.name << ": " << sz << std::endl;
             
             //if(var.type == "bool")
             //    renderState->AddUniform<bool>(var.name, sz);

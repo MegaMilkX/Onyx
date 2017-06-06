@@ -48,6 +48,7 @@ public:
     Au::Math::Vec3f Back();
     
     void SetTransform(Au::Math::Mat4f& t);
+    Au::Math::Mat4f GetLocalTransform();
     Au::Math::Mat4f GetTransform();
     
     void AttachTo(Transform* parent)

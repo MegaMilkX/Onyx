@@ -59,12 +59,17 @@ void Transform::SetTransform(Au::Math::Mat4f& t)
     _scale = Au::Math::Vec3f(t[0].length(), t[1].length(), t[2].length());
 }
 
+Au::Math::Mat4f Transform::GetLocalTransform()
+{
+    return 
+        Au::Math::Translate(Au::Math::Mat4f(1.0f), _position) * 
+        Au::Math::ToMat4(_rotation) * 
+        Au::Math::Scale(Au::Math::Mat4f(1.0f), _scale);
+}
+
 Au::Math::Mat4f Transform::GetTransform()
 {
-    Au::Math::Mat4f localTransform = 
-            Au::Math::Translate(Au::Math::Mat4f(1.0f), _position) * 
-            Au::Math::ToMat4(_rotation) * 
-            Au::Math::Scale(Au::Math::Mat4f(1.0f), _scale);
+    Au::Math::Mat4f localTransform = GetLocalTransform();
             
     if(_parent)
         _transform = _parent->GetTransform() * localTransform;
