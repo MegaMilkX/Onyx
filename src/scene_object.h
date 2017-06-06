@@ -76,7 +76,7 @@ public:
     }
     
     void Name(const std::string& name) { this->name = name; }
-    std::string Name() { return name; }
+    std::string Name() const { return name; }
     
     SceneObject* FindObject(const std::string& name)
     {
