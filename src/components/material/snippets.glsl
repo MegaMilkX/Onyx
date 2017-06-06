@@ -1,65 +1,28 @@
 R"(
 
-#vertex PositionWorld
-    in vec3 Position;
+#vertex PositionScreen
+    in vec4 PositionModel;
     uniform mat4 MatrixModel;
     uniform mat4 MatrixView;
     uniform mat4 MatrixProjection;
-    out vec4 PositionWorld;
-    
-    PositionWorld =  
-        MatrixProjection * 
-        MatrixView * 
+    out vec4 PositionScreen = 
+        MatrixProjection *
+        MatrixView *
         MatrixModel *
-        vec4(Position, 1.0);
-        
-#vertex SkinWorld
-    in vec3 Position;
-    uniform mat4 MatrixModel;
-    uniform mat4 MatrixView;
-    uniform mat4 MatrixProjection;
-    in vec4 BoneIndex4;
-    in vec4 BoneWeight4;
-    uniform mat4 BoneInverseBindTransforms[MAX_BONE_COUNT];
-    uniform mat4 BoneTransforms[MAX_BONE_COUNT];
-    out vec4 SkinWorld;
+        PositionModel;
     
-    int bi0 = int(BoneIndex4.x);
-    int bi1 = int(BoneIndex4.y);
-    int bi2 = int(BoneIndex4.z);
-    int bi3 = int(BoneIndex4.w);
-    mat4 mSkin = 
-        BoneTransforms[bi0] * BoneInverseBindTransforms[bi0] * BoneWeight4.x +
-        BoneTransforms[bi1] * BoneInverseBindTransforms[bi1] * BoneWeight4.y +
-        BoneTransforms[bi2] * BoneInverseBindTransforms[bi2] * BoneWeight4.z +
-        BoneTransforms[bi3] * BoneInverseBindTransforms[bi3] * BoneWeight4.w;
-    
-    SkinWorld =  
-        MatrixProjection * 
-        MatrixView * 
-        MatrixModel *
-        mSkin *
-        vec4(Position, 1.0);
-        
-#vertex PositionModel
-    in vec3 Position;
-    out vec4 PositionModel = vec4(Position, 1.0);
 #vertex VertexBoneWeight4
     in vec4 BoneWeight4;
     out vec4 VertexBoneWeight4 = BoneWeight4;
 #vertex VertexBoneWeight4
     in vec4 BoneIndex4;
     out vec4 VertexBoneIndex4 = BoneIndex4;
-#vertex NormalModel
-    in vec3 Normal;
-    uniform mat4 MatrixModel;
-    out vec3 NormalModel;
-    NormalModel = normalize((MatrixModel * vec4(Normal, 0.0)).xyz);
+
 #vertex FragPosWorld
-    in vec3 Position;
+    in vec3 PositionModel;
     uniform mat4 MatrixModel;
     out vec3 FragPosWorld;
-    FragPosWorld = vec3(MatrixModel * vec4(Position, 1.0));
+    FragPosWorld = vec3(MatrixModel * PositionModel);
     
 #fragment AmbientColor
     uniform vec3 UniformAmbientColor;

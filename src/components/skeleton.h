@@ -124,8 +124,38 @@ public:
     {
         skinShaderSource =
             R"(
-                in vec3 SkinWorld;
-                gl_Position = SkinWorld;
+            #vertex MatrixSkin
+                in vec4 BoneIndex4;
+                in vec4 BoneWeight4;
+                uniform mat4 BoneInverseBindTransforms[MAX_BONE_COUNT];
+                uniform mat4 BoneTransforms[MAX_BONE_COUNT];
+                out mat4 MatrixSkin;
+                
+                int bi0 = int(BoneIndex4.x);
+                int bi1 = int(BoneIndex4.y);
+                int bi2 = int(BoneIndex4.z);
+                int bi3 = int(BoneIndex4.w);
+                MatrixSkin = 
+                    BoneTransforms[bi0] * BoneInverseBindTransforms[bi0] * BoneWeight4.x +
+                    BoneTransforms[bi1] * BoneInverseBindTransforms[bi1] * BoneWeight4.y +
+                    BoneTransforms[bi2] * BoneInverseBindTransforms[bi2] * BoneWeight4.z +
+                    BoneTransforms[bi3] * BoneInverseBindTransforms[bi3] * BoneWeight4.w;
+                
+            #vertex PositionModel
+                in vec3 Position;
+                in mat4 MatrixSkin;
+                out vec4 PositionModel;
+                
+                PositionModel =
+                    MatrixSkin *
+                    vec4(Position, 1.0);
+                    
+            #vertex NormalModel
+                in vec3 Normal;
+                in mat4 MatrixSkin;
+                uniform mat4 MatrixModel;
+                out vec3 NormalModel;
+                NormalModel = normalize((MatrixModel * MatrixSkin * vec4(Normal, 0.0)).xyz);
             )";
             
         uniformBoneInverseBinds = Au::GFX::GetUniform<Au::Math::Mat4f>("BoneInverseBindTransforms");

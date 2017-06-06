@@ -62,19 +62,37 @@ public:
         
     }
     
-    Au::GFX::RenderState* Finalize(Renderer* renderer, const std::string& vertexShaderSnippet)
+    Au::GFX::RenderState* Finalize(Renderer* renderer, const std::string& vertexShaderSnippets)
     {
         Au::GFX::Device* gfxDevice = renderer->GetDevice();
         Au::GFX::RenderState* renderState;
-        std::vector<Au::GLSLStitch::Snippet> specFragSnips = fragSnips;
         
         std::string vshader;
         std::string fshader;
         
+        std::vector<Au::GLSLStitch::Snippet> extVertSnips;
+        std::vector<Au::GLSLStitch::Snippet> extFragSnips;
+        std::vector<Au::GLSLStitch::Snippet> extGenericSnips;
+        
+        Au::GLSLStitch::MakeSnippets(
+            vertexShaderSnippets,
+            extVertSnips,
+            extFragSnips,
+            extGenericSnips
+        );
+        
+        extVertSnips.insert(extVertSnips.end(), vertSnips.begin(), vertSnips.end());
+        extFragSnips.insert(extFragSnips.end(), fragSnips.begin(), fragSnips.end());
+        
+        std::vector<Au::GLSLStitch::Snippet> specFragSnips = extFragSnips;
+        
         Au::GLSLStitch::Snippet vSnip = 
             Au::GLSLStitch::AssembleSnippet(
-                vertSnips,
-                vertexShaderSnippet
+                extVertSnips,
+                R"(
+                    in vec4 PositionScreen;
+                    gl_Position = PositionScreen;
+                )"
             );
         
         Au::GLSLStitch::Snippet fSnip =
@@ -120,7 +138,7 @@ public:
             fSnip, 
             Au::GLSLStitch::MakeSnippet("in vec4 fragOut;")
         );
-        LinkSnippets(vSnip, fSnip, vertSnips);
+        LinkSnippets(vSnip, fSnip, extVertSnips);
         
         vshader = Au::GLSLStitch::Finalize(vSnip);
         fshader = Au::GLSLStitch::Finalize(fSnip);

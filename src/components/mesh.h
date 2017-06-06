@@ -155,8 +155,14 @@ public:
         uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
         vertexShaderSource =
             R"(
-                in vec4 PositionWorld;
-                gl_Position = PositionWorld;
+            #vertex PositionModel
+                in vec3 Position;
+                out vec4 PositionModel = vec4(Position, 1.0);
+            #vertex NormalModel
+                in vec3 Normal;
+                uniform mat4 MatrixModel;
+                out vec3 NormalModel;
+                NormalModel = normalize((MatrixModel * vec4(Normal, 0.0)).xyz);
             )";
     }
     
