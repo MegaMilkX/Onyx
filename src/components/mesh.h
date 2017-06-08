@@ -17,6 +17,14 @@
 class MeshData
 {
 public:
+    struct SubData
+    {
+        std::string name;
+        unsigned int indexCount;
+        unsigned int offset;
+    };
+    std::vector<SubData> subDataArray;
+    
     void FillMesh(Au::GFX::Mesh* mesh)
     {
         std::vector<Au::AttribInfo> fmt = mesh->Format();
@@ -31,6 +39,16 @@ public:
             mesh->VertexAttribByInfo(fmt[i], it->second);
         }
         mesh->IndexData(indices);
+        
+        for(unsigned i = 0; i < subDataArray.size(); ++i)
+        {
+            SubData& subData = subDataArray[i];
+            mesh->SetSubMesh(
+                subData.name,
+                subData.indexCount,
+                subData.offset
+            );
+        }
     }
     
     template<typename ATTR, typename T>
@@ -75,20 +93,39 @@ public:
             std::vector<Au::Media::FBX::Bone> bones = fbxReader.GetBones();
             
             int meshCount = fbxReader.MeshCount();
-            if(meshCount > 0)
-            {                
-                Au::Media::FBX::Mesh& fbxMesh = fbxReader.GetMesh(0);
+            std::vector<float> vertices;
+            std::vector<float> normals;
+            std::vector<unsigned short> indices;
+            std::vector<Au::Math::Vec4f> boneIndices;
+            std::vector<Au::Math::Vec4f> boneWeights;
+            unsigned int indexOffset = 0;
+            for(int i = 0; i < meshCount; ++i)
+            {
+                Au::Media::FBX::Mesh& fbxMesh = fbxReader.GetMesh(i);
                 int vertexCount = fbxMesh.VertexCount();
                 
-                meshData->SetAttribArray<Au::Position>(fbxMesh.GetVertices());
-                meshData->SetAttribArray<Au::Normal>(fbxMesh.GetNormals(0));
-                meshData->SetIndices(fbxMesh.GetIndices<unsigned short>());
+                std::vector<float> v = fbxMesh.GetVertices();
+                vertices.insert(vertices.end(), v.begin(), v.end());
+                std::vector<float> n = fbxMesh.GetNormals(0);
+                normals.insert(normals.end(), n.begin(), n.end());
                 
-                std::vector<Au::Math::Vec4f> boneIndices;
-                std::vector<Au::Math::Vec4f> boneWeights;
+                MeshData::SubData subData;
+                subData.offset = indices.size() * sizeof(unsigned short); // BYTE OFFSET
+                
+                std::vector<unsigned short> rawIndices = fbxMesh.GetIndices<unsigned short>();
+                for(unsigned j = 0; j < rawIndices.size(); ++j)
+                    rawIndices[j] += indexOffset;
+                indices.insert(indices.end(), rawIndices.begin(), rawIndices.end());
+                
+                subData.name = fbxMesh.name;
+                subData.indexCount = rawIndices.size();
+                meshData->subDataArray.push_back(subData);
+                
+                std::vector<Au::Math::Vec4f> tmpBoneIndices;
+                std::vector<Au::Math::Vec4f> tmpBoneWeights;
                 std::vector<int> boneDataCount;
-                boneIndices.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
-                boneWeights.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+                tmpBoneIndices.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+                tmpBoneWeights.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
                 boneDataCount.resize(vertexCount, 0);
                 for(unsigned j = 0; j < bones.size(); ++j)
                 {
@@ -108,29 +145,27 @@ public:
                         if(dataCount > 3)
                             continue;
                         
-                        boneIndices[vertexIndex][dataCount] = (float)boneIndex;
-                        boneWeights[vertexIndex][dataCount] = weight;
+                        tmpBoneIndices[vertexIndex][dataCount] = (float)boneIndex;
+                        tmpBoneWeights[vertexIndex][dataCount] = weight;
                         dataCount++;
                     }
                 }
                 
-                for(int i = 0; i < vertexCount; ++i)
-                {
-                    Au::Math::Normalize(boneWeights[i]);
-                    /*
-                    std::cout << i << std::endl;
-                    for(unsigned j = 0; j < 4; ++j)
-                        std::cout << boneIndices[i][j] << " ";
-                    std::cout << std::endl;
-                    for(unsigned j = 0; j < 4; ++j)
-                        std::cout << boneWeights[i][j] << " ";
-                    std::cout << std::endl;
-                    */
-                }
+                for(int j = 0; j < vertexCount; ++j)
+                    Au::Math::Normalize(tmpBoneWeights[j]);
                 
-                meshData->SetAttribArray<Au::BoneIndex4>(boneIndices);
-                meshData->SetAttribArray<Au::BoneWeight4>(boneWeights);
+                boneIndices.insert(boneIndices.end(), tmpBoneIndices.begin(), tmpBoneIndices.end());
+                boneWeights.insert(boneWeights.end(), tmpBoneWeights.begin(), tmpBoneWeights.end());
+                
+                indexOffset = vertices.size() / 3;
             }
+            
+            meshData->SetAttribArray<Au::Position>(vertices);
+            meshData->SetAttribArray<Au::Normal>(normals);
+            meshData->SetIndices(indices);
+            
+            meshData->SetAttribArray<Au::BoneIndex4>(boneIndices);
+            meshData->SetAttribArray<Au::BoneWeight4>(boneWeights);
         }
         
         file.close();
@@ -150,7 +185,8 @@ public:
     material(0),
     meshData(0),
     renderState(0),
-    mesh(0)
+    mesh(0),
+    subMesh(0)
     {
         uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
         vertexShaderSource =
@@ -178,6 +214,27 @@ public:
     { 
         this->meshData = meshData;
         _dirty();
+    }
+    
+    void SetSubMesh(const std::string& name)
+    {
+        subMeshName = name;
+        _setupSubMesh();
+    }
+    void SetSubMesh(unsigned int i)
+    {
+        if(i == 0)
+        {
+            subMeshName = "";
+            return;
+        }
+        
+        if(i > meshData->subDataArray.size())
+            return;
+        
+        subMeshName = meshData->subDataArray[i - 1].name;
+        
+        _setupSubMesh();
     }
     
     void SetMaterial(const std::string& name)
@@ -210,7 +267,7 @@ public:
         uniModelMat4f = GetObject()->GetComponent<Transform>()->GetTransform();
         
         device->Bind(renderState);
-        device->Bind(mesh);
+        device->Bind(subMesh);
         device->Render();
     }
 
@@ -232,6 +289,24 @@ protected:
         mesh = renderer->GetDevice()->CreateMesh();
         mesh->Format(material->AttribFormat());
         meshData->FillMesh(mesh);
+        _setupSubMesh();
+    }
+    
+    void _setupSubMesh()
+    {
+        if(!mesh)
+            return;
+        if(subMeshName != "")
+        {
+            Au::GFX::Mesh::SubMesh* sm = 
+                mesh->FindSubMesh(subMeshName);
+            if(sm)
+                subMesh = sm;
+            else
+                subMesh = mesh->GetSubMesh(0);
+        }
+        else
+            subMesh = mesh->GetSubMesh(0);
     }
     
     bool dirty;
@@ -243,6 +318,8 @@ protected:
     MeshData* meshData;
     Au::GFX::RenderState* renderState;
     Au::GFX::Mesh* mesh;
+    Au::GFX::Mesh::SubMesh* subMesh;
+    std::string subMeshName;
     
     Au::GFX::Uniform uniModelMat4f;
     
@@ -262,6 +339,7 @@ public:
             CreateCrossRS();
             
         mesh = m;
+        subMesh = m->GetSubMesh(0);
         renderState = rs;
     }
 protected:
