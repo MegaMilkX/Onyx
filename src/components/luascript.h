@@ -120,6 +120,8 @@ public:
         _state.Bind<Renderer, SceneObject*>(&Renderer::GetObject, "GetObject");
         
         _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMesh, "SetMesh");
+        _state.Bind<Mesh, void, const std::string&>(&Mesh::SetSubMesh, "SetSubMeshName");
+        _state.Bind<Mesh, void, unsigned int>(&Mesh::SetSubMesh, "SetSubMeshIndex");
         _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMaterial, "SetMaterial");
         _state.Bind<Mesh, SceneObject*>(&Mesh::GetObject, "GetObject");
         
