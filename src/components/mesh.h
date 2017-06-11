@@ -90,8 +90,6 @@ public:
             fbxReader.ReadFile(buffer.data(), buffer.size());
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
-            std::vector<Au::Media::FBX::Bone> bones = fbxReader.GetBones();
-            
             int meshCount = fbxReader.MeshCount();
             std::vector<float> vertices;
             std::vector<float> normals;
@@ -121,6 +119,46 @@ public:
                 subData.indexCount = rawIndices.size();
                 meshData->subDataArray.push_back(subData);
                 
+                Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
+                std::vector<Au::Math::Vec4f> tmpBoneIndices;
+                std::vector<Au::Math::Vec4f> tmpBoneWeights;
+                std::vector<int> boneDataCount;
+                tmpBoneIndices.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+                tmpBoneWeights.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+                boneDataCount.resize(vertexCount, 0);
+                for(unsigned j = 0; j < skin.BoneCount(); ++j)
+                {
+                    int64_t uidBone = skin.GetBoneUID(j);
+                    Au::Media::FBX::Bone* bone = fbxReader.GetBoneByUID(uidBone);
+                    if(!bone)
+                        continue;
+                    unsigned boneIndex = bone->Index();
+                    
+                    for(unsigned k = 0; k < bone->indices.size() && k < bone->weights.size(); ++k)
+                    {
+                        int32_t vertexIndex = bone->indices[k];
+                        float weight = bone->weights[k];
+                        if(weight < 0.01f)
+                            continue;
+                        int& dataCount = boneDataCount[vertexIndex];
+                        if(dataCount > 3)
+                            continue;
+                        
+                        tmpBoneIndices[vertexIndex][dataCount] = (float)boneIndex;
+                        tmpBoneWeights[vertexIndex][dataCount] = weight;
+                        
+                        dataCount++;
+                    }
+                }
+                
+                for(int j = 0; j < vertexCount; ++j)
+                    Au::Math::Normalize(tmpBoneWeights[j]);
+                
+                boneIndices.insert(boneIndices.end(), tmpBoneIndices.begin(), tmpBoneIndices.end());
+                boneWeights.insert(boneWeights.end(), tmpBoneWeights.begin(), tmpBoneWeights.end());
+                
+                /*
+                std::vector<Au::Media::FBX::Bone> bones = fbxReader.GetBones();
                 std::vector<Au::Math::Vec4f> tmpBoneIndices;
                 std::vector<Au::Math::Vec4f> tmpBoneWeights;
                 std::vector<int> boneDataCount;
@@ -156,7 +194,7 @@ public:
                 
                 boneIndices.insert(boneIndices.end(), tmpBoneIndices.begin(), tmpBoneIndices.end());
                 boneWeights.insert(boneWeights.end(), tmpBoneWeights.begin(), tmpBoneWeights.end());
-                
+                */
                 indexOffset = vertices.size() / 3;
             }
             
