@@ -254,10 +254,9 @@ private:
                     Au::Math::Inverse(GetObject()->GetComponent<Transform>()->GetTransform()) *
                     bones[i]->GetTransform()
                 );
-            boneTransforms[i] = 
-                Au::Math::Inverse(GetObject()->GetComponent<Transform>()->GetTransform()) *
-                bones[i]->GetTransform();
         }
+        
+        Update();
         
         uniformBoneInverseBinds = 
             Au::GFX::GetUniform<Au::Math::Mat4f>("BoneInverseBindTransforms", bones.size());
