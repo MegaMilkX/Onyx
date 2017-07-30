@@ -93,6 +93,7 @@ public:
             int meshCount = fbxReader.MeshCount();
             std::vector<float> vertices;
             std::vector<float> normals;
+            std::vector<float> uv;
             std::vector<unsigned short> indices;
             std::vector<Au::Math::Vec4f> boneIndices;
             std::vector<Au::Math::Vec4f> boneWeights;
@@ -106,6 +107,8 @@ public:
                 vertices.insert(vertices.end(), v.begin(), v.end());
                 std::vector<float> n = fbxMesh.GetNormals(0);
                 normals.insert(normals.end(), n.begin(), n.end());
+                std::vector<float> u = fbxMesh.GetUV(0);
+                uv.insert(uv.end(), u.begin(), u.end());
                 
                 MeshData::SubData subData;
                 subData.offset = indices.size() * sizeof(unsigned short); // BYTE OFFSET
@@ -200,6 +203,7 @@ public:
             
             meshData->SetAttribArray<Au::Position>(vertices);
             meshData->SetAttribArray<Au::Normal>(normals);
+            meshData->SetAttribArray<Au::UV>(uv);
             meshData->SetIndices(indices);
             
             meshData->SetAttribArray<Au::BoneIndex4>(boneIndices);
