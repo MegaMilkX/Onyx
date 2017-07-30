@@ -60,8 +60,12 @@ public:
                     readers[j]->extension;
                 
                 resource = (T*)readers[j]->operator()(filename);
+                
                 if(resource)
+                {
+                    resources[name] = resource;
                     goto resourceFound;
+                }
             }
         }
         
