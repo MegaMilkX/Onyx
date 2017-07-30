@@ -56,11 +56,18 @@ public:
         
         std::vector<unsigned char> data;
         data.resize(256 * 256 * 3);
-        for(unsigned i = 0; i < 256 * 256 * 3; i+=3)
+        
+        for(unsigned y = 0; y < 256; ++y)
         {
-            data[i] = 100;
-            data[i+1] = 255;
-            data[i+2] = 0;
+            for(unsigned x = 0; x < 256; ++x)
+            {
+                float value = (sinf(x / 8.0f) + 1.0f) / 2.0f;
+                unsigned index = x + y * 256;
+                
+                data[index * 3] = value * 256.0f;
+                data[index * 3 + 1] = value * 256.0f;
+                data[index * 3 + 2] = value * 256.0f;
+            }
         }
         
         texture->Data(data.data(), 256, 256, 3);
