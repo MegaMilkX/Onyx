@@ -15,6 +15,8 @@
 
 #include "../resource.h"
 
+#include "texture2d.h"
+
 class Material
 {
 public:
@@ -43,9 +45,6 @@ public:
             genericSnips
         );
     }
-    
-    Au::AttribFormat AttribFormat()
-    { return _attribFormat; }
 
     void SetLayer(
         int index, 
@@ -57,14 +56,77 @@ public:
         std::sort(layers.begin(), layers.end());
     }
     
-    void BlendLayer(int index, const std::string& name)
+    std::map<std::string, Texture2D*> _textures2D;
+    std::map<int, Texture2D*> _samplers2D;
+    std::map<Au::GFX::Uniform, float> _uniformsFloat;
+    std::map<Au::GFX::Uniform, Au::Math::Vec2f> _uniformsVec2f;
+    std::map<Au::GFX::Uniform, Au::Math::Vec3f> _uniformsVec3f;
+    std::map<Au::GFX::Uniform, Au::Math::Vec4f> _uniformsVec4f;
+    
+    void SetTexture2D(const std::string& uniform, const std::string& resource)
     {
+        _textures2D[uniform] = Resource<Texture2D>::Get(resource);
+    }
+    void SetFloat(const std::string& uniform, float value) 
+    {
+        _uniformsFloat[Au::GFX::GetUniform<float>(uniform)] = value;
+    }
+    void SetVec2(const std::string& uniform, float x, float y) 
+    {
+        _uniformsVec2f[Au::GFX::GetUniform<Au::Math::Vec2f>(uniform)] = Au::Math::Vec2f(x, y);
+    }
+    void SetVec3(const std::string& uniform, float x, float y, float z) 
+    {
+        _uniformsVec3f[Au::GFX::GetUniform<Au::Math::Vec3f>(uniform)] = Au::Math::Vec3f(x, y, z);
+    }
+    void SetVec4(const std::string& uniform, float x, float y, float z, float w) 
+    {
+        _uniformsVec4f[Au::GFX::GetUniform<Au::Math::Vec4f>(uniform)] = Au::Math::Vec4f(x, y, z, w);
+    }
+    void BindParameters()
+    {
+        std::map<int, Texture2D*>::iterator itSampler2D;
+        std::map<Au::GFX::Uniform, float>::iterator itFloat;
+        std::map<Au::GFX::Uniform, Au::Math::Vec2f>::iterator itVec2f;
+        std::map<Au::GFX::Uniform, Au::Math::Vec3f>::iterator itVec3f;
+        std::map<Au::GFX::Uniform, Au::Math::Vec4f>::iterator itVec4f;
         
+        for(itSampler2D = _samplers2D.begin(); itSampler2D != _samplers2D.end(); ++itSampler2D)
+        {
+            itSampler2D->second->Bind(itSampler2D->first);
+        }
+        for(itFloat = _uniformsFloat.begin(); itFloat != _uniformsFloat.end(); ++itFloat)
+        {
+            Au::GFX::Uniform u = itFloat->first;
+            u = itFloat->second;
+        }
+        for(itVec2f = _uniformsVec2f.begin(); itVec2f != _uniformsVec2f.end(); ++itVec2f)
+        {    
+            Au::GFX::Uniform u = itVec2f->first;
+            u = itVec2f->second;
+        }
+        for(itVec3f = _uniformsVec3f.begin(); itVec3f != _uniformsVec3f.end(); ++itVec3f)
+        {
+            Au::GFX::Uniform u = itVec3f->first;
+            u = itVec3f->second;
+        }
+        for(itVec4f = _uniformsVec4f.begin(); itVec4f != _uniformsVec4f.end(); ++itVec4f)
+        {
+            Au::GFX::Uniform u = itVec4f->first;
+            u = itVec4f->second;
+        }
     }
     
     Au::GFX::RenderState* Finalize(Renderer* renderer, const std::string& vertexShaderSnippets)
     {
         Au::GFX::Device* gfxDevice = renderer->GetDevice();
+        
+        std::map<std::string, Texture2D*>::iterator itTexture2D;
+        for(itTexture2D = _textures2D.begin(); itTexture2D != _textures2D.end(); ++itTexture2D)
+        {
+            itTexture2D->second->Finalize(gfxDevice);
+        }
+        
         Au::GFX::RenderState* renderState;
         
         std::string vshader;
@@ -169,88 +231,20 @@ public:
         
         _gatherUniforms(vSnip, renderState, renderer);
         _gatherUniforms(fSnip, renderState, renderer);
-        _deductAttribFormat(vSnip, renderState);
+        
+        std::map<std::string, Texture2D*>::iterator itTexture;
+        for(itTexture = _textures2D.begin(); itTexture != _textures2D.end(); ++itTexture)
+        {
+            int layer = renderState->GetSampler2DLayer(itTexture->first);
+            _samplers2D[layer] = itTexture->second;
+        }
         
         std::cout << renderState->StatusString() << std::endl;
         
         return renderState;
     }
 private:
-    std::vector<Layer> layers;
-    Au::AttribFormat _attribFormat;
-    
-    std::vector<Au::AttribInfo>& _getAttribList()
-    {
-        static std::vector<Au::AttribInfo> attribs =
-            _getAttribListInit();
-        return attribs;
-    }
-    
-    static bool _compareAttribByNameLen(const Au::AttribInfo& first, const Au::AttribInfo& second)
-    { return first.name.size() > second.name.size(); }
-    
-    std::vector<Au::AttribInfo> _getAttribListInit()
-    {
-        std::vector<Au::AttribInfo> result;
-        
-        result.push_back(Au::Position());
-        result.push_back(Au::Normal());
-        result.push_back(Au::Tangent());
-        result.push_back(Au::Bitangent());
-        result.push_back(Au::UV());
-        result.push_back(Au::UVW());
-        result.push_back(Au::ColorRGBA());
-        result.push_back(Au::ColorRGB());
-        result.push_back(Au::BoneWeight4());
-        result.push_back(Au::BoneIndex4());
-        
-        std::sort(result.begin(), result.end(), &_compareAttribByNameLen);
-        
-        return result;
-    }
-    
-    int _tryMatchStr(
-        const std::string& str, 
-        std::string& token
-        )
-    {
-        if(str.size() < token.size())
-            return 0;
-        
-        for(unsigned i = 0; i < token.size(); ++i)
-        {
-            if(token[i] != str[i])
-                return 0;
-        }
-
-        return token.size();
-    }
-    
-    void _deductAttribFormat(Au::GLSLStitch::Snippet& snip, Au::GFX::RenderState* renderState)
-    {
-        Au::AttribFormat attribFormat;
-        std::vector<Au::AttribInfo> attribs = _getAttribList();
-                
-        for(unsigned i = 0; i < snip.inputs.size(); ++i)
-        {
-            Au::GLSLStitch::Variable& var =
-                snip.inputs[i];
-        
-            for(unsigned j = 0; j < attribs.size(); ++j)
-            {
-                Au::AttribInfo& attr = attribs[j];
-                int r = _tryMatchStr(var.name, attr.name);
-                if(r)
-                {
-                    attribFormat << attr;
-                    break;
-                }
-            }
-        }
-        //attribFormat.Print();
-        renderState->AttribFormat(attribFormat);
-        _attribFormat = attribFormat;
-    }
+    std::vector<Layer> layers;    
     
     int _toInt(const std::string& str)
     {
@@ -297,6 +291,7 @@ private:
         Au::GFX::RenderState* renderState,
         Renderer* renderer)
     {
+        GLuint textureLayer = 0;
         for(unsigned i = 0; i < snip.other.size(); ++i)
         {
             Au::GLSLStitch::Variable& var =
@@ -334,6 +329,11 @@ private:
                 renderState->AddUniform<Au::Math::Mat3f>(var.name, sz);
             else if(var.type == "mat4")
                 renderState->AddUniform<Au::Math::Mat4f>(var.name, sz);
+            else if(var.type == "sampler2d")
+            {
+                renderState->AddSampler2D(var.name, textureLayer);
+                textureLayer++;
+            }
         }
     }
     
@@ -374,6 +374,11 @@ public:
             Au::Lua lua;
             lua.Init();
             lua.Bind(&Material::SetLayer, "SetLayer");
+            lua.Bind(&Material::SetTexture2D, "SetTexture2D");
+            lua.Bind(&Material::SetFloat, "SetFloat");
+            lua.Bind(&Material::SetVec2, "SetVec2");
+            lua.Bind(&Material::SetVec3, "SetVec3");
+            lua.Bind(&Material::SetVec4, "SetVec4");
             lua.SetGlobal(material, "Material");
             lua.LoadSource(std::string(buffer.begin(), buffer.end()));
             lua.Cleanup();

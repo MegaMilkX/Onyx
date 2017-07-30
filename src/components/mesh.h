@@ -151,8 +151,8 @@ public:
                     }
                 }
                 
-                for(int j = 0; j < vertexCount; ++j)
-                    Au::Math::Normalize(tmpBoneWeights[j]);
+                //for(int j = 0; j < vertexCount; ++j)
+                //    Au::Math::Normalize(tmpBoneWeights[j]);
                 
                 boneIndices.insert(boneIndices.end(), tmpBoneIndices.begin(), tmpBoneIndices.end());
                 boneWeights.insert(boneWeights.end(), tmpBoneWeights.begin(), tmpBoneWeights.end());
@@ -304,6 +304,7 @@ public:
     {
         uniModelMat4f = GetObject()->GetComponent<Transform>()->GetTransform();
         
+        if(material) material->BindParameters();
         device->Bind(renderState);
         device->Bind(subMesh);
         device->Render();
@@ -325,7 +326,7 @@ protected:
     void _setupMesh()
     {
         mesh = renderer->GetDevice()->CreateMesh();
-        mesh->Format(material->AttribFormat());
+        mesh->Format(renderState->AttribFormat());
         meshData->FillMesh(mesh);
         _setupSubMesh();
     }

@@ -23,10 +23,19 @@ R"(
     uniform mat4 MatrixModel;
     out vec3 FragPosWorld;
     FragPosWorld = vec3(MatrixModel * PositionModel);
+
+#vertex UVFrag
+    in vec2 UV;
+    out vec2 UVFrag = UV;
     
-#fragment AmbientColor
-    uniform vec3 UniformAmbientColor;
-    out vec4 AmbientColor = vec4(UniformAmbientColor, 1.0);
+#fragment Diffuse
+    in vec2 UVFrag;
+    uniform sampler2D DiffuseTexture;
+    out vec4 Diffuse = texture(DiffuseTexture, UVFrag);
+    
+#fragment Ambient
+    uniform vec3 AmbientColor;
+    out vec4 Ambient = vec4(AmbientColor, 1.0);
 #fragment LightDirection
     uniform vec3 LightOmniPos[LIGHT_OMNI_COUNT];
     in vec3 FragPosWorld;
