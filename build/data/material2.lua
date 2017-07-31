@@ -1,4 +1,4 @@
---Material:SetLayer(0, "Diffuse", "add");
+Material:SetLayer(0, "Diffuse", "add");
 Material:SetLayer(100, "Ambient", "add");
 Material:SetLayer(200, "RimLight", "add");
 Material:SetLayer(300, "LightDirectLambert", "add");

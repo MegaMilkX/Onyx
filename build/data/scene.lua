@@ -8,9 +8,15 @@ Init = function()
     mesh:SetMesh("miku");
     mesh:SetMaterial("material");
     
+    mesh = SceneObject:CreateObject():Mesh();
+    mesh:SetMesh("cube");
+    mesh:SetMaterial("material2");
+    mesh:GetObject():Transform():Translate(0.0, 0.0, 4.0);
+    
     SceneObject:CreateObject():Script():SetScript("teapot");
     SceneObject:CreateObject():Script():SetScript("sphere");
     SceneObject:CreateObject():Script():SetScript("sphere2");
+    SceneObject:CreateObject():Script():SetScript("sphere3");
     
     --mesh = SceneObject:CreateObject():Mesh();
     --mesh:SetMesh("env");

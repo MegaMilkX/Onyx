@@ -1,9 +1,9 @@
 
 Init = function()
-    SceneObject:Transform():Translate(6.5, 0.0, 1.5);
+    SceneObject:Transform():Translate(10.5, 0.0, 1.5);
     
-    skel = SceneObject:Skeleton();
-    skel:SetData("character");
+    --skel = SceneObject:Skeleton();
+    --skel:SetData("character");
     
     --SceneObject:Animation():SetAnimData("skin");
     
