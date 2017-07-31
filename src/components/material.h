@@ -57,7 +57,7 @@ public:
     }
     
     std::map<std::string, Texture2D*> _textures2D;
-    std::map<int, Texture2D*> _samplers2D;
+    std::map<int, Au::GFX::Texture2D*> _samplers2D;
     std::map<Au::GFX::Uniform, float> _uniformsFloat;
     std::map<Au::GFX::Uniform, Au::Math::Vec2f> _uniformsVec2f;
     std::map<Au::GFX::Uniform, Au::Math::Vec3f> _uniformsVec3f;
@@ -85,7 +85,7 @@ public:
     }
     void BindParameters()
     {
-        std::map<int, Texture2D*>::iterator itSampler2D;
+        std::map<int, Au::GFX::Texture2D*>::iterator itSampler2D;
         std::map<Au::GFX::Uniform, float>::iterator itFloat;
         std::map<Au::GFX::Uniform, Au::Math::Vec2f>::iterator itVec2f;
         std::map<Au::GFX::Uniform, Au::Math::Vec3f>::iterator itVec3f;
@@ -120,12 +120,6 @@ public:
     Au::GFX::RenderState* Finalize(Renderer* renderer, const std::string& vertexShaderSnippets)
     {
         Au::GFX::Device* gfxDevice = renderer->GetDevice();
-        
-        std::map<std::string, Texture2D*>::iterator itTexture2D;
-        for(itTexture2D = _textures2D.begin(); itTexture2D != _textures2D.end(); ++itTexture2D)
-        {
-            itTexture2D->second->Finalize(gfxDevice);
-        }
         
         Au::GFX::RenderState* renderState;
         
@@ -236,7 +230,8 @@ public:
         for(itTexture = _textures2D.begin(); itTexture != _textures2D.end(); ++itTexture)
         {
             int layer = renderState->GetSampler2DLayer(itTexture->first);
-            _samplers2D[layer] = itTexture->second;
+            _samplers2D[layer] = gfxDevice->CreateTexture2D();
+            itTexture->second->Fill(_samplers2D[layer]);
         }
         
         std::cout << renderState->StatusString() << std::endl;

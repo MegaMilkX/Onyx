@@ -4,19 +4,25 @@
 #include "../resource.h"
 #include <aurora/gfx.h>
 
+extern "C"{
+#include "../lib/stb_image.h"
+}
+
 class Texture2D
 {
 public:
     Texture2D()
-    : texture(0)
     {
         
     }
     
     ~Texture2D()
     {
-        if(texture && _device)
-            _device->Destroy(texture);
+    }
+    
+    void Fill(Au::GFX::Texture2D* texture)
+    {
+        texture->Data(_data.data(), bpp, width, height);
     }
     
     void Data(unsigned char* data, int width, int height, int bpp)
@@ -26,25 +32,29 @@ public:
         this->height = height;
         this->bpp = bpp;
     }
-    
-    void Finalize(Au::GFX::Device* device)
-    {
-        texture = device->CreateTexture2D();
-        texture->Data(_data.data(), bpp, width, height);
-        _device = device;
-    }
-    
-    void Bind(int layer = 0)
-    {
-        texture->Bind(layer);
-    }
 private:
-    Au::GFX::Texture2D* texture;
-    Au::GFX::Device* _device;
-    
     std::vector<unsigned char> _data;
     int width, height;
     int bpp;
+};
+
+class Texture2DReaderPNG : public Resource<Texture2D>::Reader
+{
+public:
+    Texture2D* operator()(const std::string& filename)
+    {
+        stbi_set_flip_vertically_on_load(1);
+        int w, h, bpp;
+        unsigned char* data = 
+            stbi_load(filename.c_str(), &w, &h, &bpp, 3);
+        if(!data)
+            return 0;
+     
+        Texture2D* texture = new Texture2D();
+        texture->Data(data, w, h, 3);
+        
+        return texture;
+    }
 };
 
 class Texture2DReader : public Resource<Texture2D>::Reader
@@ -53,6 +63,8 @@ public:
     Texture2D* operator()(const std::string& filename)
     {
         Texture2D* texture = new Texture2D();
+        
+        
         
         std::vector<unsigned char> data;
         data.resize(256 * 256 * 3);
