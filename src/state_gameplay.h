@@ -113,7 +113,8 @@ public:
         Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
         
         camTrans->Rotate(-x * 0.005f, Au::Math::Vec3f(0, 1, 0));
-        camTrans->Rotate(-y * 0.005f, camTrans->GetTransform() * Au::Math::Vec3f(1, 0, 0));
+        camTrans->Rotate(-y * 0.005f, camTrans->Right());
+        
     }
 private:
     SceneObject scene;
