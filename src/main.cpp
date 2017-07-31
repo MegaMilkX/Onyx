@@ -24,6 +24,9 @@ int main()
     Resource<SkeletonData>::AddSearchPath("data");
     Resource<SkeletonData>::AddReader<SkeletonDataReaderFBX>("fbx");
     
+    Resource<Texture2D>::AddSearchPath("data\\textures");
+    Resource<Texture2D>::AddReader<Texture2DReaderPNG>("png");
+    
     GameState::Init();
     GameState::Push<Gameplay>();
     while(GameState::Update());
