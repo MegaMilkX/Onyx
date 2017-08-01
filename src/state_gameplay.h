@@ -89,6 +89,8 @@ public:
     
     virtual void KeyDown(Au::Input::KEYCODE key)
     {        
+        script->Relay("KeyDown", (int)key);
+        
         if(key == Au::Input::KEY_2)
         {
             GameState::Pop();
@@ -102,6 +104,8 @@ public:
     
     virtual void KeyUp(Au::Input::KEYCODE key)
     {
+        script->Relay("KeyUp", (int)key);
+        
         if(key == Au::Input::KEY_W) camMoveFlags &= ~1;
         else if(key == Au::Input::KEY_A) camMoveFlags &= ~2;
         else if(key == Au::Input::KEY_S) camMoveFlags &= ~4;
@@ -110,6 +114,8 @@ public:
     
     virtual void MouseMove(int x, int y)
     {
+        script->Relay("MouseMove", x, y);
+        
         Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
         
         camTrans->Rotate(-x * 0.005f, Au::Math::Vec3f(0, 1, 0));
