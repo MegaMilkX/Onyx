@@ -136,7 +136,7 @@ public:
     void Relay(const std::string& func, Args... args)
     {
         _state.Call(func, args...);
-        if(_next) _next->Relay(func);
+        if(_next) _next->Relay(func, args...);
     }
     
 private:
