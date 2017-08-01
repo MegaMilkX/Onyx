@@ -38,6 +38,25 @@ private:
     int bpp;
 };
 
+class Texture2DReaderJPG : public Resource<Texture2D>::Reader
+{
+public:
+    Texture2D* operator()(const std::string& filename)
+    {
+        stbi_set_flip_vertically_on_load(1);
+        int w, h, bpp;
+        unsigned char* data = 
+            stbi_load(filename.c_str(), &w, &h, &bpp, 3);
+        if(!data)
+            return 0;
+     
+        Texture2D* texture = new Texture2D();
+        texture->Data(data, w, h, 3);
+        
+        return texture;
+    }
+};
+
 class Texture2DReaderPNG : public Resource<Texture2D>::Reader
 {
 public:

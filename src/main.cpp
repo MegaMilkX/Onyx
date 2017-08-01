@@ -26,6 +26,7 @@ int main()
     
     Resource<Texture2D>::AddSearchPath("data\\textures");
     Resource<Texture2D>::AddReader<Texture2DReaderPNG>("png");
+    Resource<Texture2D>::AddReader<Texture2DReaderJPG>("jpg");
     
     GameState::Init();
     GameState::Push<Gameplay>();
