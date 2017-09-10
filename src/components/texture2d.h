@@ -95,9 +95,9 @@ public:
                 float value = (sinf(x / 8.0f) + 1.0f) / 2.0f;
                 unsigned index = x + y * 256;
                 
-                data[index * 3] = value * 256.0f;
-                data[index * 3 + 1] = value * 256.0f;
-                data[index * 3 + 2] = value * 256.0f;
+                data[index * 3] = (unsigned char)(value * 256.0f);
+                data[index * 3 + 1] = (unsigned char)(value * 256.0f);
+                data[index * 3 + 2] = (unsigned char)(value * 256.0f);
             }
         }
         
