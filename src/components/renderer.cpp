@@ -154,7 +154,7 @@ void Renderer::_render(
     for(unsigned i = 0; i < lightsOmni.size(); ++i)
     {
         uniLightOmniRGB[i] = lightsOmni[i]->Color();
-        uniLightOmniPos[i] = lightsOmni[i]->GetObject()->GetComponent<Transform>()->Position();
+        uniLightOmniPos[i] = lightsOmni[i]->GetObject()->GetComponent<Transform>()->WorldPosition();
     }
     
     for(unsigned i = 0; i < lightsDirect.size(); ++i)
