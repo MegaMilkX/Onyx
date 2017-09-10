@@ -17,6 +17,9 @@ public:
     public:
         virtual ~Component() {}
         SceneObject* GetObject() { return object; }
+        template<typename T>
+        T* GetComponent()
+        { return GetObject()->GetComponent<T>(); }
     private:
         SceneObject* object;
     };
