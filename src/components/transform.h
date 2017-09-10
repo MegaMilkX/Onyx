@@ -29,6 +29,9 @@ public:
     void Translate(const Au::Math::Vec3f& vec);
     void Rotate(float angle, float axisX, float axisY, float axisZ);
     void Rotate(float angle, const Au::Math::Vec3f& axis);
+    void Rotate(const Au::Math::Quat& q);
+    
+    void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f));
     
     void Position(float x, float y, float z);
     void Position(const Au::Math::Vec3f& position);
@@ -39,6 +42,7 @@ public:
     void Scale(float x, float y, float z);
     void Scale(const Au::Math::Vec3f& scale);
     
+    Au::Math::Vec3f WorldPosition();
     Au::Math::Vec3f Position();
     Au::Math::Quat Rotation();
     Au::Math::Vec3f Scale();
@@ -46,6 +50,9 @@ public:
     Au::Math::Vec3f Right();
     Au::Math::Vec3f Up();
     Au::Math::Vec3f Back();
+    Au::Math::Vec3f Left();
+    Au::Math::Vec3f Down();
+    Au::Math::Vec3f Forward();
     
     void SetTransform(Au::Math::Mat4f& t);
     Au::Math::Mat4f GetLocalTransform();
