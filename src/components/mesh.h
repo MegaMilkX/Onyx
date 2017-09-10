@@ -90,6 +90,8 @@ public:
             fbxReader.ReadFile(buffer.data(), buffer.size());
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
+            fbxReader.DumpFile(filename);
+            
             int meshCount = fbxReader.MeshCount();
             std::vector<float> vertices;
             std::vector<float> normals;
@@ -291,7 +293,7 @@ public:
     void VertexShaderSource(const std::string& source) { vertexShaderSource = source; }
     std::string& VertexShaderSource() { return vertexShaderSource; }
     
-    void Build()
+    virtual void Build()
     {
         if(!dirty)
             return;
@@ -373,9 +375,8 @@ class DebugTransformIcon : public Mesh
 {
 public:
 
-    virtual void OnCreate()
+    virtual void Build()
     {
-        Mesh::OnCreate();
         static Au::GFX::Mesh* m = 
             CreateCrossMesh();
         static Au::GFX::RenderState* rs = 
@@ -384,6 +385,11 @@ public:
         mesh = m;
         subMesh = m->GetSubMesh(0);
         renderState = rs;
+    }
+
+    virtual void OnCreate()
+    {
+        Mesh::OnCreate();
     }
 protected:
     Au::GFX::Mesh* CreateCrossMesh()
@@ -401,12 +407,12 @@ protected:
           
         std::vector<float> colors =
         {
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f
+            0.8f, 0.2f, 0.2f,
+            0.8f, 0.2f, 0.2f,
+            0.2f, 0.8f, 0.2f,
+            0.2f, 0.8f, 0.2f,
+            0.2f, 0.2f, 0.8f,
+            0.2f, 0.2f, 0.8f
         };
 
         std::vector<unsigned short> indices =
