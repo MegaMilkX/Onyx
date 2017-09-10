@@ -4,6 +4,7 @@
 #include "skeleton.h"
 #include "material.h"
 #include "light_omni.h"
+#include "camera.h"
 
 Renderer::Renderer()
 {
@@ -106,6 +107,8 @@ void Renderer::RemoveSkeleton(Skeleton* skel)
 
 void Renderer::OnCreate()
 {
+    GetObject()->GetComponent<Camera>();
+    
     uniViewMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixView");
     uniProjMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixProjection");
     
@@ -120,6 +123,11 @@ void Renderer::OnCreate()
 }
 
 #include <iostream>
+void Renderer::Render()
+{
+    _currentCamera->Render(_gfxDevice);
+}
+
 void Renderer::Render(const Au::Math::Mat4f& projection,
         const Au::Math::Mat4f& transform)
 {

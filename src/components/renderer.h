@@ -12,6 +12,7 @@ class Mesh;
 class Skeleton;
 class LightOmni;
 class LightDirect;
+class Camera;
 class Renderer : public SceneObject::Component
 {
 friend Mesh;
@@ -24,9 +25,13 @@ public:
 
     void Dirty() { renderFn = &Renderer::_renderRebuildScene; }
     
+    void Render();
     void Render(const Au::Math::Mat4f& projection,
         const Au::Math::Mat4f& transform);
-        
+    
+    void CurrentCamera(Camera* cam) { _currentCamera = cam; }
+    Camera* CurrentCamera() { return _currentCamera; }
+    
     void AmbientColor(float r, float g, float b)
     { 
         ambientColor = Au::Math::Vec3f(r, g, b);
@@ -63,6 +68,8 @@ private:
         const Au::Math::Mat4f& transform);
 
     Au::GFX::Device* _gfxDevice;
+    
+    Camera* _currentCamera;
 
     std::vector<Mesh*> meshes;
     std::vector<Skeleton*> skeletons;
