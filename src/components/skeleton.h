@@ -7,14 +7,15 @@
 
 struct BoneData
 {
-    BoneData(const std::string& name, Au::Math::Mat4f transform, const std::string& parentName)
-    : name(name), transform(transform), parentName(parentName)
+    BoneData(const std::string& name, Au::Math::Mat4f transform, const std::string& parentName, bool isBone)
+    : name(name), transform(transform), parentName(parentName), isBone(isBone)
     {}
     ~BoneData()
     { for(unsigned i = 0; i < children.size(); ++i) delete children[i]; }
     
     std::string name;
     std::string parentName;
+    bool isBone;
     Au::Math::Mat4f transform;
     std::vector<BoneData*> children;
 };
@@ -26,9 +27,9 @@ struct SkeletonData
     {}
     ~SkeletonData()
     { for(unsigned i = 0; i < rootBones.size(); ++i) delete rootBones[i]; }
-    void AddBone(const std::string& name, Au::Math::Mat4f transform, const std::string& parentName)
+    void AddNode(const std::string& name, Au::Math::Mat4f transform, const std::string& parentName, bool isBone)
     {
-        BoneData* bd = new BoneData(name, transform, parentName);
+        BoneData* bd = new BoneData(name, transform, parentName, isBone);
         rootBones.push_back(bd);
         boneCount++;
     }
@@ -87,6 +88,19 @@ struct SkeletonDataReaderFBX : public Resource<SkeletonData>::Reader
             fbxReader.ReadFile(buffer.data(), buffer.size());
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
+            for(unsigned i = 0; i < fbxReader.ModelCount(); ++i)
+            {
+                Au::Media::FBX::Model* fbxModel = 
+                    fbxReader.GetModel(i);
+                Au::Media::FBX::Model* fbxParentModel = 
+                    fbxReader.GetModelByUID(fbxModel->parentUID);
+                std::string parentName = fbxParentModel ? fbxParentModel->name : "";
+                skel->AddNode(fbxModel->name, fbxModel->transform, parentName, fbxModel->IsBone());
+            }
+            
+            skel->Finalize();
+            
+            /*
             std::vector<Au::Media::FBX::Bone> bones = 
                 fbxReader.GetBones();
             
@@ -97,8 +111,9 @@ struct SkeletonDataReaderFBX : public Resource<SkeletonData>::Reader
                 skel->AddBone(bones[i].name, bones[i].transform, parentName);
             }
             skel->Finalize();
-            
+            */
             //fbxReader.GetHelpers();
+            //fbxReader.Print();
         }
         
         file.close();
@@ -224,8 +239,14 @@ private:
             boneObject->Name(bone->name);
         }
         
+        std::cout << boneObject->Name() << std::endl;
+        
         Transform* boneTransform = boneObject->GetComponent<Transform>();
-        bones.push_back(boneTransform);
+        
+        if(bone->isBone)
+        {
+            bones.push_back(boneTransform);
+        }
         
         boneTransform->SetTransform(bone->transform);
         boneTransform->AttachTo(parentObject->GetComponent<Transform>());
