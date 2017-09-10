@@ -18,7 +18,7 @@ int main()
     Resource<Material>::AddSearchPath("data");
     Resource<Material>::AddReader<MaterialReaderLUA>("lua");
     
-    Resource<AnimData>::AddSearchPath("data");
+    Resource<AnimData>::AddSearchPath("data\\anim");
     Resource<AnimData>::AddReader<AnimDataReaderFBX>("fbx");
     
     Resource<SkeletonData>::AddSearchPath("data");
