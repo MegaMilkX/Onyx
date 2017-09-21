@@ -16,6 +16,7 @@ public:
     friend SceneObject;
     public:
         virtual ~Component() {}
+        virtual void OnCreate() {}
         SceneObject* GetObject() { return object; }
         template<typename T>
         T* GetComponent()
