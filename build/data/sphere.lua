@@ -1,6 +1,6 @@
 
 Init = function()
-    SceneObject:Transform():Translate(2.5, 0.0, 1.5);
+    SceneObject:Transform():Translate(4.5, 0.0, 1.5);
     
     mesh = SceneObject:Mesh();
     mesh:SetMesh("skin");
@@ -9,8 +9,8 @@ Init = function()
 
     SceneObject:Skeleton():SetData("skin");
     
-    SceneObject:Animation():SetAnimData("skin");
-    
+    SceneObject:Animation():SetAnim("idle", "skin");
+    SceneObject:Animation():Play("idle");
     
 end
 
