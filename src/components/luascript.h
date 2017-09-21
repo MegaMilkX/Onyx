@@ -13,6 +13,9 @@
 #include "animation.h"
 #include "skeleton.h"
 
+#include "dynamics/rigid_body.h"
+#include "collision/collider.h"
+
 #include <aurora/lua.h>
 
 class ScriptData
@@ -48,6 +51,10 @@ inline void LuaPrint(const std::string& msg)
     std::cout << msg << std::endl;
 }
 
+inline Au::Math::Vec3f Vec3Create(float x, float y, float z) { return Au::Math::Vec3f(x, y, z); }
+inline Au::Math::Vec3f Vec3Add(const Au::Math::Vec3f& a, const Au::Math::Vec3f& b) { return a + b; }
+inline Au::Math::Vec3f Vec3MultScalar(const Au::Math::Vec3f& v, float s) { return v * s; }
+
 class LuaScript : public SceneObject::Component
 {
 public:
@@ -82,9 +89,19 @@ public:
         
         _state.Bind(&LuaPrint, "Print");
         
+        _state.Bind(&Vec3Create, "Vec3");
+        _state.Bind(&Vec3Add, "Vec3Add");
+        _state.Bind(&Vec3MultScalar, "Vec3MultScalar");
+        _state.Bind<Au::Math::Vec3f, const Au::Math::Vec3f&>(&Au::Math::Normalize, "Vec3Normalize");
+        _state.Bind(&Au::Math::Vec3f::x, "x");
+        _state.Bind(&Au::Math::Vec3f::y, "y");
+        _state.Bind(&Au::Math::Vec3f::z, "z");
+        
         _state.Bind(&SceneObject::Root, "Root");
         _state.Bind(&SceneObject::CreateObject, "CreateObject");
         _state.Bind(&SceneObject::FindObject, "FindObject");
+        _state.Bind<SceneObject, void, const std::string&>(&SceneObject::Name, "SetName");
+        //_state.Bind<SceneObject, std::string>(&SceneObject::Name, "GetName"); TODO CONST LUA FUNCTIONS
         _state.Bind(&SceneObject::GetComponent<LuaScript>, "Script");
         _state.Bind(&SceneObject::GetComponent<Transform>, "Transform");
         _state.Bind(&SceneObject::GetComponent<Camera>, "Camera");
@@ -94,16 +111,30 @@ public:
         _state.Bind(&SceneObject::GetComponent<Mesh>, "Mesh");
         _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
         _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
+		_state.Bind(&SceneObject::GetComponent<PlaneCollider>, "PlaneCollider");
+		_state.Bind(&SceneObject::GetComponent<SphereCollider>, "SphereCollider");
+        _state.Bind(&SceneObject::GetComponent<RigidBody>, "RigidBody");
         
         _state.Bind(&LuaScript::SetScript, "SetScript");
         _state.Bind<LuaScript, SceneObject*>(&LuaScript::GetObject, "GetObject");
         
         _state.Bind<Transform, void, float, float, float>(&Transform::Translate, "Translate");
         _state.Bind<Transform, void, float, float, float, float>(&Transform::Rotate, "Rotate");
+        _state.Bind<Transform, void, float, const Au::Math::Vec3f&>(&Transform::Rotate, "RotateVec");
         _state.Bind<Transform, void, float, float, float>(&Transform::Position, "Position");
+        _state.Bind<Transform, void, const Au::Math::Vec3f&>(&Transform::Position, "PositionVec");
+        _state.Bind<Transform, Au::Math::Vec3f>(&Transform::Position, "GetPosition");
         _state.Bind<Transform, void, float, float, float>(&Transform::Rotation, "Rotation");
         _state.Bind<Transform, void, float>(&Transform::Scale, "Scale");
         _state.Bind<Transform, SceneObject*>(&Transform::GetObject, "GetObject");
+        _state.Bind(&Transform::Right, "Right");
+        _state.Bind(&Transform::Back, "Back");
+        _state.Bind(&Transform::Up, "Up");
+        _state.Bind(&Transform::Left, "Left");
+        _state.Bind(&Transform::Forward, "Forward");
+        _state.Bind(&Transform::Down, "Down");
+        _state.Bind(&Transform::AttachTo, "AttachTo");
+        _state.Bind(&Transform::Attach, "Attach");
         
         _state.Bind(&Camera::Perspective, "Perspective");
         _state.Bind<Camera, SceneObject*>(&Camera::GetObject, "GetObject");
@@ -115,6 +146,8 @@ public:
         _state.Bind<LightDirect, void, float, float, float>(&LightDirect::Direction, "Direction");
         _state.Bind<LightDirect, SceneObject*>(&LightDirect::GetObject, "GetObject");
         
+        _state.Bind<Renderer, void, Camera*>(&Renderer::CurrentCamera, "SetCurrentCamera");
+        _state.Bind<Renderer, Camera*>(&Renderer::CurrentCamera, "GetCurrentCamera");
         _state.Bind(&Renderer::AmbientColor, "AmbientColor");
         _state.Bind(&Renderer::RimColor, "RimColor");
         _state.Bind<Renderer, SceneObject*>(&Renderer::GetObject, "GetObject");
@@ -125,11 +158,19 @@ public:
         _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMaterial, "SetMaterial");
         _state.Bind<Mesh, SceneObject*>(&Mesh::GetObject, "GetObject");
         
-        _state.Bind<Animation, void, const std::string&>(&Animation::SetAnimData, "SetAnimData");
+        _state.Bind<Animation, void, const std::string&, const std::string&>(&Animation::SetAnim, "SetAnim");
+        _state.Bind(&Animation::Play, "Play");
         _state.Bind<Animation, SceneObject*>(&Animation::GetObject, "GetObject");
         
         _state.Bind<Skeleton, void, const std::string&>(&Skeleton::SetData, "SetData");
         _state.Bind<Skeleton, SceneObject*>(&Skeleton::GetObject, "GetObject");
+		
+		
+        
+        _state.Bind<RigidBody, void, const Au::Math::Vec3f&>(&RigidBody::SetLinearVelocity, "SetLinearVelocity");
+        _state.Bind(&RigidBody::SetLinearFactor, "SetLinearFactor");
+        _state.Bind(&RigidBody::SetAngularFactor, "SetAngularFactor");
+        _state.Bind(&RigidBody::LookAt, "LookAt");
     }
     
     template<typename... Args>
