@@ -31,7 +31,7 @@ public:
     void Rotate(float angle, const Au::Math::Vec3f& axis);
     void Rotate(const Au::Math::Quat& q);
     
-    void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f));
+    void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f), float f = 1.0f);
     
     void Position(float x, float y, float z);
     void Position(const Au::Math::Vec3f& position);

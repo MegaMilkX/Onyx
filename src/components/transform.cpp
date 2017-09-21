@@ -24,29 +24,32 @@ void Transform::Rotate(const Au::Math::Quat& q)
         );
 }
 
-void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up)
+void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up, float f)
 {
+	f = max(-1.0f, min(f, 1.0f));
+	
     Transform* trans = GetObject()->GetComponent<Transform>();
     Au::Math::Mat4f mat = trans->GetTransform();
     Au::Math::Vec3f pos = mat[3];
     
     Au::Math::Vec3f newFwdUnit = Au::Math::Normalize(target - pos);
-    Au::Math::Vec3f rotAxis = Au::Math::Normalize(Au::Math::Cross(trans->Back(), newFwdUnit));
+    Au::Math::Vec3f rotAxis = Au::Math::Normalize(Au::Math::Cross(trans->Forward(), newFwdUnit));
     
     Au::Math::Quat q;
-    float dot = Au::Math::Dot(trans->Back(), newFwdUnit);
+    float dot = Au::Math::Dot(trans->Forward(), newFwdUnit);
+	
     const float eps = 0.01f;
     if(fabs(dot + 1.0f) <= eps)
     {
-        q = Au::Math::AngleAxis(Au::Math::PI, trans->Up());
-    }
+        q = Au::Math::AngleAxis(Au::Math::PI * f, trans->Up());
+    }/*
     else if(fabs(dot - 1.0f) <= eps)
     {
         q = Au::Math::Quat(0.0f, 0.0f, 0.0f, 1.0f);
-    }
+    }*/
     else
-    {
-        float rotAngle = acosf(dot);
+	{
+        float rotAngle = acosf(max(-1.0f, min(dot, 1.0f))) * f;
         q = Au::Math::AngleAxis(rotAngle, rotAxis);
     }
     
@@ -128,6 +131,6 @@ Au::Math::Mat4f Transform::GetTransform()
 
 void Transform::OnCreate()
 {
-    //if(GetObject()->Name() == "Pelvis")
-    //    GetObject()->GetComponent<DebugTransformIcon>();
+    if(GetObject()->Name() == "ORIENT")
+        GetObject()->GetComponent<DebugTransformIcon>();
 }
