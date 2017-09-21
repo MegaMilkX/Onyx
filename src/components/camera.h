@@ -14,6 +14,10 @@ public:
     {
         Perspective(1.6f, 16.0f/9.0f, 0.1f, 100.0f);
     }
+    ~Camera()
+    {
+        renderer->CurrentCamera(renderer->GetObject()->GetComponent<Camera>());
+    }
     
     void Ortho(){}
     void Perspective(float fov, float aspect, float zNear, float zFar)
@@ -33,6 +37,8 @@ public:
     {
         transform = GetObject()->GetComponent<Transform>();
         renderer = GetObject()->Root()->GetComponent<Renderer>();
+        
+        renderer->CurrentCamera(this);
     }
 private:
     Au::Math::Mat4f projection;
