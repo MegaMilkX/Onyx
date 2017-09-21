@@ -19,13 +19,114 @@
 #include "components/animation.h"
 #include "components/skeleton.h"
 
+#include "components/dynamics/rigid_body.h"
+#include "components/collision/collider.h"
+
+#include "actor.h"
+
 #include "util.h"
+
+class CharacterController : public SceneObject::Component
+{
+public:
+    CharacterController()
+    : chara(0), dirFlags(0) {}
+    
+    void SetTarget(Actor* chara)
+    {
+        this->chara = chara;
+    }
+    
+    void Update()
+    {
+        if(!chara)
+            return;
+        Transform* camTrans = renderer->CurrentCamera()->GetComponent<Transform>();
+        Au::Math::Vec3f t(0.0f, 0.0f, 0.0f);
+        if(dirFlags & 1)
+            t += Au::Math::Normalize(Au::Math::Vec3f(-camTrans->Back().x, 0.0f, -camTrans->Back().z));
+        if(dirFlags & 2)
+            t += Au::Math::Normalize(Au::Math::Vec3f(-camTrans->Right().x, 0.0f, -camTrans->Right().z));
+        if(dirFlags & 4)
+            t += Au::Math::Normalize(Au::Math::Vec3f(camTrans->Back().x, 0.0f, camTrans->Back().z));
+        if(dirFlags & 8)
+            t += Au::Math::Normalize(Au::Math::Vec3f(camTrans->Right().x, 0.0f, camTrans->Right().z));
+        
+        t = Au::Math::Normalize(t);
+        t = t * 3;
+        
+        chara->Velocity(t);
+    }
+
+    void KeyDown(Au::Input::KEYCODE key)
+    {
+        if(key == Au::Input::KEY_W) dirFlags |= 1;
+        else if(key == Au::Input::KEY_A) dirFlags |= 2;
+        else if(key == Au::Input::KEY_S) dirFlags |= 4;
+        else if(key == Au::Input::KEY_D) dirFlags |= 8;
+    }
+    
+    void KeyUp(Au::Input::KEYCODE key)
+    {
+        if(key == Au::Input::KEY_W) dirFlags &= ~1;
+        else if(key == Au::Input::KEY_A) dirFlags &= ~2;
+        else if(key == Au::Input::KEY_S) dirFlags &= ~4;
+        else if(key == Au::Input::KEY_D) dirFlags &= ~8;
+    }
+
+    void OnCreate()
+    {
+        renderer = GetObject()->Root()->GetComponent<Renderer>();
+    }
+private:
+    Renderer* renderer;
+    Actor* chara;
+    char dirFlags;
+};
+
+class CharacterCamera : public SceneObject::Component
+{
+public:
+    void SetTarget(SceneObject* so)
+    { target = so->GetComponent<Transform>(); }
+    void SetTarget(SceneObject::Component* com)
+    { target = com->GetComponent<Transform>(); }
+
+    void MouseMove(int x, int y)
+    {
+        transform->Rotate(-x * 0.005f, 0.0f, 1.0f, 0.0f);
+        transform->Rotate(-y * 0.005f, transform->Right());
+    }
+    
+    void Update(float dt)
+    {
+        Au::Math::Vec3f tgt = target->Position();
+        tgt.y += 1.5f;
+        tgt = (tgt - transform->Position()) * (dt * 7.0f);
+        transform->Translate(tgt);
+    }
+    
+    void OnCreate()
+    {
+        transform = GetComponent<Transform>();
+        target = GetObject()->Root()->GetComponent<Transform>();
+        
+        cam = GetObject()->CreateObject()->GetComponent<Camera>();
+        cam->Perspective(1.6f, 16.0f/9.0f, 0.01f, 1000.0f);
+        cam->GetComponent<Transform>()->Translate(0.0, 0.0, 1.5);
+        cam->GetComponent<Transform>()->AttachTo(transform);
+    }
+private:
+    Transform* transform;
+    Transform* target;
+    Camera* cam;
+};
 
 class Gameplay : public GameState
 {
 public:
     Gameplay()
-    : camMoveFlags(0) {}
+    {}
     
     virtual void OnInit() 
     {        
@@ -34,29 +135,15 @@ public:
         renderer->AmbientColor(0.1f, 0.1f, 0.1f);
         renderer->RimColor(0.4f, 0.4f, 0.8f);
         
-        camera = scene.CreateObject()->GetComponent<Camera>();
-        camera->Perspective(1.6f, 16.0f/9.0f, 0.01f, 1000.0f);
-        camera->GetObject()->GetComponent<Transform>()->Translate(0.0f, 1.5f, 7.0f);
-        LightOmni* light = camera->GetObject()->GetComponent<LightOmni>();
-        light->Color(0.6f, 1.0f, 0.8f);
-        light->Intensity(1.0f);
+        character = scene.CreateObject()->GetComponent<Actor>();
+        character->GetComponent<Transform>()->Translate(0.0f, 50.0f, 3.0f);
+        camera = scene.CreateObject()->GetComponent<CharacterCamera>();
+        camera->SetTarget(character);
+        charController = scene.GetComponent<CharacterController>();
+        charController->SetTarget(character);
         
         script = scene.GetComponent<LuaScript>();
         script->SetScript("scene");
-        
-        
-        SceneObject* animTest = scene.CreateObject();
-        
-        Mesh* m = animTest->GetComponent<Mesh>();
-        m->SetMesh("teapot");
-        m->SetMaterial("material");
-        
-        AnimData* animData = Resource<AnimData>::Get("frame15");
-        Animation* anim = animTest->GetComponent<Animation>();
-        anim->SetAnim("test", animData->GetChild("Sphere001").GetAnim("Take 001"));
-        anim->FrameRate(animData->FrameRate());
-        anim->Play("test");
-        //anim->SetAnimData("skin");
     }
     virtual void OnCleanup() 
     {
@@ -64,74 +151,59 @@ public:
 
     virtual void OnUpdate() 
     {
+        scene.GetComponent<Dynamics>()->Step(DeltaTime());
         scene.GetComponent<Animation>()->Update(DeltaTime());
         
         script->Relay("Update");
-        Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
-        Au::Math::Vec3f t(0.0f, 0.0f, 0.0f);
-        if(camMoveFlags & 1)
-            t += -camTrans->Back();
-        if(camMoveFlags & 2)
-            t += -camTrans->Right();
-        if(camMoveFlags & 4)
-            t += camTrans->Back();
-        if(camMoveFlags & 8)
-            t += camTrans->Right();
         
-        t = Au::Math::Normalize(t);
-        t = t * 7.1f * DeltaTime();
-        camTrans->Translate(t);
+        character->Update(DeltaTime());
+        camera->Update(DeltaTime());
+        charController->Update();
     }
     virtual void OnRender(Au::GFX::Device* device)
     {
-        camera->Render(device);
+        renderer->Render();
+        //camera->Render(device);
     }
     
     virtual void KeyDown(Au::Input::KEYCODE key)
-    {        
+    {
         script->Relay("KeyDown", (int)key);
+        charController->KeyDown(key);
         
         if(key == Au::Input::KEY_2)
         {
             GameState::Pop();
             GameState::Push<StateTest>();
         }
-        else if(key == Au::Input::KEY_W) camMoveFlags |= 1;
-        else if(key == Au::Input::KEY_A) camMoveFlags |= 2;
-        else if(key == Au::Input::KEY_S) camMoveFlags |= 4;
-        else if(key == Au::Input::KEY_D) camMoveFlags |= 8;
+        
     }
     
     virtual void KeyUp(Au::Input::KEYCODE key)
     {
         script->Relay("KeyUp", (int)key);
+        charController->KeyUp(key);
         
-        if(key == Au::Input::KEY_W) camMoveFlags &= ~1;
-        else if(key == Au::Input::KEY_A) camMoveFlags &= ~2;
-        else if(key == Au::Input::KEY_S) camMoveFlags &= ~4;
-        else if(key == Au::Input::KEY_D) camMoveFlags &= ~8;
+        
     }
     
     virtual void MouseMove(int x, int y)
     {
         script->Relay("MouseMove", x, y);
         
-        Transform* camTrans = camera->GetObject()->GetComponent<Transform>();
-        
-        camTrans->Rotate(-x * 0.005f, Au::Math::Vec3f(0, 1, 0));
-        camTrans->Rotate(-y * 0.005f, camTrans->Right());
-        
+        camera->MouseMove(x, y);
     }
 private:
     SceneObject scene;
     Renderer* renderer;
-    Camera* camera;
     LuaScript* script;
+    
+    Actor* character;
+    CharacterCamera* camera;
+    CharacterController* charController;
     
     float fov = 1.6f;
     float zfar = 100.0f;
-    
-    char camMoveFlags;
 };
 
 #endif
