@@ -5,10 +5,14 @@ set EXENAME=onyx
 
 set INCLUDE_PATHS=/I "%~dp0\..\Aurora\include" ^
 /I "%~dp0\..\lib\lua\include" ^
-/I "%~dp0\..\lib\bullet3-2.86.1\src"
+/I "%~dp0\..\lib\bullet3-2.86.1\src" ^
+/I "%~dp0\..\lib\freetype-2.8\include" ^
+/I "%~dp0\..\lib\serial\include"
 set LIB_PATHS=/LIBPATH:"%~dp0\..\Aurora\lib" ^
 /LIBPATH:"%~dp0\..\lib\lua\lib" ^
-/LIBPATH:"%~dp0\..\lib\bullet3-2.86.1\bin"
+/LIBPATH:"%~dp0\..\lib\bullet3-2.86.1\bin" ^
+/LIBPATH:"%~dp0\..\lib\freetype-2.8\objs\vc2010\Win32" ^
+/LIBPATH:"%~dp0\..\lib\serial\lib"
 set LIBRARIES=kernel32.lib ^
 user32.lib ^
 gdi32.lib ^
@@ -29,7 +33,9 @@ aurora.lib ^
 liblua.lib ^
 BulletCollision_vs2010.lib ^
 BulletDynamics_vs2010.lib ^
-LinearMath_vs2010.lib
+LinearMath_vs2010.lib ^
+freetype28MT.lib ^
+serial.lib
 
 set COMPILER_ARGS=/D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
 
