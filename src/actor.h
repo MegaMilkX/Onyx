@@ -4,6 +4,7 @@
 #include "scene_object.h"
 #include "components/transform.h"
 #include "components/collision/collider.h"
+#include "components/collision/kinematic_object.h"
 #include "components/mesh.h"
 #include "components/animation.h"
 #include "components/skeleton.h"
@@ -28,7 +29,7 @@ protected:
 	Collision* collision;
 };
 
-class Actor : public SceneObject::Component
+class Actor : public KinematicObject
 {
 public:
 	void Switch(ActorState* s)
@@ -95,7 +96,18 @@ public:
 	
 	virtual void Velocity(const Au::Math::Vec3f& v);
 	virtual void Update(float dt);
+    
+    virtual void OnCreate()
+    {
+        ActorState::OnCreate();
+        SceneObject* o = GetObject()->CreateObject();
+        o->Name("ORIENT");
+        hitNormalTransform = o->GetComponent<Transform>();
+        //hitNormalTransform->AttachTo(GetComponent<Transform>());
+        hitNormalTransform->Translate(0.0f, 1.0f, 0.0f);
+    }
 private:
+    Transform* hitNormalTransform;
 };
 
 #endif

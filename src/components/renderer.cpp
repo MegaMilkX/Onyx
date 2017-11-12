@@ -72,6 +72,8 @@ void Renderer::AddMesh(Mesh* mesh)
 {
     RemoveMesh(mesh);
     meshes.push_back(mesh);
+    
+    Dirty();
 }
 
 void Renderer::RemoveMesh(Mesh* mesh)

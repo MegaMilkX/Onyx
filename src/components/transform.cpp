@@ -2,6 +2,13 @@
 
 #include "mesh.h"
 
+typedef Au::Math::Vec4f vec4;
+typedef Au::Math::Vec3f vec3;
+typedef Au::Math::Vec2f vec2;
+typedef Au::Math::Mat4f mat4;
+typedef Au::Math::Mat3f mat3;
+typedef Au::Math::Quat quat;
+
 void Transform::Translate(float x, float y, float z)
 { Translate(Au::Math::Vec3f(x, y, z)); }
 void Transform::Translate(const Au::Math::Vec3f& vec)
@@ -24,7 +31,7 @@ void Transform::Rotate(const Au::Math::Quat& q)
         );
 }
 
-void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up, float f)
+void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f)
 {
 	f = max(-1.0f, min(f, 1.0f));
 	
@@ -33,10 +40,10 @@ void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up,
     Au::Math::Vec3f pos = mat[3];
     
     Au::Math::Vec3f newFwdUnit = Au::Math::Normalize(target - pos);
-    Au::Math::Vec3f rotAxis = Au::Math::Normalize(Au::Math::Cross(trans->Forward(), newFwdUnit));
+    Au::Math::Vec3f rotAxis = Au::Math::Normalize(Au::Math::Cross(forward, newFwdUnit));
     
     Au::Math::Quat q;
-    float dot = Au::Math::Dot(trans->Forward(), newFwdUnit);
+    float dot = Au::Math::Dot(forward, newFwdUnit);
 	
     const float eps = 0.01f;
     if(fabs(dot + 1.0f) <= eps)
@@ -54,6 +61,150 @@ void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up,
     }
     
     trans->Rotate(q);
+}
+
+void Transform::LookAtChain(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f, int chain)
+{
+    float fStep = f / (float)chain;
+    if(chain<0)
+        return;
+    chain--;
+    if(_parent)
+    {
+       _parent->LookAtChain(target, forward, up, fStep, chain);
+    }
+    
+    LookAt(target, forward, up, fStep);
+}
+
+void Transform::Track(const Au::Math::Vec3f& target, float f)
+{
+    Track(target, Forward(), f);
+}
+
+void Transform::Track(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, float f)
+{
+    vec3 vforward = Au::Math::Normalize(forward);
+    vec3 vtarget = Au::Math::Normalize(target - WorldPosition());
+    vec3 rotationAxis = Au::Math::Normalize(Au::Math::Cross(vforward, vtarget));
+    rotationAxis = Au::Math::Inverse(GetTransform()) * vec4(rotationAxis.x, rotationAxis.y, rotationAxis.z, 0.0f);
+    float dot = Au::Math::Dot(vforward, vtarget);
+    float angle = (float)acos(max(-1.0f, min(dot, 1.0f)));
+    
+    quat q = Au::Math::AngleAxis(angle, rotationAxis);
+    Rotate(q);
+}
+
+void IKCollectChain(Transform* t, std::vector<Transform*>& r, int chainLength)
+{
+    if(!t)
+        return;
+    if(chainLength > 0)
+    {
+        r.push_back(t);
+        chainLength--;
+        IKCollectChain(t->ParentTransform(), r, chainLength);
+    }
+}
+
+void Transform::IKChain(const Au::Math::Vec3f& target, int chain)
+{
+    std::vector<Transform*> bones;
+    IKCollectChain(this, bones, chain);
+    if(bones.empty())
+        return;
+    Transform* origin = bones.back();
+    Transform* end = bones.front();
+    
+    vec3 vforward = Au::Math::Normalize(end->WorldPosition() - origin->WorldPosition());
+    vec3 vtarget = Au::Math::Normalize(target - origin->WorldPosition());
+    vec3 rotationAxis = Au::Math::Normalize(Au::Math::Cross(vforward, vtarget));
+    rotationAxis = Au::Math::Inverse(origin->GetTransform()) * vec4(rotationAxis.x, rotationAxis.y, rotationAxis.z, 0.0f);
+    float dot = Au::Math::Dot(vforward, vtarget);
+    float angle = (float)acos(max(-1.0f, min(dot, 1.0f)));
+    quat q = Au::Math::AngleAxis(angle, rotationAxis);
+    origin->Rotate(q);
+}
+
+struct ChainBone
+{
+    vec3 pos;
+    vec3 dir;
+    float length;
+    Transform* t;
+};
+
+void IKCollectBones(Transform* t, std::vector<ChainBone>& r, int chainLength)
+{
+    if(!t)
+        return;
+    if(chainLength > 0)
+    {
+        ChainBone bone;
+        bone.pos = t->WorldPosition();
+        if(r.empty())
+            bone.length = 1.0f;
+        else
+        {
+            bone.length = (r.back().pos - bone.pos).length();
+            bone.dir = Au::Math::Normalize(bone.pos - r.back().pos);
+        }
+        bone.t = t;
+        r.push_back(bone);
+        chainLength--;
+        IKCollectBones(t->ParentTransform(), r, chainLength);
+    }
+}
+
+void FABRIK_impl(std::vector<ChainBone>& bones, const Au::Math::Vec3f& target)
+{
+    vec3 tgt = target;
+    for(unsigned i = 1; i < bones.size() - 1; ++i)
+    {
+        ChainBone& b = bones[i];
+        ChainBone& next = bones[i + 1];
+        
+        b.pos = tgt;
+        tgt = tgt + Au::Math::Normalize(next.pos - b.pos) * next.length;
+    }
+    
+    tgt = bones.back().pos;
+    for(int i = (int)bones.size() - 2; i >= 1; --i)
+    {
+        ChainBone& b = bones[i];
+        ChainBone& next = bones[i - 1];
+        
+        b.pos = tgt;
+        tgt = tgt + Au::Math::Normalize(b.pos - next.pos) * b.length;
+    }
+}
+
+void Transform::FABRIK(const Au::Math::Vec3f& target, int chainLength)
+{
+    std::vector<ChainBone> bones;
+    IKCollectBones(this, bones, chainLength);
+    if(bones.empty())
+        return;
+    
+    ChainBone b;
+    b.pos = target;
+    b.length = 1.0f;
+    bones.insert(bones.begin(), b);
+    b.pos = bones.back().pos;
+    b.length = bones.back().pos.length();
+    bones.push_back(b);
+    
+    for(unsigned i = 0; i < 5; ++i)
+    {
+        FABRIK_impl(bones, target);
+    }
+    
+    for(int i = (int)bones.size() - 2; i >= 1; --i)
+    {
+        ChainBone& b = bones[i];
+        ChainBone& next = bones[i - 1];
+        b.t->Track(next.pos, b.dir);
+    }
 }
 
 void Transform::Position(float x, float y, float z)

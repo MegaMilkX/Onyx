@@ -104,6 +104,16 @@ public:
         tgt.y += 1.5f;
         tgt = (tgt - transform->Position()) * (dt * 7.0f);
         transform->Translate(tgt);
+        
+        Collision::RayHit hit;
+        if(GetObject()->Root()->GetComponent<Collision>()->RayTest(Au::Math::Ray(transform->Position(), transform->Back() * 1.5f), hit))
+        {
+            cam->GetComponent<Transform>()->Position(0.0f, 0.0f, (hit.position - transform->Position()).length() - 0.1f);
+        }
+        else
+        {
+            cam->GetComponent<Transform>()->Position(0.0f, 0.0f, 1.5f);
+        }
     }
     
     void OnCreate()
@@ -136,6 +146,13 @@ public:
         renderer->RimColor(0.4f, 0.4f, 0.8f);
         
         character = scene.CreateObject()->GetComponent<Actor>();
+        SceneObject* pelvis = character->GetObject()->FindObject("Pelvis");
+        if(pelvis)
+        {
+            pelvis->GetComponent<LightOmni>()->Intensity(1.0f);
+            pelvis->GetComponent<LightOmni>()->Color(0.4f, 0.4f, 0.4f);
+        }
+        
         character->GetComponent<Transform>()->Translate(0.0f, 50.0f, 3.0f);
         camera = scene.CreateObject()->GetComponent<CharacterCamera>();
         camera->SetTarget(character);
@@ -151,18 +168,21 @@ public:
 
     virtual void OnUpdate() 
     {
-        scene.GetComponent<Dynamics>()->Step(DeltaTime());
         scene.GetComponent<Animation>()->Update(DeltaTime());
+        scene.GetComponent<Collision>()->Update(DeltaTime());
+        //scene.GetComponent<Dynamics>()->Step(DeltaTime());
         
         script->Relay("Update");
         
-        character->Update(DeltaTime());
         camera->Update(DeltaTime());
         charController->Update();
+        
+        //scene.FindObject("MIKU")->GetComponent<Transform>()->Track(character->GetComponent<Transform>()->WorldPosition());
     }
     virtual void OnRender(Au::GFX::Device* device)
     {
         renderer->Render();
+        //scene.GetComponent<Collision>()->DebugDraw();
         //camera->Render(device);
     }
     
@@ -177,6 +197,10 @@ public:
             GameState::Push<StateTest>();
         }
         
+        if(key == Au::Input::KEY_Q)
+        {
+            character->GetComponent<Transform>()->Position(0.0f, 0.25f, 0.0f);
+        }
     }
     
     virtual void KeyUp(Au::Input::KEYCODE key)

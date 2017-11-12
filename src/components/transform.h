@@ -31,7 +31,15 @@ public:
     void Rotate(float angle, const Au::Math::Vec3f& axis);
     void Rotate(const Au::Math::Quat& q);
     
-    void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f), float f = 1.0f);
+    void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f), float f = 1.0f);
+    void LookAtChain(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f = 1.0f, int chain = 2);
+    
+    void Track(const Au::Math::Vec3f& target, float f = 1.0f);
+    void Track(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, float f = 1.0f);
+    
+    void IKChain(const Au::Math::Vec3f& target, int chain);
+    
+    void FABRIK(const Au::Math::Vec3f& target, int chainLength);
     
     void Position(float x, float y, float z);
     void Position(const Au::Math::Vec3f& position);
@@ -75,6 +83,7 @@ public:
                 _children.erase(_children.begin() + i);
             }
     }
+    Transform* ParentTransform() { return _parent; }
 
     virtual void OnCreate();
 private:

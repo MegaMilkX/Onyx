@@ -113,6 +113,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
 		_state.Bind(&SceneObject::GetComponent<PlaneCollider>, "PlaneCollider");
 		_state.Bind(&SceneObject::GetComponent<SphereCollider>, "SphereCollider");
+        _state.Bind(&SceneObject::GetComponent<MeshCollider>, "MeshCollider");
         _state.Bind(&SceneObject::GetComponent<RigidBody>, "RigidBody");
         
         _state.Bind(&LuaScript::SetScript, "SetScript");
@@ -165,7 +166,7 @@ public:
         _state.Bind<Skeleton, void, const std::string&>(&Skeleton::SetData, "SetData");
         _state.Bind<Skeleton, SceneObject*>(&Skeleton::GetObject, "GetObject");
 		
-		
+		_state.Bind<MeshCollider, void, const std::string&>(&MeshCollider::SetMesh, "SetMesh");
         
         _state.Bind<RigidBody, void, const Au::Math::Vec3f&>(&RigidBody::SetLinearVelocity, "SetLinearVelocity");
         _state.Bind(&RigidBody::SetLinearFactor, "SetLinearFactor");
