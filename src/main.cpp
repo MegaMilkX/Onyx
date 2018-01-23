@@ -8,6 +8,8 @@ typedef Au::Math::Vec2f vec2;
 typedef Au::Math::Mat4f mat4;
 typedef Au::Math::Mat3f mat3;
 
+#define REG_COMP(NAME) SceneObject::RegisterComponent<NAME>(#NAME)
+
 int main()
 {
     Resource<MeshData>::AddSearchPath("data\\model");
@@ -28,6 +30,15 @@ int main()
     Resource<Texture2D>::AddSearchPath("data\\texture");
     Resource<Texture2D>::AddReader<Texture2DReaderPNG>("png");
     Resource<Texture2D>::AddReader<Texture2DReaderJPG>("jpg");
+    
+    REG_COMP(Transform);
+    REG_COMP(Mesh);
+    REG_COMP(Skeleton);
+    REG_COMP(Renderer);
+    REG_COMP(LuaScript);
+    REG_COMP(LightOmni);
+    REG_COMP(Camera);
+    REG_COMP(Animation);
     
     GameState::Init();
     GameState::Push<Gameplay>();
