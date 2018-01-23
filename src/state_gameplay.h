@@ -161,6 +161,10 @@ public:
         
         script = scene.GetComponent<LuaScript>();
         script->SetScript("scene");
+        
+        std::ofstream file("scene.scn", std::ios::out);
+        file << std::setw(4) << scene.Serialize();
+        file.close();
     }
     virtual void OnCleanup() 
     {
