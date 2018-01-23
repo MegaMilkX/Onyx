@@ -6,6 +6,8 @@
 
 #include "typeindex.h"
 
+#include "external/json.hpp"
+
 #undef GetObject
 
 class SceneObject
@@ -21,6 +23,9 @@ public:
         template<typename T>
         T* GetComponent()
         { return GetObject()->GetComponent<T>(); }
+        
+        virtual std::string Serialize() { return "{}"; }
+        virtual void Deserialize(const std::string& data) {}
     private:
         SceneObject* object;
     };
@@ -31,6 +36,7 @@ public:
     {
         for(unsigned i = 0; i < objects.size(); ++i)
             delete objects[i];
+        // TODO: delete components
     }
     
     SceneObject* Root()
@@ -99,11 +105,78 @@ public:
         }
         return o;
     }
+    
+    // Serialization
+    template<typename T>
+    static void RegisterComponent(const std::string& name)
+    {
+        headerStaticWrap<SceneObject>::compAllocFuncs[name] = &GetComponentBase<T>;
+        headerStaticWrap<SceneObject>::compTypeIndexToName[TypeInfo<T>::Index()] = name;
+    }
+    std::string Serialize()
+    {
+        using json = nlohmann::json;
+        json j = json::object();
+        
+        j["Name"] = name;
+        
+        for(auto& kv : components)
+        {
+            std::string comp_data = 
+                kv.second->Serialize();
+            json j2 = json::parse(comp_data);
+            auto& it = headerStaticWrap<SceneObject>::compTypeIndexToName.find(kv.first);
+            if(it == headerStaticWrap<SceneObject>::compTypeIndexToName.end())
+                continue;
+            j[it->second] = j2;
+        }
+        
+        j["Objects"] = json::array();
+        for(auto& object : objects)
+        {
+            std::string obj_data = 
+                object->Serialize();
+            j["Objects"].push_back(json::parse(obj_data));
+        }
+        
+        return j.dump();
+    }
+    void Deserialize(const std::string& data)
+    {
+        
+    }
 private:
+    template<typename T>
+    Component* GetComponentBase() { return GetComponent<T>(); }
+    typedef Component*(SceneObject::*FuncGetComponent_t)();
+    template<typename T>
+    struct headerStaticWrap{
+        static std::map<std::string, FuncGetComponent_t> compAllocFuncs;
+        static std::map<typeindex, std::string> compTypeIndexToName;
+    };
+    Component* GetComponentByName(const std::string& name)
+    {
+        std::map<std::string, FuncGetComponent_t>::iterator it =
+            headerStaticWrap<SceneObject>::compAllocFuncs.find(name);
+        if(it == headerStaticWrap<SceneObject>::compAllocFuncs.end())
+        {
+            return 0;
+        }
+        
+        FuncGetComponent_t get_component = 
+            it->second;
+        return (this->*get_component)();
+    }
+    
     std::string name;
     SceneObject* parentObject;
     std::vector<SceneObject*> objects;
     std::map<typeindex, Component*> components;
 };
+
+template<typename T>
+std::map<std::string, SceneObject::FuncGetComponent_t> SceneObject::headerStaticWrap<T>::compAllocFuncs;
+template<typename T>
+std::map<typeindex, std::string> SceneObject::headerStaticWrap<T>::compTypeIndexToName;
 
 #endif
