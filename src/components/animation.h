@@ -299,11 +299,13 @@ public:
     */
     void SetAnim(const std::string& name, const std::string& resourceName)
     {
+        animResourceName = resourceName;
         SetAnim(name, Resource<AnimData>::Get(resourceName));
     }
     
     void SetAnim(const std::string& name, AnimData* data)
     {
+        animName = name;
         FrameRate(data->FrameRate());
         for(unsigned i = 0; i < data->ChildCount(); ++i)
         {
@@ -395,6 +397,33 @@ public:
         animBlendTarget = anims[""];
         GetObject()->Root()->GetComponent<Animation>()->_addChild(this);
     }
+    virtual std::string Serialize() 
+    { 
+        using json = nlohmann::json;
+        json j = json::object();
+        j["Anim"] = animName;
+        j["AnimData"] = animResourceName;
+        return j.dump(); 
+    }
+    virtual void Deserialize(const std::string& data)
+    {
+        using json = nlohmann::json;
+        json j = json::parse(data);
+        if(j.is_null())
+            return;
+        if(j["Anim"].is_string())
+        {
+            animName = j["Anim"].get<std::string>();
+        }
+        if(j["AnimData"].is_string())
+        {
+            animResourceName = j["AnimData"].get<std::string>();
+        }
+        if(!animResourceName.empty())
+        {
+            SetAnim(animName, animResourceName);
+        }
+    }
 private:
     void _addChild(Animation* anim)
     {
@@ -413,6 +442,9 @@ private:
             }
         }
     }
+    
+    std::string animResourceName;
+    std::string animName;
     
     float fps;
     float blend;

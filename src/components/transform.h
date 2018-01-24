@@ -86,6 +86,64 @@ public:
     Transform* ParentTransform() { return _parent; }
 
     virtual void OnCreate();
+    virtual std::string Serialize() 
+    {
+        using json = nlohmann::json;
+        json j = json::object();
+        j["Translation"] = { _position.x, _position.y, _position.z };
+        j["Rotation"] = { _rotation.x, _rotation.y, _rotation.z, _rotation.w };
+        j["Scale"] = { _scale.x, _scale.y, _scale.z };
+        return j.dump();
+    }
+    virtual void Deserialize(const std::string& data) 
+    {
+        using json = nlohmann::json;
+        json j = json::parse(data);
+        if(j.is_null())
+            return;
+        
+        json jt = j["Translation"];
+        if(jt.is_array() && jt.size() == 3)
+        {
+            Position(
+                jt[0].get<float>(),
+                jt[1].get<float>(),
+                jt[2].get<float>()
+            );
+        }
+        
+        json jr = j["Rotation"];
+        if(jr.is_array())
+        {
+            if(jr.size() == 3)
+                Rotation(
+                    jr[0].get<float>(),
+                    jr[1].get<float>(),
+                    jr[2].get<float>()
+                );
+            if(jr.size() == 4)
+                Rotation(
+                    jr[0].get<float>(),
+                    jr[1].get<float>(),
+                    jr[2].get<float>(),
+                    jr[3].get<float>()
+                );
+        }           
+        
+        json js = j["Scale"];
+        if(js.is_array() && js.size() == 3)
+        {
+            Scale(
+                js[0].get<float>(),
+                js[1].get<float>(),
+                js[2].get<float>()
+            );
+        }
+        else if(js.is_number())
+        {
+            Scale(js.get<float>());
+        }
+    }
 private:
 
     Au::Math::Vec3f _position;

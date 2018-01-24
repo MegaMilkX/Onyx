@@ -184,6 +184,7 @@ public:
     
     void SetData(const std::string& name)
     {
+        resourceName = name;
         SetData(Resource<SkeletonData>::Get(name));
     }
     
@@ -228,6 +229,24 @@ public:
         
         renderer = GetObject()->Root()->GetComponent<Renderer>();
         renderer->AddSkeleton(this);
+    }
+    virtual std::string Serialize() 
+    { 
+        using json = nlohmann::json;
+        json j = json::object();
+        j["Data"] = resourceName;
+        return j.dump(); 
+    }
+    virtual void Deserialize(const std::string& data)
+    {
+        using json = nlohmann::json;
+        json j = json::parse(data);
+        if(j.is_null())
+            return;
+        if(j["Data"].is_string())
+        {
+            SetData(j["Data"].get<std::string>());
+        }
     }
 private:
     void CreateBone(BoneData* bone, SceneObject* parentObject)
@@ -286,6 +305,7 @@ private:
     }
 
     SkeletonData* skelData;
+    std::string resourceName;
     
     Renderer* renderer;
     

@@ -44,7 +44,10 @@ public:
     }
     
     void SetMesh(const std::string& name)
-    { SetMesh(Resource<MeshData>::Get(name)); }
+    { 
+        meshName = name;
+        SetMesh(Resource<MeshData>::Get(name)); 
+    }
     
     void SetMesh(MeshData* meshData)
     { 
@@ -74,7 +77,10 @@ public:
     }
     
     void SetMaterial(const std::string& name)
-    { SetMaterial(Resource<Material>::Get(name)); }
+    {
+        materialName = name;
+        SetMaterial(Resource<Material>::Get(name)); 
+    }
     
     void SetMaterial(Material* mat)
     {
@@ -114,6 +120,34 @@ public:
         renderer = GetObject()->Root()->GetComponent<Renderer>();
         renderer->AddMesh(this);
     }
+    virtual std::string Serialize() 
+    {
+        using json = nlohmann::json;
+        json j = json::object();
+        j["Material"] = materialName;
+        j["Mesh"] = meshName;
+        j["SubMesh"] = subMeshName;
+        return j.dump(); 
+    }
+    virtual void Deserialize(const std::string& data) 
+    {
+        using json = nlohmann::json;
+        json j = json::parse(data);
+        if(j.is_null())
+            return;
+        if(j["Mesh"].is_string())
+        {
+            SetMesh(j["Mesh"].get<std::string>());
+        }
+        if(j["SubMesh"].is_string())
+        {
+            SetSubMesh(j["SubMesh"].get<std::string>());
+        }
+        if(j["Material"].is_string())
+        {
+            SetMaterial(j["Material"].get<std::string>());
+        }
+    }
 protected:
     void _dirty()
     {
@@ -151,7 +185,9 @@ protected:
     Transform* transform;
     Renderer* renderer;
     
+    std::string materialName;
     Material* material;
+    std::string meshName;
     MeshData* meshData;
     Au::GFX::RenderState* renderState;
     Au::GFX::Mesh* mesh;

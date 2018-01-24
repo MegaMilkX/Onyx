@@ -18,12 +18,12 @@ public:
     friend SceneObject;
     public:
         virtual ~Component() {}
-        virtual void OnCreate() {}
         SceneObject* GetObject() { return object; }
         template<typename T>
         T* GetComponent()
         { return GetObject()->GetComponent<T>(); }
         
+        virtual void OnCreate() {}
         virtual std::string Serialize() { return "{}"; }
         virtual void Deserialize(const std::string& data) {}
     private:

@@ -73,7 +73,7 @@ public:
         ScriptData* sd = Resource<ScriptData>::Get(name);
         if(!sd)
             return;
-        
+        scriptName = name;
         _state.SetGlobal(GetObject(), "SceneObject");
         _state.LoadSource(sd->Get());
         _state.Call("Init");
@@ -173,6 +173,24 @@ public:
         _state.Bind(&RigidBody::SetAngularFactor, "SetAngularFactor");
         _state.Bind(&RigidBody::LookAt, "LookAt");
     }
+    virtual std::string Serialize() 
+    {
+        using json = nlohmann::json;
+        json j = json::object();
+        j["Script"] = scriptName;
+        return j.dump(); 
+    }
+    virtual void Deserialize(const std::string& data)
+    {
+        using json = nlohmann::json;
+        json j = json::parse(data);
+        if(j.is_null())
+            return;
+        if(j["Script"].is_string())
+        {
+            SetScript(j["Script"].get<std::string>());
+        }
+    }
     
     template<typename... Args>
     void Relay(const std::string& func, Args... args)
@@ -203,6 +221,7 @@ private:
             _next->_unlink(script);
     }
 
+    std::string scriptName;
     Au::Lua _state;
     LuaScript* _next;
 };
