@@ -7,6 +7,7 @@ std::stack<GameState*> GameState::stateStack;
 
 Au::Window* GameState::window;
 Au::GFX::Device GameState::gfxDevice;
+AudioMixer3D GameState::audioMixer;
 GameState::MouseHandler GameState::mouseHandler;
 GameState::KeyboardHandler GameState::keyboardHandler;
 

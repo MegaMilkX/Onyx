@@ -12,6 +12,8 @@
 
 #include <aurora/timer.h>
 
+#include "lib/audio/audio_mixer_3d.h"
+
 class GameState
 {
 public:
@@ -67,8 +69,22 @@ public:
         window = Au::Window::Create("Onyx", 1280, 720);
         window->Show();
         gfxDevice.Init(*window);
+        audioMixer.Init(48000, 16);
+        DWORD threadId;
+        HANDLE thread = CreateThread(NULL, 0, AudioThread, (void*)&audioMixer, 0, &threadId);
         mouseHandler.Init(window);
         keyboardHandler.Init(window);
+    }
+    
+    static DWORD WINAPI AudioThread(LPVOID lpParam)
+    {
+        AudioMixer3D* mix = (AudioMixer3D*)lpParam;
+        while(1)
+        {
+            Sleep(5);
+            mix->Update();
+        }
+        return 0;
     }
     
     static bool Update()
@@ -98,6 +114,7 @@ public:
     
     static void Cleanup()
     {
+        audioMixer.Cleanup();
         gfxDevice.Cleanup();
         Au::Window::Destroy(window);
     }
@@ -105,6 +122,7 @@ public:
     float DeltaTime() { return deltaTime; }
     
     Au::GFX::Device* GFXDevice() { return &gfxDevice; }
+    static AudioMixer3D* GetAudioMixer() { return &audioMixer; }
     
     static void PostMouseKeyUp(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyUp(key); }
     static void PostMouseKeyDown(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyDown(key); }
@@ -120,6 +138,7 @@ private:
 
     static Au::Window* window;
     static Au::GFX::Device gfxDevice;
+    static AudioMixer3D audioMixer;
     static MouseHandler mouseHandler;
     static KeyboardHandler keyboardHandler;
 };
