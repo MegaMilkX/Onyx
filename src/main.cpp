@@ -31,6 +31,9 @@ int main()
     Resource<Texture2D>::AddReader<Texture2DReaderPNG>("png");
     Resource<Texture2D>::AddReader<Texture2DReaderJPG>("jpg");
     
+    Resource<SoundClip>::AddSearchPath("data\\audio");
+    Resource<SoundClip>::AddReader<SoundClipReaderOGG>("ogg");
+    
     REG_COMP(Transform);
     REG_COMP(Mesh);
     REG_COMP(Skeleton);
@@ -39,6 +42,7 @@ int main()
     REG_COMP(LightOmni);
     REG_COMP(Camera);
     REG_COMP(Animation);
+    REG_COMP(SoundEmitter);
     
     GameState::Init();
     GameState::Push<Gameplay>();
