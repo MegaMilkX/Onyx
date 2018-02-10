@@ -22,6 +22,8 @@
 #include "components/dynamics/rigid_body.h"
 #include "components/collision/collider.h"
 
+#include "components/sound_emitter.h"
+
 #include "actor.h"
 
 #include "util.h"
@@ -125,6 +127,8 @@ public:
         cam->Perspective(1.6f, 16.0f/9.0f, 0.01f, 1000.0f);
         cam->GetComponent<Transform>()->Translate(0.0, 0.0, 1.5);
         cam->GetComponent<Transform>()->AttachTo(transform);
+        
+        cam->GetComponent<SoundListener>();
     }
 private:
     Transform* transform;
@@ -162,6 +166,9 @@ public:
         script = scene.GetComponent<LuaScript>();
         script->SetScript("scene");
         
+        SoundEmitter* snd = scene.CreateObject()->GetComponent<SoundEmitter>();
+        snd->SetClip("test");
+        
         std::ofstream file("scene.scn", std::ios::out);
         file << std::setw(4) << scene.Serialize();
         file.close();
@@ -174,6 +181,7 @@ public:
     {
         scene.GetComponent<Animation>()->Update(DeltaTime());
         scene.GetComponent<Collision>()->Update(DeltaTime());
+        
         //scene.GetComponent<Dynamics>()->Step(DeltaTime());
         
         script->Relay("Update");
@@ -181,6 +189,7 @@ public:
         camera->Update(DeltaTime());
         charController->Update();
         
+        scene.GetComponent<SoundRoot>()->Update();
         //scene.FindObject("MIKU")->GetComponent<Transform>()->Track(character->GetComponent<Transform>()->WorldPosition());
     }
     virtual void OnRender(Au::GFX::Device* device)
