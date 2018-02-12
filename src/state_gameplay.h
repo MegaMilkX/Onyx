@@ -11,7 +11,6 @@
 #include "components/transform.h"
 #include "components/camera.h"
 #include "components/mesh.h"
-#include "components/material.h"
 #include "components/light_omni.h"
 
 #include "components/luascript.h"
@@ -23,6 +22,10 @@
 #include "components/collision/collider.h"
 
 #include "components/sound_emitter.h"
+
+#include "components/text_mesh.h"
+
+#include "lib/font_rasterizer.h"
 
 #include "actor.h"
 
@@ -124,7 +127,7 @@ public:
         target = GetObject()->Root()->GetComponent<Transform>();
         
         cam = GetObject()->CreateObject()->GetComponent<Camera>();
-        cam->Perspective(1.6f, 16.0f/9.0f, 0.01f, 1000.0f);
+        cam->Perspective(1.4f, 16.0f/9.0f, 0.01f, 1000.0f);
         cam->GetComponent<Transform>()->Translate(0.0, 0.0, 1.5);
         cam->GetComponent<Transform>()->AttachTo(transform);
         
@@ -154,7 +157,7 @@ public:
         if(pelvis)
         {
             pelvis->GetComponent<LightOmni>()->Intensity(1.0f);
-            pelvis->GetComponent<LightOmni>()->Color(0.4f, 0.4f, 0.4f);
+            pelvis->GetComponent<LightOmni>()->Color(0.8f, 0.8f, 0.8f);
         }
         
         character->GetComponent<Transform>()->Translate(0.0f, 50.0f, 3.0f);
@@ -169,9 +172,32 @@ public:
         SoundEmitter* snd = scene.CreateObject()->GetComponent<SoundEmitter>();
         snd->SetClip("test");
         
+        Mesh* mesh = scene.CreateObject()->GetComponent<Mesh>();
+        mesh->SetMesh("brick");
+        
+        FontData* font = Resource<FontData>::Get("calibri");
+        font->AddChar('H', 100);
+        font->AddChar('u', 100);
+        font->AddChar('i', 100);
+        font->AddChar('!', 100);
+        font->RebuildTexture();
+        
+        TextMesh* textMesh = scene.CreateObject()->GetComponent<TextMesh>();
+        textMesh->SetText("Hello, World!");
+        
+        Material* mat = new Material();
+        mat->SetLayer(0, "Diffuse");
+        mat->SetTexture2D("DiffuseTexture", font->GetTexture());
+        
+        mesh->SetMaterial(mat);
+        
         std::ofstream file("scene.scn", std::ios::out);
         file << std::setw(4) << scene.Serialize();
         file.close();
+        
+        animation = scene.GetComponent<Animation>();
+        collision = scene.GetComponent<Collision>();
+        soundRoot = scene.GetComponent<SoundRoot>();
     }
     virtual void OnCleanup() 
     {
@@ -179,8 +205,8 @@ public:
 
     virtual void OnUpdate() 
     {
-        scene.GetComponent<Animation>()->Update(DeltaTime());
-        scene.GetComponent<Collision>()->Update(DeltaTime());
+        animation->Update(DeltaTime());
+        collision->Update(DeltaTime());
         
         //scene.GetComponent<Dynamics>()->Step(DeltaTime());
         
@@ -189,7 +215,7 @@ public:
         camera->Update(DeltaTime());
         charController->Update();
         
-        scene.GetComponent<SoundRoot>()->Update();
+        soundRoot->Update();
         //scene.FindObject("MIKU")->GetComponent<Transform>()->Track(character->GetComponent<Transform>()->WorldPosition());
     }
     virtual void OnRender(Au::GFX::Device* device)
@@ -230,10 +256,13 @@ public:
         
         camera->MouseMove(x, y);
     }
-private:
+private:    
     SceneObject scene;
     Renderer* renderer;
     LuaScript* script;
+    Animation* animation;
+    Collision* collision;
+    SoundRoot* soundRoot;
     
     Actor* character;
     CharacterCamera* camera;

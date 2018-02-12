@@ -6,7 +6,7 @@
 
 #include "dynamics.h"
 
-#include "../transform.h"
+#include <transform.h>
 
 class RigidBody : public SceneObject::Component
 {

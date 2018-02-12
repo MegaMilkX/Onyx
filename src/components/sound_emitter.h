@@ -3,7 +3,7 @@
 
 #include "../scene_object.h"
 #include "sound_root.h"
-#include "sound_clip.h"
+#include <sound_clip.h>
 
 #undef GetObject
 

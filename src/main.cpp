@@ -1,6 +1,5 @@
 #include "state_test.h"
 #include "state_gameplay.h"
-#include "state_imu.h"
 
 typedef Au::Math::Vec4f vec4;
 typedef Au::Math::Vec3f vec3;
@@ -33,6 +32,10 @@ int main()
     
     Resource<SoundClip>::AddSearchPath("data\\audio");
     Resource<SoundClip>::AddReader<SoundClipReaderOGG>("ogg");
+    
+    Resource<FontData>::AddSearchPath("data\\fonts");
+    Resource<FontData>::AddReader<FontDataReader>("ttf");
+    Resource<FontData>::AddReader<FontDataReader>("otf");
     
     REG_COMP(Transform);
     REG_COMP(Mesh);

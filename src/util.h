@@ -21,7 +21,7 @@ Au::GFX::Mesh* LoadMesh(Au::GFX::Device* gfxDevice, const std::string& path)
     if(file.read(buffer.data(), size))
     {
         Au::Media::FBX::Reader fbxReader;
-        fbxReader.ReadFile(buffer.data(), buffer.size());
+        fbxReader.ReadMemory(buffer.data(), buffer.size());
         fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
         //fbxReader.Print();
         

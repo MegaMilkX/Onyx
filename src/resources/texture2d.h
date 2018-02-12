@@ -1,7 +1,7 @@
 #ifndef TEXTURE2D_H
 #define TEXTURE2D_H
 
-#include "../resource.h"
+#include <resource.h>
 #include <aurora/gfx.h>
 
 extern "C"{

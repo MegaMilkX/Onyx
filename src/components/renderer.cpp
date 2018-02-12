@@ -5,6 +5,7 @@
 #include "material.h"
 #include "light_omni.h"
 #include "camera.h"
+#include "text_mesh.h"
 
 Renderer::Renderer()
 {
@@ -107,6 +108,15 @@ void Renderer::RemoveSkeleton(Skeleton* skel)
     }
 }
 
+void Renderer::AddTextMesh(TextMesh* textMesh)
+{
+    textMeshes.insert(textMesh);
+}
+void Renderer::RemoveTextMesh(TextMesh* textMesh)
+{
+    textMeshes.erase(textMesh);
+}
+
 void Renderer::OnCreate()
 {
     GetObject()->GetComponent<Camera>();
@@ -189,5 +199,10 @@ void Renderer::_render(
         skeletons[i]->Update();
         skeletons[i]->Bind();
         skeletons[i]->GetObject()->GetComponent<Mesh>()->Render(_gfxDevice);
+    }
+    
+    for(TextMesh* tm : textMeshes)
+    {
+        tm->Render(_gfxDevice);
     }
 }

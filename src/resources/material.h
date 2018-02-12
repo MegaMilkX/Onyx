@@ -13,7 +13,7 @@
 #include "../scene_object.h"
 #include "renderer.h"
 
-#include "../resource.h"
+#include <resource.h>
 
 #include "texture2d.h"
 
@@ -65,7 +65,11 @@ public:
     
     void SetTexture2D(const std::string& uniform, const std::string& resource)
     {
-        _textures2D[uniform] = Resource<Texture2D>::Get(resource);
+        SetTexture2D(uniform, Resource<Texture2D>::Get(resource));
+    }
+    void SetTexture2D(const std::string& uniform, Texture2D* tex)
+    {
+        _textures2D[uniform] = tex;
     }
     void SetFloat(const std::string& uniform, float value) 
     {
@@ -369,7 +373,7 @@ public:
             Au::Lua lua;
             lua.Init();
             lua.Bind(&Material::SetLayer, "SetLayer");
-            lua.Bind(&Material::SetTexture2D, "SetTexture2D");
+            lua.Bind<Material, void, const std::string&, const std::string&>(&Material::SetTexture2D, "SetTexture2D");
             lua.Bind(&Material::SetFloat, "SetFloat");
             lua.Bind(&Material::SetVec2, "SetVec2");
             lua.Bind(&Material::SetVec3, "SetVec3");

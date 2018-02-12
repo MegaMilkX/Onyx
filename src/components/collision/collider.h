@@ -3,7 +3,7 @@
 
 #include "../transform.h"
 #include "collision.h"
-#include "../../mesh_data.h"
+#include <mesh_data.h>
 
 #undef GetObject
 

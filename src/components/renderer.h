@@ -13,6 +13,7 @@ class Skeleton;
 class LightOmni;
 class LightDirect;
 class Camera;
+class TextMesh;
 class Renderer : public SceneObject::Component
 {
 friend Mesh;
@@ -52,6 +53,9 @@ public:
     void AddSkeleton(Skeleton* skel);
     void RemoveSkeleton(Skeleton* skel);
     
+    void AddTextMesh(TextMesh* textMesh);
+    void RemoveTextMesh(TextMesh* textMesh);
+    
     void SetInt(const std::string& name, int value)
     { _intMap[name] = value; }
     int GetInt(const std::string& name)
@@ -75,6 +79,7 @@ private:
     std::vector<Skeleton*> skeletons;
     std::vector<LightOmni*> lightsOmni;
     std::vector<LightDirect*> lightsDirect;
+    std::set<TextMesh*> textMeshes;
     
     std::map<std::string, int> _intMap;
     

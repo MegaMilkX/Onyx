@@ -67,7 +67,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
             animData = new AnimData();
             
             Au::Media::FBX::Reader fbxReader;
-            fbxReader.ReadFile(buffer.data(), buffer.size());
+            fbxReader.ReadMemory(buffer.data(), buffer.size());
             fbxReader.DumpFile(filename);
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             

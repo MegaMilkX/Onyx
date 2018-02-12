@@ -2,7 +2,7 @@
 #define SOUND_CLIP_H
 
 #include "../game_state.h"
-#include "../resource.h"
+#include <resource.h>
 
 #define STB_VORBIS_HEADER_ONLY
 extern "C"{

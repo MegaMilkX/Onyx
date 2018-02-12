@@ -66,7 +66,7 @@ public:
     
     static void Init()
     {
-        window = Au::Window::Create("Onyx", 1280, 720);
+        window = Au::Window::Create("Onyx", 1920, 1080);
         window->Show();
         gfxDevice.Init(*window);
         audioMixer.Init(48000, 16);

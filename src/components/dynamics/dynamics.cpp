@@ -1,5 +1,5 @@
 #include "dynamics.h"
-#include "rigid_body.h"
+#include <dynamics/rigid_body.h>
 
 void Dynamics::Step(float dt)
 {

@@ -85,7 +85,7 @@ struct SkeletonDataReaderFBX : public Resource<SkeletonData>::Reader
             skel = new SkeletonData();
             
             Au::Media::FBX::Reader fbxReader;
-            fbxReader.ReadFile(buffer.data(), buffer.size());
+            fbxReader.ReadMemory(buffer.data(), buffer.size());
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
             for(unsigned i = 0; i < fbxReader.ModelCount(); ++i)

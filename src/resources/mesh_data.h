@@ -5,7 +5,7 @@
 #include <aurora/gfx.h>
 #include <aurora/media/fbx.h>
 
-#include "resource.h"
+#include <resource.h>
 
 class MeshData
 {
@@ -101,7 +101,7 @@ public:
             meshData = new MeshData();
             
             Au::Media::FBX::Reader fbxReader;
-            fbxReader.ReadFile(buffer.data(), buffer.size());
+            fbxReader.ReadMemory(buffer.data(), buffer.size());
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
             fbxReader.DumpFile(filename);

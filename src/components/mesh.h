@@ -4,9 +4,9 @@
 #include "../scene_object.h"
 #include "transform.h"
 #include "renderer.h"
-#include "material.h"
+#include <material.h>
 
-#include "../mesh_data.h"
+#include <mesh_data.h>
 
 #undef GetObject
 
