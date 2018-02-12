@@ -240,6 +240,14 @@ public:
         {
             character->GetComponent<Transform>()->Position(0.0f, 0.25f, 0.0f);
         }
+        if(key == Au::Input::KEY_E)
+        {
+            character->GetComponent<Transform>()->Position(0.0f, 2.25f, -15.0f);
+        }
+        if(key == Au::Input::KEY_R)
+        {
+            character->GetComponent<Transform>()->Position(7.0f, 5.25f, -10.0f);
+        }
     }
     
     virtual void KeyUp(Au::Input::KEYCODE key)
