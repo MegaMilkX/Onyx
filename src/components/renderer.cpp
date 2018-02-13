@@ -154,6 +154,12 @@ void Renderer::_renderRebuildScene(
     const Au::Math::Mat4f& projection,
     const Au::Math::Mat4f& transform)
 {
+    std::sort(frameStages.begin(), frameStages.end());
+    for(FrameStage* stage : frameStages)
+    {
+        stage->Build(GetObject());
+    }
+    
     for(unsigned i = 0; i < meshes.size(); ++i)
     {
         meshes[i]->Build();
@@ -171,6 +177,11 @@ void Renderer::_render(
     const Au::Math::Mat4f& projection,
     const Au::Math::Mat4f& transform)
 {
+    for(FrameStage* stage : frameStages)
+    {
+        stage->Run();
+    }
+    
     for(unsigned i = 0; i < lightsOmni.size(); ++i)
     {
         uniLightOmniRGB[i] = lightsOmni[i]->Color();

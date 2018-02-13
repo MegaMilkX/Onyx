@@ -7,6 +7,7 @@
 #include <aurora/math.h>
 #include <aurora/transform.h>
 #include "../scene_object.h"
+#include "../frame_stage.h"
 
 class Mesh;
 class Skeleton;
@@ -62,7 +63,35 @@ public:
     { return _intMap[name]; }
         
     virtual void OnCreate();
+    
+    template<typename T>
+    T* GetStage()
+    {
+        T* stage = FindStage<T>();
+        if (!stage)
+        {
+            stage = new T();
+            stage->Init();
+            frameStages.insert(std::make_pair(TypeInfo<T>::Index(), stage));
+            return stage;
+        }
+        else
+            return stage;
+    }
+    
+    template<typename T>
+    T* FindStage()
+    {
+        std::map<typeindex, FrameStage*>::iterator it;
+        it = frameStages.find(TypeInfo<T>::Index());
+        if(it == frameStages.end())
+            return 0;
+        else
+            return (T*)it->second;
+    }
 private:
+    std::map<typeindex, FrameStage*> frameStages;
+
     void _renderRebuildScene(const Au::Math::Mat4f& projection,
         const Au::Math::Mat4f& transform);
     void _render(const Au::Math::Mat4f& perspective,

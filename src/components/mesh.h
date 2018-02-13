@@ -8,6 +8,8 @@
 
 #include <mesh_data.h>
 
+#include "../frame_stage_static.h"
+
 #undef GetObject
 
 class Mesh : public SceneObject::Component
@@ -119,6 +121,8 @@ public:
         transform = GetObject()->GetComponent<Transform>();
         renderer = GetObject()->Root()->GetComponent<Renderer>();
         renderer->AddMesh(this);
+        
+        renderer->GetStage<FrameStageStatic>();
     }
     virtual std::string Serialize() 
     {
