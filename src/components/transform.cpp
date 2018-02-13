@@ -282,6 +282,5 @@ Au::Math::Mat4f Transform::GetTransform()
 
 void Transform::OnCreate()
 {
-    if(GetObject()->Name() == "ORIENT")
-        GetObject()->GetComponent<DebugTransformIcon>();
+    //GetObject()->GetComponent<DebugTransformIcon>();
 }
