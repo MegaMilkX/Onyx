@@ -9,7 +9,7 @@ Init = function()
 	--floorPlane:PlaneCollider():Height(0.0f);
     
     mesh = SceneObject:CreateObject():Mesh();
-    mesh:SetMesh("miku2");
+    mesh:SetMesh("chara6");
     mesh:SetMaterial("material");
     mesh:GetObject():SetName("MIKU");
     

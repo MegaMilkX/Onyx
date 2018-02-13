@@ -6,5 +6,5 @@ Material:SetLayer(400, "LightOmniLambert", "add");
 
 --Material:SetVec3("AmbientColor", 0.0, 0.2, 0.4);
 --Material:SetVec3("RimColor", 0.8, 0.4, 0.0);
-Material:SetTexture2D("DiffuseTexture", "roomitems_013_color");
+Material:SetTexture2D("DiffuseTexture", "chara6uv2");
 Material:SetVec3("AmbientColor", 0.2, 0.2, 0.2);
