@@ -172,25 +172,6 @@ public:
         SoundEmitter* snd = scene.CreateObject()->GetComponent<SoundEmitter>();
         snd->SetClip("test");
         
-        Mesh* mesh = scene.CreateObject()->GetComponent<Mesh>();
-        mesh->SetMesh("brick");
-        
-        FontData* font = Resource<FontData>::Get("calibri");
-        font->AddChar('H', 100);
-        font->AddChar('u', 100);
-        font->AddChar('i', 100);
-        font->AddChar('!', 100);
-        font->RebuildTexture();
-        
-        TextMesh* textMesh = scene.CreateObject()->GetComponent<TextMesh>();
-        textMesh->SetText("Hello, World!");
-        
-        Material* mat = new Material();
-        mat->SetLayer(0, "Diffuse");
-        mat->SetTexture2D("DiffuseTexture", font->GetTexture());
-        
-        mesh->SetMaterial(mat);
-        
         std::ofstream file("scene.scn", std::ios::out);
         file << std::setw(4) << scene.Serialize();
         file.close();

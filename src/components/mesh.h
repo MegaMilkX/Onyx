@@ -26,18 +26,6 @@ public:
     mesh(0),
     subMesh(0)
     {
-        uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
-        vertexShaderSource =
-            R"(
-            #vertex PositionModel
-                in vec3 Position;
-                out vec4 PositionModel = vec4(Position, 1.0);
-            #vertex NormalModel
-                in vec3 Normal;
-                uniform mat4 MatrixModel;
-                out vec3 NormalModel;
-                NormalModel = normalize((MatrixModel * vec4(Normal, 0.0)).xyz);
-            )";
     }
     
     ~Mesh()
@@ -54,13 +42,13 @@ public:
     void SetMesh(MeshData* meshData)
     { 
         this->meshData = meshData;
-        _dirty();
     }
+    
+    MeshData* GetMeshData() { return meshData; }
     
     void SetSubMesh(const std::string& name)
     {
         subMeshName = name;
-        _setupSubMesh();
     }
     void SetSubMesh(unsigned int i)
     {
@@ -74,8 +62,6 @@ public:
             return;
         
         subMeshName = meshData->subDataArray[i - 1].name;
-        
-        _setupSubMesh();
     }
     
     void SetMaterial(const std::string& name)
@@ -87,40 +73,17 @@ public:
     void SetMaterial(Material* mat)
     {
         this->material = mat;
-        _dirty();
     }
+    
+    Material* GetMaterial() { return material; }
     
     void VertexShaderSource(const std::string& source) { vertexShaderSource = source; }
     std::string& VertexShaderSource() { return vertexShaderSource; }
-    
-    virtual void Build()
-    {
-        if(!dirty)
-            return;
-        dirty = false;
-        if(!material)
-            return;
-        renderState = material->Finalize(renderer, vertexShaderSource);
-        if(!meshData)
-            return;
-        _setupMesh();
-    }
-    
-    void Render(Au::GFX::Device* device)
-    {
-        uniModelMat4f = GetObject()->GetComponent<Transform>()->GetTransform();
-        
-        if(material) material->BindParameters();
-        device->Bind(renderState);
-        device->Bind(subMesh);
-        device->Render();
-    }
 
     virtual void OnCreate()
     {
         transform = GetObject()->GetComponent<Transform>();
         renderer = GetObject()->Root()->GetComponent<Renderer>();
-        renderer->AddMesh(this);
         
         renderer->GetStage<FrameStageStatic>();
     }
@@ -152,38 +115,7 @@ public:
             SetMaterial(j["Material"].get<std::string>());
         }
     }
-protected:
-    void _dirty()
-    {
-        dirty = true;
-        renderer->Dirty();
-    }
-
-    void _setupMesh()
-    {
-        mesh = renderer->GetDevice()->CreateMesh();
-        mesh->Format(renderState->AttribFormat());
-        meshData->FillMesh(mesh);
-        _setupSubMesh();
-    }
-    
-    void _setupSubMesh()
-    {
-        if(!mesh)
-            return;
-        if(subMeshName != "")
-        {
-            Au::GFX::Mesh::SubMesh* sm = 
-                mesh->FindSubMesh(subMeshName);
-            if(sm)
-                subMesh = sm;
-            else
-                subMesh = mesh->GetSubMesh(0);
-        }
-        else
-            subMesh = mesh->GetSubMesh(0);
-    }
-    
+protected:    
     bool dirty;
 
     Transform* transform;

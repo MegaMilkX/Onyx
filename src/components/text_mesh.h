@@ -84,7 +84,6 @@ public:
     void OnCreate()
     {
         renderer = GetObject()->Root()->GetComponent<Renderer>();
-        renderer->AddTextMesh(this);
         
         mesh = renderer->GetDevice()->CreateMesh();
         mesh->Format(Au::Position() << Au::UV() << Au::ColorRGB());

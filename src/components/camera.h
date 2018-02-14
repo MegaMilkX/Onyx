@@ -29,6 +29,9 @@ public:
         this->zFar = zFar;
         projection = Au::Math::Perspective(fov, aspect, zNear, zFar);
     }
+    
+    Au::Math::Mat4f Projection() { return projection; }
+    Au::Math::Mat4f InverseTransform() { return Au::Math::Inverse(transform->GetTransform()); }
 
     void Render(Au::GFX::Device* device)
     {

@@ -179,7 +179,7 @@ public:
     
     ~Skeleton()
     {
-        renderer->RemoveSkeleton(this);
+        
     }
     
     void SetData(const std::string& name)
@@ -198,10 +198,11 @@ public:
         }
         
         SortAndFinalizeBoneArrays();
-        
+        /*
         int maxBoneCount = renderer->GetInt("MAX_BONE_COUNT");
         if((int)bones.size() > maxBoneCount)
             renderer->SetInt("MAX_BONE_COUNT", bones.size());
+        */
     }
     
     void Bind()
@@ -228,7 +229,6 @@ public:
                 VertexShaderSource(skinShaderSource);
         
         renderer = GetObject()->Root()->GetComponent<Renderer>();
-        renderer->AddSkeleton(this);
     }
     virtual std::string Serialize() 
     { 

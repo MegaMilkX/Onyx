@@ -74,6 +74,12 @@ public:
         return (T*)attribArrays[T()].data();
     }
     
+    template<typename T>
+    std::vector<unsigned char>& GetAttribBytes()
+    {
+        return attribArrays[T()];
+    }
+    
     std::vector<unsigned short>& GetIndices()
     {
         return indices;

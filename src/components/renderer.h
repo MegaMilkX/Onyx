@@ -41,32 +41,13 @@ public:
     }
     void RimColor(float r, float g, float b)
     { rimColor = Au::Math::Vec3f(r, g, b); }
-
-    void AddLightOmni(LightOmni* light);
-    void RemoveLightOmni(LightOmni* light);
-    
-    void AddLightDirect(LightDirect* light);
-    void RemoveLightDirect(LightDirect* light);
-    
-    void AddMesh(Mesh* mesh);
-    void RemoveMesh(Mesh* mesh);
-    
-    void AddSkeleton(Skeleton* skel);
-    void RemoveSkeleton(Skeleton* skel);
-    
-    void AddTextMesh(TextMesh* textMesh);
-    void RemoveTextMesh(TextMesh* textMesh);
-    
-    void SetInt(const std::string& name, int value)
-    { _intMap[name] = value; }
-    int GetInt(const std::string& name)
-    { return _intMap[name]; }
         
     virtual void OnCreate();
     
     template<typename T>
     T* GetStage()
     {
+        _gfxDevice->SetContextCurrent();
         T* stage = FindStage<T>();
         if (!stage)
         {
@@ -103,27 +84,9 @@ private:
     Au::GFX::Device* _gfxDevice;
     
     Camera* _currentCamera;
-
-    std::vector<Mesh*> meshes;
-    std::vector<Skeleton*> skeletons;
-    std::vector<LightOmni*> lightsOmni;
-    std::vector<LightDirect*> lightsDirect;
-    std::set<TextMesh*> textMeshes;
-    
-    std::map<std::string, int> _intMap;
     
     Au::Math::Vec3f ambientColor;
     Au::Math::Vec3f rimColor;
-    
-    Au::GFX::Uniform uniViewMat4f;
-    Au::GFX::Uniform uniProjMat4f;
-    Au::GFX::Uniform uniLightOmniPos;
-    Au::GFX::Uniform uniLightOmniRGB;
-    Au::GFX::Uniform uniLightDirect;
-    Au::GFX::Uniform uniLightDirectRGB;
-    
-    Au::GFX::Uniform uniAmbientColor;
-    Au::GFX::Uniform uniRimColor;
 };
 
 #endif

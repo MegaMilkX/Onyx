@@ -121,7 +121,7 @@ public:
     
     float DeltaTime() { return deltaTime; }
     
-    Au::GFX::Device* GFXDevice() { return &gfxDevice; }
+    static Au::GFX::Device* GFXDevice() { return &gfxDevice; }
     static AudioMixer3D* GetAudioMixer() { return &audioMixer; }
     
     static void PostMouseKeyUp(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyUp(key); }

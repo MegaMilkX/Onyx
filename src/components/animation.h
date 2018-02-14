@@ -84,7 +84,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                 if(length < 2.0)
                     continue;
                 
-                std::cout << "AnimStack " << stackName << " len: " << length << std::endl;
+                //std::cout << "AnimStack " << stackName << " len: " << length << std::endl;
                 
                 std::vector<Au::Media::FBX::SceneNode> nodes = stacks[i].GetAnimatedNodes();
                 for(unsigned j = 0; j < nodes.size(); ++j)
@@ -94,7 +94,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                     float frame = 0.0f;
                     anim.Length((float)length);
                     
-                    std::cout << "  CurveNode " << nodeName << std::endl;
+                    //std::cout << "  CurveNode " << nodeName << std::endl;
                     
                     for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
                     {
