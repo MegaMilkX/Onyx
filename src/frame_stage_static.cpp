@@ -2,6 +2,7 @@
 
 #include "components/mesh.h"
 #include "components/camera.h"
+#include "components/light_omni.h"
 
 void FrameStageStatic::Build(SceneObject* root)
 {
@@ -20,6 +21,9 @@ void FrameStageStatic::Build(SceneObject* root)
         Resource<Texture2D>::Get("test")->Fill(unit.diffuse);
         units.push_back(unit);
     }
+    
+    lightsOmni = root->FindAllOf<LightOmni>();
+    lightsDirect = root->FindAllOf<LightDirect>();
 }
 
 void FrameStageStatic::Run()
@@ -41,6 +45,41 @@ void FrameStageStatic::Run()
         (float*)&cam->InverseTransform()
     );
     
+    for(unsigned i = 0; i < lightsDirect.size(); ++i)
+    {
+        LightDirect* l = lightsDirect[i];
+        Au::Math::Vec3f col = l->Color();
+        Au::Math::Vec3f dir = l->Direction();
+        glUniform3f(
+            glGetUniformLocation(shaderProgram, (std::string("LightDirectRGB[") + std::to_string(i) + "]").c_str()),
+            col.x, col.y, col.z
+        );
+        glUniform3f(
+            glGetUniformLocation(shaderProgram, ("LightDirect[" + std::to_string(i) + "]").c_str()),
+            dir.x, dir.y, dir.z
+        );
+    }
+    
+    for(unsigned i = 0; i < lightsOmni.size(); ++i)
+    {
+        LightOmni* l = lightsOmni[i];
+        Au::Math::Vec3f col = l->Color();
+        Au::Math::Vec3f pos = l->GetComponent<Transform>()->Position();
+        glUniform3f(
+            glGetUniformLocation(shaderProgram, ("LightOmniRGB[" + std::to_string(i) + "]").c_str()),
+            col.x, col.y, col.z
+        );
+        glUniform3f(
+            glGetUniformLocation(shaderProgram, ("LightOmniPos[" + std::to_string(i) + "]").c_str()),
+            pos.x, pos.y, pos.z
+        );
+    }
+    
+    glUniform3f(
+        glGetUniformLocation(shaderProgram, "AmbientColor"),
+        0.4f, 0.3f, 0.2f
+    );
+    
     for(RenderUnit& unit : units)
     {
         unit.Bind();
@@ -52,6 +91,6 @@ void FrameStageStatic::Run()
             GL_FALSE, 
             (float*)&unit.transform->GetTransform()
         );
-        glDrawElements(GL_TRIANGLES, unit.indexCount, GL_UNSIGNED_SHORT, (void*)unit.offset);
+        unit.vao.DrawElements(GL_TRIANGLES);
     }
 }

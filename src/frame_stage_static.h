@@ -13,7 +13,8 @@
 #define STAGE_PRIORITY_STATIC_GEOMETRY 0
 
 class Mesh;
-
+class LightDirect;
+class LightOmni;
 inline GLuint _initShader(const std::string& source, GLuint shaderProgram, GLuint type)
 {
     const char* csource = source.c_str();
@@ -35,6 +36,95 @@ inline GLuint _initShader(const std::string& source, GLuint shaderProgram, GLuin
     glAttachShader(shaderProgram, vs);
     return vs;
 }
+
+struct GLVertexBufferDesc
+{
+    std::string name;
+    GLint size;
+    GLenum type;
+    GLboolean normalized;
+    GLsizei stride;
+    GLenum hint;
+};
+
+class GLVertexArrayObject
+{
+public:
+    void Init(const std::vector<GLVertexBufferDesc>& buffersDesc)
+    {
+        this->buffersDesc = buffersDesc;
+        
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+        for(unsigned i = 0; i < buffersDesc.size(); ++i)
+        {
+            GLuint buf;
+            glGenBuffers(1, &buf);
+            glBindBuffer(GL_ARRAY_BUFFER, buf);
+            buffers.push_back(buf);
+        }
+        glGenBuffers(1, &indexBuf);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf);
+    }
+    void Cleanup()
+    {
+        buffersDesc.clear();
+        for(GLuint buf : buffers)
+        {
+            glDeleteBuffers(1, &buf);
+        }
+        buffers.clear();
+        glDeleteVertexArrays(1, &vao);
+    }
+    void FillArrayBuffer(const std::string& name, const std::vector<unsigned char>& data)
+    {
+        GLVertexBufferDesc desc;
+        int bufId = _getBuf(name, desc);
+        if(bufId == -1)
+            return;
+        void* pData = (void*)data.data();
+        size_t szData = data.size();
+        glBindBuffer(GL_ARRAY_BUFFER, buffers[bufId]);
+        glBufferData(GL_ARRAY_BUFFER, szData, pData, desc.hint);
+        glEnableVertexAttribArray(bufId);
+        glVertexAttribPointer(bufId, desc.size, desc.type, desc.normalized, desc.stride, 0);
+    }
+    void FillIndexBuffer(const std::vector<unsigned short>& data)
+    {
+        size_t szData = data.size() * sizeof(unsigned short);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, szData, (void*)data.data(), GL_STATIC_DRAW);
+        indexCount = szData / sizeof(unsigned short);
+    }
+    void Bind()
+    {
+        glBindVertexArray(vao);
+    }
+    void DrawElements(GLenum primitiveType)
+    {
+        glDrawElements(primitiveType, indexCount, GL_UNSIGNED_SHORT, (void*)0);
+    }
+private:
+    int _getBuf(const std::string& name, GLVertexBufferDesc& descOut)
+    {
+        int i = 0;
+        for(GLVertexBufferDesc& desc : buffersDesc)
+        {
+            if(desc.name == name)
+            {
+                descOut = desc;
+                return i;
+            }
+            ++i;
+        }
+        return -1;
+    }
+    int indexCount;
+    GLuint vao;
+    std::vector<GLVertexBufferDesc> buffersDesc;
+    std::vector<GLuint> buffers;
+    GLuint indexBuf;
+};
 
 class FrameStageStatic : public FrameStage
 {
@@ -123,7 +213,7 @@ public:
                 multiply0 = Diffuse * Ambient ; 
                 add1 = multiply0 + LightDirectLambert ; 
                 add2 = add1 + LightOmniLambert ; 
-                fragOut = Diffuse ; 
+                fragOut = add2 ; 
             }
         )";
     }
@@ -168,73 +258,32 @@ public:
     
     struct RenderUnit
     {
+        GLVertexArrayObject vao;
         void Init()
         {
-            glGenVertexArrays(1, &vao);
-            glBindVertexArray(vao);
-            glGenBuffers(1, &vertexBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-            glGenBuffers(1, &uvBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);            
-            glGenBuffers(1, &normalBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-            glGenBuffers(1, &indexBuffer);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+            vao.Init({
+                { "Position", 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, GL_STATIC_DRAW },
+                { "UV", 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, GL_STATIC_DRAW },
+                { "Normal", 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, GL_STATIC_DRAW }
+            });
         }
         void Cleanup()
         {
-            glDeleteBuffers(1, &indexBuffer);
-            glDeleteBuffers(1, &uvBuffer);
-            glDeleteBuffers(1, &normalBuffer);
-            glDeleteBuffers(1, &vertexBuffer);
-
-            glDeleteVertexArrays(1, &vao);
+            vao.Cleanup();
         }
         void FillMesh(MeshData* meshData)
-        {            
-            void* pData = (void*)meshData->GetAttribBytes<Au::Position>().data();
-            size_t szData = meshData->GetAttribBytes<Au::Position>().size();
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-            glBufferData(GL_ARRAY_BUFFER, szData, pData, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-            
-            pData = (void*)meshData->GetAttribBytes<Au::UV>().data();
-            szData = meshData->GetAttribBytes<Au::UV>().size();
-            glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-            glBufferData(GL_ARRAY_BUFFER, szData, pData, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-            
-            pData = (void*)meshData->GetAttribBytes<Au::Normal>().data();
-            szData = meshData->GetAttribBytes<Au::Normal>().size();
-            glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-            glBufferData(GL_ARRAY_BUFFER, szData, pData, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-            
-            std::vector<unsigned short>& indices = meshData->GetIndices();
-            szData = indices.size() * sizeof(unsigned short);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, szData, (void*)indices.data(), GL_STATIC_DRAW);
-            indexCount = szData / sizeof(unsigned short);
-            
-            offset = 0;
+        {     
+            vao.FillArrayBuffer("Position", meshData->GetAttribBytes<Au::Position>());
+            vao.FillArrayBuffer("UV", meshData->GetAttribBytes<Au::UV>());
+            vao.FillArrayBuffer("Normal", meshData->GetAttribBytes<Au::Normal>());
+            vao.FillIndexBuffer(meshData->GetIndices());
         }
         void Bind()
         {
-            glBindVertexArray(vao);
+            vao.Bind();
         }
-        Au::GFX::Texture2D* diffuse;
         
-        GLuint vao;
-        GLuint vertexBuffer;
-        GLuint uvBuffer;
-        GLuint normalBuffer;
-        GLuint indexBuffer;
-
-        int indexCount;
-        int offset;
+        Au::GFX::Texture2D* diffuse;
 
         int vertexSize;
         Transform* transform;
@@ -249,6 +298,10 @@ public:
 private:
     GLuint shaderProgram;
     std::vector<RenderUnit> units;
+    
+    std::vector<LightDirect*> lightsDirect;
+    std::vector<LightOmni*> lightsOmni;
+    
     Renderer* renderer;
 };
 
