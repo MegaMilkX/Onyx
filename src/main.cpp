@@ -18,7 +18,7 @@ int main()
     Resource<ScriptData>::AddReader<ScriptReaderLUA>("lua");
     
     Resource<Material>::AddSearchPath("data\\material");
-    Resource<Material>::AddReader<MaterialReaderJSON>("lua");
+    Resource<Material>::AddReader<MaterialReaderJSON>("json");
     
     Resource<AnimData>::AddSearchPath("data\\anim");
     Resource<AnimData>::AddReader<AnimDataReaderFBX>("fbx");

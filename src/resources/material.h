@@ -17,6 +17,8 @@
 
 #include "texture2d.h"
 
+#include "../external/json.hpp"
+
 class Material
 {
 public:    
@@ -24,8 +26,13 @@ public:
     {
         
     }
+    
+    void Set(const std::string& key, const std::string& value)
+    {
+        strstr[key] = value;
+    }
 
-    std::string GetString(const std::string& key) { return "test"; }
+    std::string GetString(const std::string& key) { return strstr[key]; }
 private:
     std::map<std::string, std::string> strstr;
 };
@@ -35,20 +42,34 @@ class MaterialReaderJSON : public Resource<Material>::Reader
 public:
     Material* operator()(const std::string& filename)
     {
+        using json = nlohmann::json;
         Material* material = 0;
         
-        std::ifstream file(filename, std::ios::binary | std::ios::ate);
+        std::ifstream file(filename, std::ios::in);
         if(!file.is_open())
             return 0;
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<char> buffer((unsigned int)size);
-        if(file.read(buffer.data(), size))
+        
+        json j;
+        try
         {
-            material = new Material();
-            
-            
+            j = json::parse(file);
         }
+        catch(std::exception& e)
+        {
+            std::cout << "Material json parse error: " << e.what() << std::endl;
+            file.close();
+            return 0;
+        }
+
+        material = new Material();
+        for(json::iterator it = j.begin(); it != j.end(); ++it)
+        {
+            if(it.value().is_string())
+            {
+                material->Set(it.key(), it.value().get<std::string>());
+            }
+        }
+    
         
         file.close();
         

@@ -12,7 +12,6 @@ public:
     virtual bool Init() = 0;
     virtual void Cleanup() = 0;
     virtual void Build(SceneObject* root) = 0;
-    virtual void Bind() = 0;
     virtual void Run() = 0;
 private:
     
