@@ -10,7 +10,7 @@
 
 #include "components/transform.h"
 #include "components/camera.h"
-#include "components/mesh.h"
+#include "components/solid_mesh.h"
 #include "components/light_omni.h"
 
 #include "components/luascript.h"
@@ -179,6 +179,8 @@ public:
         animation = scene.GetComponent<Animation>();
         collision = scene.GetComponent<Collision>();
         soundRoot = scene.GetComponent<SoundRoot>();
+        
+        scene.CreateObject()->GetComponent<TextMesh>()->SetText("Hello, World!");
     }
     virtual void OnCleanup() 
     {

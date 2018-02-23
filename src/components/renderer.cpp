@@ -1,6 +1,6 @@
 #include "renderer.h"
 
-#include "mesh.h"
+#include "solid_mesh.h"
 #include "skeleton.h"
 #include "material.h"
 #include "light_omni.h"

@@ -2,7 +2,7 @@
 Init = function()
     SceneObject:Transform():Translate(4.5, 0.0, 1.5);
     
-    mesh = SceneObject:Mesh();
+    mesh = SceneObject:SolidMesh();
     mesh:SetMesh("skin");
     --mesh:SetSubMeshIndex(1);
     mesh:SetMaterial("material_skin");

@@ -5,7 +5,7 @@ Init = function()
     
     --SceneObject:Animation():SetAnimData("skin");
     
-    mesh = SceneObject:Mesh();
+    mesh = SceneObject:SolidMesh();
     mesh:SetMesh("brick");
     mesh:SetMaterial("matbrick");
 end

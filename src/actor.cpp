@@ -212,8 +212,8 @@ void Actor::OnCreate()
     KinematicObject::OnCreate();
     
 	GetComponent<Skeleton>()->SetData("character");
-	Mesh* m = GetComponent<Mesh>();
-	m->SetMesh("character");
+	SkinMesh* m = GetComponent<SkinMesh>();
+	m->SetMeshData("character");
 	m->SetMaterial("material2");
 	
 	GetObject()->Name("character");

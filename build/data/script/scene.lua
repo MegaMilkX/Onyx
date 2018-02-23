@@ -8,7 +8,7 @@ Init = function()
 	--floorPlane:PlaneCollider();
 	--floorPlane:PlaneCollider():Height(0.0f);
     
-    mesh = SceneObject:CreateObject():Mesh();
+    mesh = SceneObject:CreateObject():SolidMesh();
     mesh:SetMesh("chara6");
     mesh:SetMaterial("material");
     mesh:GetObject():SetName("MIKU");
@@ -23,7 +23,7 @@ Init = function()
     --SceneObject:CreateObject():Script():SetScript("brick");
     --SceneObject:CreateObject():Script():SetScript("sphere2");
     
-    mesh = SceneObject:CreateObject():Mesh();
+    mesh = SceneObject:CreateObject():SolidMesh();
     mesh:SetMesh("env");
     mesh:SetMaterial("env");
     --mesh:GetObject():Transform():Scale(0.1);

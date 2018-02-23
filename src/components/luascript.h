@@ -8,7 +8,7 @@
 #include "renderer.h"
 #include "camera.h"
 #include "light_omni.h"
-#include "mesh.h"
+#include "solid_mesh.h"
 
 #include "animation.h"
 #include "skeleton.h"
@@ -108,7 +108,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<LightOmni>, "LightOmni");
         _state.Bind(&SceneObject::GetComponent<LightDirect>, "LightDirect");
         _state.Bind(&SceneObject::GetComponent<Renderer>, "Renderer");
-        _state.Bind(&SceneObject::GetComponent<Mesh>, "Mesh");
+        _state.Bind(&SceneObject::GetComponent<SolidMesh>, "SolidMesh");
         _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
         _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
 		_state.Bind(&SceneObject::GetComponent<PlaneCollider>, "PlaneCollider");
@@ -153,11 +153,11 @@ public:
         _state.Bind(&Renderer::RimColor, "RimColor");
         _state.Bind<Renderer, SceneObject*>(&Renderer::GetObject, "GetObject");
         
-        _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMesh, "SetMesh");
-        _state.Bind<Mesh, void, const std::string&>(&Mesh::SetSubMesh, "SetSubMeshName");
-        _state.Bind<Mesh, void, unsigned int>(&Mesh::SetSubMesh, "SetSubMeshIndex");
-        _state.Bind<Mesh, void, const std::string&>(&Mesh::SetMaterial, "SetMaterial");
-        _state.Bind<Mesh, SceneObject*>(&Mesh::GetObject, "GetObject");
+        _state.Bind<SolidMesh, void, const std::string&>(&SolidMesh::SetMesh, "SetMesh");
+        _state.Bind<SolidMesh, void, const std::string&>(&SolidMesh::SetSubMesh, "SetSubMeshName");
+        _state.Bind<SolidMesh, void, unsigned int>(&SolidMesh::SetSubMesh, "SetSubMeshIndex");
+        _state.Bind<SolidMesh, void, const std::string&>(&SolidMesh::SetMaterial, "SetMaterial");
+        _state.Bind<SolidMesh, SceneObject*>(&SolidMesh::GetObject, "GetObject");
         
         _state.Bind<Animation, void, const std::string&, const std::string&>(&Animation::SetAnim, "SetAnim");
         _state.Bind(&Animation::Play, "Play");

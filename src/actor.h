@@ -5,7 +5,7 @@
 #include "components/transform.h"
 #include "components/collision/collider.h"
 #include "components/collision/kinematic_object.h"
-#include "components/mesh.h"
+#include "components/skin_mesh.h"
 #include "components/animation.h"
 #include "components/skeleton.h"
 

@@ -38,7 +38,7 @@ int main()
     Resource<FontData>::AddReader<FontDataReader>("otf");
     
     REG_COMP(Transform);
-    REG_COMP(Mesh);
+    REG_COMP(SolidMesh);
     REG_COMP(Skeleton);
     REG_COMP(Renderer);
     REG_COMP(LuaScript);

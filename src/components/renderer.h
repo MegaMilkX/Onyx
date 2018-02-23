@@ -9,15 +9,14 @@
 #include "../scene_object.h"
 #include "../frame_stage.h"
 
-class Mesh;
-class Skeleton;
+class SolidMesh;
 class LightOmni;
 class LightDirect;
 class Camera;
 class TextMesh;
 class Renderer : public SceneObject::Component
 {
-friend Mesh;
+friend SolidMesh;
 public:
     Renderer();
 

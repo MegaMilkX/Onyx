@@ -1,6 +1,6 @@
 #include "frame_stage_static.h"
 
-#include "components/mesh.h"
+#include "components/solid_mesh.h"
 #include "components/camera.h"
 #include "components/light_omni.h"
 
@@ -96,8 +96,8 @@ void FrameStageStatic::Build(SceneObject* root)
 {
     renderer = root->GetComponent<Renderer>();
     
-    std::vector<Mesh*> meshes = root->FindAllOf<Mesh>();
-    for(Mesh* mesh : meshes)
+    std::vector<SolidMesh*> meshes = root->FindAllOf<SolidMesh>();
+    for(SolidMesh* mesh : meshes)
     {
         if(!mesh->GetMeshData())
             continue;

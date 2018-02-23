@@ -8,6 +8,17 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+struct GlyphInfo
+{
+    unsigned charCode;
+    unsigned glyphCode;
+    unsigned size;
+    float width, height;
+    float advX, advY;
+    float vBearingX, vBearingY;
+    float hBearingX, hBearingY;
+};
+
 class FontRasterizer
 {
 public:
@@ -48,7 +59,7 @@ public:
     
     bool ReadMemory(void* data, size_t sz)
     {
-        if(FT_New_Memory_Face(ftLib, (FT_Byte*)buffer.data(), buffer.size(), 0, &face))
+        if(FT_New_Memory_Face(ftLib, (FT_Byte*)data, sz, 0, &face))
         {
             std::cout << "FT_New_Memory_Face failed" << std::endl;
             return false;
@@ -75,19 +86,24 @@ public:
         unsigned bpp;
     };
     
-    struct GlyphInfo
-    {
-        unsigned charCode;
-        unsigned glyphCode;
-        unsigned size;
-        float advX, advY;
-        float vBearingX, vBearingY;
-        float hBearingX, hBearingY;
-    };
-    
     void AddChar(unsigned int charCode, unsigned int size)
     {
         glyphs.push_back({charCode, 0, size});
+    }
+    
+    GlyphInfo GetGlyph(unsigned charCode)
+    {
+        unsigned glyphCode = FT_Get_Char_Index(face, charCode);
+        FT_Load_Glyph(face, glyphCode, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL);
+        GlyphInfo gi;
+        gi.charCode = charCode;
+        gi.glyphCode = glyphCode;
+        gi.size = 1;
+        gi.width = face->glyph->metrics.width;
+        gi.height = face->glyph->metrics.height;
+        gi.advX = face->glyph->metrics.horiAdvance;
+        gi.advY = face->glyph->metrics.vertAdvance;
+        return gi;
     }
     
     Bitmap Rasterize(unsigned int charCode, unsigned int faceSize)

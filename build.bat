@@ -40,7 +40,7 @@ LinearMath_vs2010.lib ^
 freetype28MT.lib ^
 serial.lib
 
-set COMPILER_ARGS=/D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
+set COMPILER_ARGS=/MP /D NOMINMAX /D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
 
 setlocal enableextensions enabledelayedexpansion
 

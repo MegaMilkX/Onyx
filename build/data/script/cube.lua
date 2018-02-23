@@ -1,6 +1,6 @@
 
 function Init()
-    mesh = SceneObject:Mesh();
+    mesh = SceneObject:SolidMesh();
     mesh:SetMesh("character");
     mesh:SetMaterial("material2");
     mesh:GetObject():Transform():Translate(0.0, 5.0, 4.0);

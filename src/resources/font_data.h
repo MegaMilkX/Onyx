@@ -8,14 +8,6 @@
 
 #include "../lib/font_rasterizer.h"
 
-struct GlyphInfo
-{
-    float width, height;
-    float advX, advY;
-    float vBearingX, vBearingY;
-    float hBearingX, hBearingY;
-};
-
 class FontData
 {
 public:
@@ -49,7 +41,7 @@ public:
     Texture2D* GetTexture() { return &texture; }
     GlyphInfo* GetGlyph(unsigned charCode) 
     { 
-        glyphs[charCode] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glyphs[charCode] = rasterizer.GetGlyph(charCode);
         return &glyphs[charCode]; 
     }
 private:

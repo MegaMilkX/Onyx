@@ -1,6 +1,6 @@
 
 Init = function()
-    mesh = SceneObject:Mesh();
+    mesh = SceneObject:SolidMesh();
     mesh:SetMesh("teapot");
     mesh:SetMaterial("material1");
     SceneObject:Transform():Translate(-2.5, 0.0, 1.5);

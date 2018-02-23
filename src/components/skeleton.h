@@ -2,8 +2,10 @@
 #define SKELETON_H
 
 #include "renderer.h"
-#include "animation.h"
-#include "mesh.h"
+
+#include <algorithm>
+
+#undef GetObject
 
 struct BoneData
 {
@@ -205,13 +207,29 @@ public:
         */
     }
     
-    void Bind()
-    {
+    void Bind(GLuint shaderProgram)
+    {/*
         for(unsigned i = 0; i < bones.size(); ++i)
         {
             uniformBoneInverseBinds[i] = boneInverseBindTransforms[i];
             uniformBoneTransforms[i] = boneTransforms[i];
         }
+        */
+        GLuint loc = glGetUniformLocation(shaderProgram, "BoneInverseBindTransforms[0]");
+        glUniformMatrix4fv(
+            loc, 
+            (std::min)((unsigned)32, boneInverseBindTransforms.size()), 
+            GL_FALSE, 
+            (GLfloat*)boneInverseBindTransforms.data()
+        );
+        
+        loc = glGetUniformLocation(shaderProgram, "BoneTransforms[0]");
+        glUniformMatrix4fv(
+            loc, 
+            (std::min)((unsigned)32, boneTransforms.size()), 
+            GL_FALSE, 
+            (GLfloat*)boneTransforms.data()
+        );
     }
     
     void Update()
@@ -223,11 +241,7 @@ public:
     }
 
     virtual void OnCreate()
-    {
-        GetObject()->
-            GetComponent<Mesh>()->
-                VertexShaderSource(skinShaderSource);
-        
+    {        
         renderer = GetObject()->Root()->GetComponent<Renderer>();
     }
     virtual std::string Serialize() 
