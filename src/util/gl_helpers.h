@@ -3,6 +3,28 @@
 
 #include <aurora/gfx.h>
 
+inline size_t glTypeSize(GLenum t)
+{
+    size_t sz;
+    switch(t)
+    {
+    case GL_BYTE:
+    case GL_UNSIGNED_BYTE: sz = 1; break;
+    case GL_SHORT:
+    case GL_UNSIGNED_SHORT: sz = 2; break;
+    case GL_INT:
+    case GL_UNSIGNED_INT: sz = 4; break;
+    case GL_HALF_FLOAT: sz = 2; break;
+    case GL_FLOAT: sz = 4; break;
+    case GL_DOUBLE: sz = 8; break;
+    case GL_FIXED: sz = 4; break;
+    case GL_INT_2_10_10_10_REV: sz = 4; break;
+    case GL_UNSIGNED_INT_2_10_10_10_REV: sz = 4; break;
+    case GL_UNSIGNED_INT_10F_11F_11F_REV: sz = 4; break;
+    }
+    return sz;
+}
+
 inline GLuint _initShader(const std::string& source, GLuint shaderProgram, GLuint type)
 {
     const char* csource = source.c_str();
@@ -86,14 +108,17 @@ public:
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, szData, (void*)data.data(), GL_STATIC_DRAW);
         indexCount = szData / sizeof(unsigned short);
     }
-    void Bind()
+    void Bind() const 
     {
         glBindVertexArray(vao);
     }
-    void DrawElements(GLenum primitiveType)
+    void DrawElements(GLenum primitiveType) const
     {
         glDrawElements(primitiveType, indexCount, GL_UNSIGNED_SHORT, (void*)0);
     }
+    
+    GLuint GetGlName() { return vao; } const
+    std::vector<GLVertexBufferDesc>& Desc() const { return buffersDesc; }
 private:
     int _getBuf(const std::string& name, GLVertexBufferDesc& descOut)
     {
