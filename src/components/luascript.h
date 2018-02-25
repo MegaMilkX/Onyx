@@ -8,13 +8,15 @@
 #include "renderer.h"
 #include "camera.h"
 #include "light_omni.h"
-#include "solid_mesh.h"
+#include "model.h"
 
 #include "animation.h"
 #include "skeleton.h"
 
 #include "dynamics/rigid_body.h"
 #include "collision/collider.h"
+
+#include "../asset.h"
 
 #include <aurora/lua.h>
 
@@ -96,6 +98,11 @@ public:
         _state.Bind(&Au::Math::Vec3f::x, "x");
         _state.Bind(&Au::Math::Vec3f::y, "y");
         _state.Bind(&Au::Math::Vec3f::z, "z");
+
+        _state.Bind(&asset<MeshData>::set, "Set");
+        _state.Bind(&asset<Material>::set, "Set");
+        _state.Bind(&asset<AnimData>::set, "Set");
+        _state.Bind(&asset<SkeletonData>::set, "Set");
         
         _state.Bind(&SceneObject::Root, "Root");
         _state.Bind(&SceneObject::CreateObject, "CreateObject");
@@ -108,7 +115,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<LightOmni>, "LightOmni");
         _state.Bind(&SceneObject::GetComponent<LightDirect>, "LightDirect");
         _state.Bind(&SceneObject::GetComponent<Renderer>, "Renderer");
-        _state.Bind(&SceneObject::GetComponent<SolidMesh>, "SolidMesh");
+        _state.Bind(&SceneObject::GetComponent<Model>, "Model");
         _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
         _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
 		_state.Bind(&SceneObject::GetComponent<PlaneCollider>, "PlaneCollider");
@@ -153,11 +160,9 @@ public:
         _state.Bind(&Renderer::RimColor, "RimColor");
         _state.Bind<Renderer, SceneObject*>(&Renderer::GetObject, "GetObject");
         
-        _state.Bind<SolidMesh, void, const std::string&>(&SolidMesh::SetMesh, "SetMesh");
-        _state.Bind<SolidMesh, void, const std::string&>(&SolidMesh::SetSubMesh, "SetSubMeshName");
-        _state.Bind<SolidMesh, void, unsigned int>(&SolidMesh::SetSubMesh, "SetSubMeshIndex");
-        _state.Bind<SolidMesh, void, const std::string&>(&SolidMesh::SetMaterial, "SetMaterial");
-        _state.Bind<SolidMesh, SceneObject*>(&SolidMesh::GetObject, "GetObject");
+        _state.Bind(&Model::mesh, "mesh");
+        _state.Bind(&Model::material, "material");
+        _state.Bind<Model, SceneObject*>(&Model::GetObject, "GetObject");
         
         _state.Bind<Animation, void, const std::string&, const std::string&>(&Animation::SetAnim, "SetAnim");
         _state.Bind(&Animation::Play, "Play");

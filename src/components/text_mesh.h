@@ -8,8 +8,6 @@
 #include <font_data.h>
 #include "../lib/nimbusmono_bold.otf.h"
 
-#include "../frame_stage_2d.h"
-
 #undef GetObject
 
 struct TextVertex
@@ -134,7 +132,6 @@ public:
     void OnCreate()
     {
         renderer = GetObject()->Root()->GetComponent<Renderer>();
-        renderer->GetStage<FrameStage2d>();
         
         vao.Init({
             { "Position", 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, GL_STATIC_DRAW },

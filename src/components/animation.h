@@ -272,31 +272,7 @@ class Animation : public SceneObject::Component
 public:
     Animation()
     : fps(0.0f), blend(0.0f), blendStep(0.0f) {}
-    /*
-    void SetAnimData(const std::string& name)
-    {
-        SetAnimData(Resource<AnimData>::Get(name));
-    }
-    
-    void SetAnimData(AnimData* data)
-    {
-        animData = data;
-        FrameRate(animData->FrameRate());
-        for(unsigned i = 0; i < animData->ChildCount(); ++i)
-        {
-            AnimData& childData = animData->GetChild(i);
-            SceneObject* o = GetObject()->FindObject(childData.Name());
-            if(!o)
-                continue;
-            for(unsigned j = 0; j < childData.AnimCount(); ++j)
-            {
-                Au::Curve& anim = childData.GetAnim(j);
-                o->GetComponent<Animation>()->SetAnim(anim.Name(), anim);
-                o->GetComponent<Animation>()->FrameRate(animData->FrameRate());
-            }
-        }
-    }
-    */
+
     void SetAnim(const std::string& name, const std::string& resourceName)
     {
         animResourceName = resourceName;

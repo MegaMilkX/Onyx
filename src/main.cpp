@@ -11,34 +11,27 @@ typedef Au::Math::Mat3f mat3;
 
 int main()
 {
-    Resource<MeshData>::AddSearchPath("data\\model");
-    Resource<MeshData>::AddReader<MeshReaderFBX>("fbx");
-    
-    Resource<ScriptData>::AddSearchPath("data\\script");
-    Resource<ScriptData>::AddReader<ScriptReaderLUA>("lua");
-    
-    Resource<Material>::AddSearchPath("data\\material");
-    Resource<Material>::AddReader<MaterialReaderJSON>("json");
-    
-    Resource<AnimData>::AddSearchPath("data\\anim");
-    Resource<AnimData>::AddReader<AnimDataReaderFBX>("fbx");
-    
-    Resource<SkeletonData>::AddSearchPath("data\\model");
-    Resource<SkeletonData>::AddReader<SkeletonDataReaderFBX>("fbx");
-    
-    Resource<Texture2D>::AddSearchPath("data\\texture");
-    Resource<Texture2D>::AddReader<Texture2DReaderPNG>("png");
-    Resource<Texture2D>::AddReader<Texture2DReaderJPG>("jpg");
-    
-    Resource<SoundClip>::AddSearchPath("data\\audio");
-    Resource<SoundClip>::AddReader<SoundClipReaderOGG>("ogg");
-    
-    Resource<FontData>::AddSearchPath("data\\fonts");
-    Resource<FontData>::AddReader<FontDataReader>("ttf");
-    Resource<FontData>::AddReader<FontDataReader>("otf");
+    asset<MeshData>::add_search_path("data\\model");
+    asset<MeshData>::add_reader<MeshReaderFBX>("fbx");
+    asset<ScriptData>::add_search_path("data\\script");
+    asset<ScriptData>::add_reader<ScriptReaderLUA>("lua");
+    asset<Material>::add_search_path("data\\material");
+    asset<Material>::add_reader<MaterialReaderJSON>("json");
+    asset<AnimData>::add_search_path("data\\anim");
+    asset<AnimData>::add_reader<AnimDataReaderFBX>("fbx");
+    asset<SkeletonData>::add_search_path("data\\model");
+    asset<SkeletonData>::add_reader<SkeletonDataReaderFBX>("fbx");
+    asset<Texture2D>::add_search_path("data\\texture");
+    asset<Texture2D>::add_reader<Texture2DReaderPNG>("png");
+    asset<Texture2D>::add_reader<Texture2DReaderJPG>("jpg");
+    asset<SoundClip>::add_search_path("data\\audio");
+    asset<SoundClip>::add_reader<SoundClipReaderOGG>("ogg");
+    asset<FontData>::add_search_path("data\\fonts");
+    asset<FontData>::add_reader<FontDataReader>("ttf");
+    asset<FontData>::add_reader<FontDataReader>("otf");
     
     REG_COMP(Transform);
-    REG_COMP(SolidMesh);
+    REG_COMP(Model);
     REG_COMP(Skeleton);
     REG_COMP(Renderer);
     REG_COMP(LuaScript);

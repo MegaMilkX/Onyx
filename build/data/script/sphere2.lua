@@ -7,9 +7,9 @@ Init = function()
     
     --SceneObject:Animation():SetAnimData("skin");
     
-    mesh = SceneObject:SolidMesh();
-    mesh:SetMesh("character");
-    mesh:SetMaterial("material");
+    model = SceneObject:Model();
+    model.mesh:Set("character");
+    model.material:Set("material");
 end
 
 Update = function()

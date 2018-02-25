@@ -304,8 +304,8 @@ public:
         camera->GetComponent<Transform>()->Translate(0.0f, 1.5f, 5.0f);
         
         object = scene.CreateObject()->GetComponent<Transform>();
-        object->GetComponent<SolidMesh>()->SetMesh("miku2");
-        object->GetComponent<SolidMesh>()->SetMaterial("material");
+        object->GetComponent<Model>()->SetMesh("miku2");
+        object->GetComponent<Model>()->SetMaterial("material");
         
         //object = camera->GetComponent<Transform>();
         

@@ -47,7 +47,7 @@ public:
         buffer = std::vector<char>((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
-            return ReadMemory(buffer.data(), size);
+            return ReadMemory(buffer.data(), (size_t)size);
         }
         else
         {
@@ -99,10 +99,10 @@ public:
         gi.charCode = charCode;
         gi.glyphCode = glyphCode;
         gi.size = 1;
-        gi.width = face->glyph->metrics.width;
-        gi.height = face->glyph->metrics.height;
-        gi.advX = face->glyph->metrics.horiAdvance;
-        gi.advY = face->glyph->metrics.vertAdvance;
+        gi.width = (float)face->glyph->metrics.width;
+        gi.height = (float)face->glyph->metrics.height;
+        gi.advX = (float)face->glyph->metrics.horiAdvance;
+        gi.advY = (float)face->glyph->metrics.vertAdvance;
         return gi;
     }
     
@@ -219,21 +219,21 @@ public:
         for(GlyphInfo glyph : glyphs)
         {
             Bitmap bmp = Rasterize(glyph.charCode, glyph.size);
-            packer.AddRect(bp2D::BinRect(bmps.size(), bmp.width, bmp.height));
+            packer.AddRect(bp2D::BinRect(bmps.size(), (float)bmp.width, (float)bmp.height));
             bmps.push_back(bmp);
         }
         packer.Pack(BINPACKPARAM_POWEROFTWO, bp2D::SORT_MAXSIDE);
         std::vector<bp2D::BinRect> rects = packer.GetVolumes();
         bp2D::BinRect rootRect = packer.GetRootRect();
         
-        bmp.data = (char*)malloc(rootRect.w * rootRect.h);
-        bmp.width = rootRect.w;
-        bmp.height = rootRect.h;
+        bmp.data = (char*)malloc((size_t)(rootRect.w * rootRect.h));
+        bmp.width = (unsigned)rootRect.w;
+        bmp.height = (unsigned)rootRect.h;
         bmp.bpp = 1;
         
         for(bp2D::BinRect rect : rects)
         {
-            BmpBlit(bmp, bmps[rect.id], rect.x, rect.y);
+            BmpBlit(bmp, bmps[rect.id], (unsigned)rect.x, (unsigned)rect.y);
         }
     }
 private:

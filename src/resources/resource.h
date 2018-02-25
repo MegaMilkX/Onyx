@@ -29,6 +29,8 @@ public:
         reader->extension = extension;
         readers.push_back(reader);
     }
+    
+    static void Set(const std::string& name, T*);
 
     static T* Get(const std::string& name)
     {

@@ -10,7 +10,7 @@
 
 #include "components/transform.h"
 #include "components/camera.h"
-#include "components/solid_mesh.h"
+#include "components/model.h"
 #include "components/light_omni.h"
 
 #include "components/luascript.h"

@@ -8,8 +8,6 @@
 
 #include <mesh_data.h>
 
-#include "../frame_stage_skin.h"
-
 #undef GetObject
 
 class SkinMesh : public SceneObject::Component
@@ -35,7 +33,6 @@ public:
     void OnCreate()
     {
         Renderer* renderer = GetObject()->Root()->GetComponent<Renderer>();
-        renderer->GetStage<FrameStageSkin>();
     }
 private:
     MeshData* meshData;

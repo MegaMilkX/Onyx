@@ -7,6 +7,16 @@
 
 #include <resource.h>
 
+#include "../util/gl_helpers.h"
+
+struct GLAttribDesc
+{
+    std::string name;
+    int elemCount;
+    GLenum elemType;
+    GLboolean normalized;
+};
+
 class MeshData
 {
 public:
@@ -80,13 +90,83 @@ public:
         return attribArrays[T()];
     }
     
+    std::vector<unsigned char>& GetAttribBytesByName(const std::string& name)
+    {
+        for(auto& kv : attribArrays)
+        {
+            if(kv.first.name == name)
+                return kv.second;
+        }
+        return attribArrays[Au::Empty()];
+    }
+    
     std::vector<unsigned short>& GetIndices()
     {
         return indices;
     }
     
+    GLuint GetVao(const std::vector<GLAttribDesc>& vertexDesc)
+    {
+        for(unsigned i = 0; i < vertexArrayObjects.size(); ++i)
+        {
+            if(_compareDesc(vertexDesc, vertexArrayObjects[i]))
+                return vertexArrayObjects[i].GetGlName();
+        }
+        
+        GLVertexArrayObject vao;
+        std::vector<GLVertexBufferDesc> desc;
+        for(const GLAttribDesc& d : vertexDesc)
+        {
+            desc.push_back({ 
+                d.name, 
+                d.elemCount, 
+                d.elemType, d.normalized, 
+                (GLsizei)(d.elemCount * glTypeSize(d.elemType)), 
+                GL_STATIC_DRAW 
+            });
+        }
+        vao.Init(desc);
+        for(const GLAttribDesc& d : vertexDesc)
+        {
+            vao.FillArrayBuffer(d.name, GetAttribBytesByName(d.name));
+        }
+        vao.FillIndexBuffer(GetIndices());
+        
+        vertexArrayObjects.push_back(vao);
+        
+        return vao.GetGlName();
+    }
+    unsigned GetIndexCount() 
+    { return indices.size(); }
+    
+    std::vector<GLVertexArrayObject> vertexArrayObjects;
     std::map<Au::AttribInfo, std::vector<unsigned char>> attribArrays;
     std::vector<unsigned short> indices;
+    
+    bool _compareDesc(
+        const std::vector<GLAttribDesc>& vertexDesc,
+        const GLVertexArrayObject& vao)
+    {
+        const std::vector<GLVertexBufferDesc>& vaoDesc =
+            vao.Desc();
+        if(vertexDesc.size() != vaoDesc.size())
+            return false;
+        for(unsigned i = 0; i < vertexDesc.size(); ++i)
+        {
+            const GLAttribDesc& d1 = vertexDesc[i];
+            const GLVertexBufferDesc& d2 = vaoDesc[i];
+
+            if(d1.name != d2.name ||
+                d1.elemCount != d2.size ||
+                d1.elemType != d2.type ||
+                d1.normalized != d2.normalized)
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
 };
 
 class MeshReaderFBX : public Resource<MeshData>::Reader

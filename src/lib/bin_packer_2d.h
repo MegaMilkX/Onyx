@@ -426,8 +426,8 @@ public:
 
 		if(packingFlags & BINPACKPARAM_POWEROFTWO)
 		{
-			unsigned int pot_w = rootNode->GetRect().w;
-			unsigned int pot_h = rootNode->GetRect().h;
+			unsigned int pot_w = (unsigned)rootNode->GetRect().w;
+			unsigned int pot_h = (unsigned)rootNode->GetRect().h;
 			pot_w--;
 			pot_w |= pot_w >> 1;
 			pot_w |= pot_w >> 2;
@@ -442,7 +442,15 @@ public:
 			pot_h |= pot_h >> 8;
 			pot_h |= pot_h >> 16;
 			pot_h++;
-			rootNode->SetRect(BinRect(rootNode->GetRect().id, rootNode->GetRect().x, rootNode->GetRect().y, pot_w, pot_h));
+			rootNode->SetRect(
+				BinRect(
+					rootNode->GetRect().id, 
+					rootNode->GetRect().x, 
+					rootNode->GetRect().y, 
+					(float)pot_w, 
+					(float)pot_h
+				)
+			);
 		}
 	}
 

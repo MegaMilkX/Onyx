@@ -7,24 +7,28 @@
 #include <aurora/math.h>
 #include <aurora/transform.h>
 #include "../scene_object.h"
-#include "../frame_stage.h"
 
-class SolidMesh;
-class LightOmni;
-class LightDirect;
+#include "../lib/task_graph.h"
+
+struct FrameCommon
+{
+    Au::Math::Mat4f projection;
+    Au::Math::Mat4f view;
+    float width, height;
+    SceneObject* scene;
+};
+
 class Camera;
-class TextMesh;
 class Renderer : public SceneObject::Component
 {
-friend SolidMesh;
 public:
     Renderer();
 
     bool Init(Au::GFX::Device* gfxDevice);
     
+    task_graph::graph& GetFrameGraph() { return frameGraph; }
+    
     Au::GFX::Device* GetDevice() { return _gfxDevice; }
-
-    void Dirty() { renderFn = &Renderer::_renderRebuildScene; }
     
     void Render();
     void Render(const Au::Math::Mat4f& projection,
@@ -42,43 +46,8 @@ public:
     { rimColor = Au::Math::Vec3f(r, g, b); }
         
     virtual void OnCreate();
-    
-    template<typename T>
-    T* GetStage()
-    {
-        _gfxDevice->SetContextCurrent();
-        T* stage = FindStage<T>();
-        if (!stage)
-        {
-            stage = new T();
-            stage->Init();
-            frameStages.insert(std::make_pair(TypeInfo<T>::Index(), stage));
-            return stage;
-        }
-        else
-            return stage;
-    }
-    
-    template<typename T>
-    T* FindStage()
-    {
-        std::map<typeindex, FrameStage*>::iterator it;
-        it = frameStages.find(TypeInfo<T>::Index());
-        if(it == frameStages.end())
-            return 0;
-        else
-            return (T*)it->second;
-    }
 private:
-    std::map<typeindex, FrameStage*> frameStages;
-
-    void _renderRebuildScene(const Au::Math::Mat4f& projection,
-        const Au::Math::Mat4f& transform);
-    void _render(const Au::Math::Mat4f& perspective,
-        const Au::Math::Mat4f& transform);
-
-    void(Renderer::*renderFn)(const Au::Math::Mat4f& projection,
-        const Au::Math::Mat4f& transform);
+    task_graph::graph frameGraph;
 
     Au::GFX::Device* _gfxDevice;
     

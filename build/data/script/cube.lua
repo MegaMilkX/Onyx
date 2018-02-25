@@ -1,9 +1,9 @@
 
 function Init()
-    mesh = SceneObject:SolidMesh();
-    mesh:SetMesh("character");
-    mesh:SetMaterial("material2");
-    mesh:GetObject():Transform():Translate(0.0, 5.0, 4.0);
+    model = SceneObject:Model();
+    model.mesh:Set("character");
+    model.material:Set("material2");
+    model:GetObject():Transform():Translate(0.0, 5.0, 4.0);
     
     SceneObject:RigidBody():SetAngularFactor(Vec3(0,0,0));
     

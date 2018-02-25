@@ -12,12 +12,13 @@ class Texture2D
 {
 public:
     Texture2D()
-    {
-        
+    : glTexName(0)
+    {       
     }
     
     ~Texture2D()
     {
+        glDeleteTextures(1, &glTexName);
     }
     
     void Fill(Au::GFX::Texture2D* texture)
@@ -32,10 +33,40 @@ public:
         this->height = height;
         this->bpp = bpp;
     }
+    
+    GLuint GetGlName()
+    {
+        if(glTexName == 0)
+            _initGlData();
+        return glTexName; 
+    }
 private:
     std::vector<unsigned char> _data;
     int width, height;
     int bpp;
+    GLuint glTexName;
+    
+    void _initGlData()
+    {
+        glGenTextures(1, &glTexName);
+        glBindTexture(GL_TEXTURE_2D, glTexName);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        
+        GLenum format;
+        if(bpp == 1) format = GL_RED;
+        else if(bpp == 2) format = GL_RG;
+        else if(bpp == 3) format = GL_RGB;
+        else if(bpp == 4) format = GL_RGBA;
+        else return;
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, glTexName);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, format, GL_UNSIGNED_BYTE, (const GLvoid*)_data.data());
+    }
 };
 
 class Texture2DReaderJPG : public Resource<Texture2D>::Reader
