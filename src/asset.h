@@ -12,22 +12,24 @@ public:
     {}
     static void add_search_path(const std::string& path)
     {
-        Resource<T>::AddSearchPath(path);
+        resource<T>::add_search_path(path);
     }
     template<typename R>
     static void add_reader(const std::string& ext)
     {
-        Resource<T>::AddReader<R>(ext);
+        resource<T>::add_reader<R>(ext);
     }
     
     void set(const std::string& name)
     {
-        *this = Resource<T>::Get(name);
+        *this = resource<T>::get(name);
     }
     void operator=(const T* other)
     {
         this->data = (T*)other;
     }
+
+    T* operator->() const { return data; }
     T* get() { return data; }
 private:
     T* data;

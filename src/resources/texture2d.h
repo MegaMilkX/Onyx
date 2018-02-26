@@ -69,7 +69,7 @@ private:
     }
 };
 
-class Texture2DReaderJPG : public Resource<Texture2D>::Reader
+class Texture2DReaderJPG : public resource<Texture2D>::reader
 {
 public:
     Texture2D* operator()(const std::string& filename)
@@ -88,7 +88,7 @@ public:
     }
 };
 
-class Texture2DReaderPNG : public Resource<Texture2D>::Reader
+class Texture2DReaderPNG : public resource<Texture2D>::reader
 {
 public:
     Texture2D* operator()(const std::string& filename)
@@ -107,7 +107,7 @@ public:
     }
 };
 
-class Texture2DReader : public Resource<Texture2D>::Reader
+class Texture2DReader : public resource<Texture2D>::reader
 {
 public:
     Texture2D* operator()(const std::string& filename)

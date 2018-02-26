@@ -31,7 +31,7 @@ private:
     std::string source;
 };
 
-class ScriptReaderLUA : public Resource<ScriptData>::Reader
+class ScriptReaderLUA : public resource<ScriptData>::reader
 {
 public:
     ScriptData* operator()(const std::string& filename)
@@ -72,7 +72,7 @@ public:
     
     void SetScript(const std::string& name)
     {
-        ScriptData* sd = Resource<ScriptData>::Get(name);
+        ScriptData* sd = resource<ScriptData>::get(name);
         if(!sd)
             return;
         scriptName = name;

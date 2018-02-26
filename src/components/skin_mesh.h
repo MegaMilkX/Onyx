@@ -18,12 +18,12 @@ public:
     {}
     void SetMeshData(const std::string& name)
     {
-        SetMeshData(Resource<MeshData>::Get(name));
+        SetMeshData(resource<MeshData>::get(name));
     }
     void SetMeshData(MeshData* md) { meshData = md; }
     void SetMaterial(const std::string& name)
     {
-        SetMaterial(Resource<Material>::Get(name));
+        SetMaterial(resource<Material>::get(name));
     }
     void SetMaterial(Material* mat) { material = mat; }
     

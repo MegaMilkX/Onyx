@@ -70,7 +70,7 @@ struct SkeletonData
     int boneCount;
 };
 
-struct SkeletonDataReaderFBX : public Resource<SkeletonData>::Reader
+struct SkeletonDataReaderFBX : public resource<SkeletonData>::reader
 {
     SkeletonData* operator()(const std::string& filename)
     {
@@ -187,7 +187,7 @@ public:
     void SetData(const std::string& name)
     {
         resourceName = name;
-        SetData(Resource<SkeletonData>::Get(name));
+        SetData(resource<SkeletonData>::get(name));
     }
     
     void SetData(SkeletonData* data)
@@ -218,7 +218,7 @@ public:
         GLuint loc = glGetUniformLocation(shaderProgram, "BoneInverseBindTransforms[0]");
         glUniformMatrix4fv(
             loc, 
-            (std::min)((unsigned)32, boneInverseBindTransforms.size()), 
+            (std::min)((unsigned)32, (unsigned)boneInverseBindTransforms.size()), 
             GL_FALSE, 
             (GLfloat*)boneInverseBindTransforms.data()
         );
@@ -226,7 +226,7 @@ public:
         loc = glGetUniformLocation(shaderProgram, "BoneTransforms[0]");
         glUniformMatrix4fv(
             loc, 
-            (std::min)((unsigned)32, boneTransforms.size()), 
+            (std::min)((unsigned)32, (unsigned)boneTransforms.size()), 
             GL_FALSE, 
             (GLfloat*)boneTransforms.data()
         );
@@ -243,6 +243,46 @@ public:
     virtual void OnCreate()
     {        
         renderer = GetObject()->Root()->GetComponent<Renderer>();
+        /*
+        static std::once_flag once_flag;
+        std::call_once(
+            once_flag,
+            [](){
+                gl::ShaderProgram* prog = 
+                    resource<gl::ShaderProgram>::get("skin_shader");
+                gl::Shader vs;
+                gl::Shader fs;
+                vs.Init(GL_VERTEX_SHADER);
+                vs.Source(
+                    #include "../shaders/skin_vs.glsl"
+                );
+                vs.Compile();
+                fs.Init(GL_FRAGMENT_SHADER);
+                fs.Source(
+                    #include "../shaders/solid_fs.glsl"
+                );
+                fs.Compile();
+
+                prog->AttachShader(&vs);
+                prog->AttachShader(&fs);
+
+                prog->BindAttrib(0, "Position");
+                prog->BindAttrib(1, "UV");
+                prog->BindAttrib(2, "Normal");
+                prog->BindAttrib(3, "BoneIndex4");
+                prog->BindAttrib(4, "BoneWeight4");
+
+                prog->BindFragData(0, "fragOut");
+                prog->Link();
+
+                glUniform1i(prog->GetUniform("DiffuseTexture"), 0);
+            }
+        );
+
+        task_graph::graph& fg = renderer->GetFrameGraph();
+        fg += task_graph::once(ShaderSkinInit);
+        fg += task_graph::once(SkinDrawInitUnits);
+        fg += SkinDraw;*/
     }
     virtual std::string Serialize() 
     { 

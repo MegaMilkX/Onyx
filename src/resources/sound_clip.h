@@ -30,7 +30,7 @@ private:
     AudioBuffer* buffer;
 };
 
-class SoundClipReaderOGG : public Resource<SoundClip>::Reader
+class SoundClipReaderOGG : public resource<SoundClip>::reader
 {
 public:
     SoundClip* operator()(const std::string& filename)

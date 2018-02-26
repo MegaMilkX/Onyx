@@ -29,7 +29,7 @@ struct RenderUnitSolid
 
 struct ShaderProgramSolid
 {
-    GLuint id;
+    gl::ShaderProgram* prog;
     GLuint uniProjection;
     GLuint uniView;
     GLuint uniModel;
@@ -68,7 +68,7 @@ inline void SolidMeshDraw(
     const FrameCommon& frame, 
     const SolidMeshDrawData& in)
 {
-    glUseProgram(in.shaderSolid.id);
+    in.shaderSolid.prog->Use();
     
     glUniformMatrix4fv(
         in.shaderSolid.uniProjection, 1, GL_FALSE,
@@ -152,7 +152,7 @@ void ShaderSolidInit(const FrameCommon& frame, SolidMeshDrawData& out)
 
     glUniform1i(prog->GetUniform("DiffuseTexture"), 0);
 
-    out.shaderSolid.id = prog->GetId();
+    out.shaderSolid.prog = prog;
     out.shaderSolid.uniProjection = prog->GetUniform("MatrixProjection");
     out.shaderSolid.uniView = prog->GetUniform("MatrixView");
     out.shaderSolid.uniModel = prog->GetUniform("MatrixModel");
@@ -222,15 +222,15 @@ void SolidMeshDrawInitUnits(const FrameCommon& frame, SolidMeshDrawData& out)
         RenderUnitSolid unit;
         unit.transform = mesh->GetComponent<Transform>();
         
-        unit.vao = mesh->mesh.get()->GetVao({
+        unit.vao = mesh->mesh->GetVao({
             { "Position", 3, GL_FLOAT, GL_FALSE },
             { "UV", 2, GL_FLOAT, GL_FALSE },
             { "Normal", 3, GL_FLOAT, GL_FALSE }
         });
-        unit.indexCount = mesh->mesh.get()->GetIndexCount();
+        unit.indexCount = mesh->mesh->GetIndexCount();
         
         Texture2D* tex = 
-            Resource<Texture2D>::Get(mesh->material.get()->GetString("Diffuse"));
+            resource<Texture2D>::get(mesh->material->GetString("Diffuse"));
         unit.texDiffuse = tex->GetGlName();
         
         out.renderUnits.push_back(unit);

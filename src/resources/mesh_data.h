@@ -169,7 +169,7 @@ public:
     }
 };
 
-class MeshReaderFBX : public Resource<MeshData>::Reader
+class MeshReaderFBX : public resource<MeshData>::reader
 {
 public:
     MeshData* operator()(const std::string& filename)

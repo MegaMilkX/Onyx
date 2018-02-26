@@ -50,7 +50,7 @@ private:
     float fps;
 };
 
-struct AnimDataReaderFBX : public Resource<AnimData>::Reader
+struct AnimDataReaderFBX : public resource<AnimData>::reader
 {
     AnimData* operator()(const std::string& filename)
     {
@@ -276,7 +276,7 @@ public:
     void SetAnim(const std::string& name, const std::string& resourceName)
     {
         animResourceName = resourceName;
-        SetAnim(name, Resource<AnimData>::Get(resourceName));
+        SetAnim(name, resource<AnimData>::get(resourceName));
     }
     
     void SetAnim(const std::string& name, AnimData* data)

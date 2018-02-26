@@ -16,7 +16,7 @@ public:
 
     void SetClip(const std::string& name)
     {
-        clip = Resource<SoundClip>::Get(name);
+        clip = resource<SoundClip>::get(name);
         if(!clip)
             return;
         emitter = GameState::GetAudioMixer()->CreateEmitter(clip->GetBuffer());

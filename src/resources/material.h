@@ -37,7 +37,7 @@ private:
     std::map<std::string, std::string> strstr;
 };
 
-class MaterialReaderJSON : public Resource<Material>::Reader
+class MaterialReaderJSON : public resource<Material>::reader
 {
 public:
     Material* operator()(const std::string& filename)

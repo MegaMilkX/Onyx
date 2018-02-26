@@ -116,7 +116,7 @@ public:
     }
     
     void SetMesh(const std::string& resourceName)
-    { SetMesh(Resource<MeshData>::Get(resourceName)); }
+    { SetMesh(resource<MeshData>::get(resourceName)); }
     
     void SetMesh(MeshData* meshData)
     {

@@ -6,35 +6,40 @@
 #include <vector>
 
 template<typename T>
-class Resource
+class resource
 {
 public:
-    class Reader
+    class reader
     {
-    friend Resource;
+    friend resource;
     public:
-        virtual ~Reader() {}
+        virtual ~reader() {}
         virtual T* operator()(const std::string& filename) = 0;
     private:
         std::string extension;
     };
 
-    static void AddSearchPath(const std::string& path)
+    static void add_search_path(const std::string& path)
     { searchPaths.push_back(path); }
     
     template<typename READER>
-    static void AddReader(const std::string& extension)
+    static void add_reader(const std::string& extension)
     {
-        READER* reader = new READER();
-        reader->extension = extension;
-        readers.push_back(reader);
+        READER* rdr = new READER();
+        rdr->extension = extension;
+        readers.push_back(rdr);
     }
     
     static void Set(const std::string& name, T*);
 
-    static T* Get(const std::string& name)
+    static bool exists(const std::string& name)
     {
-        T* resource = 0;
+        return (bool)resources.count(name);
+    }
+
+    static T* get(const std::string& name)
+    {
+        T* res = 0;
         std::string filename;
         std::map<std::string, T*>::iterator it =
             resources.begin();
@@ -42,7 +47,7 @@ public:
         {
             if(it->first == name)
             {
-                resource = it->second;
+                res = it->second;
                 goto resourceFound;
             }
         }
@@ -62,20 +67,20 @@ public:
                     "." +
                     readers[j]->extension;
                 
-                resource = (T*)readers[j]->operator()(filename);
+                res = (T*)readers[j]->operator()(filename);
                 
-                if(resource)
+                if(res)
                 {
-                    resources[name] = resource;
+                    resources[name] = res;
                     goto resourceFound;
                 }
             }
         }
         
         resourceFound:
-        if(resource) referenceCount[name]++;
-        else std::cout << "Resource not found: " << filename << std::endl;
-        return resource;
+        if(res) referenceCount[name]++;
+        else std::cout << "resource not found: " << filename << std::endl;
+        return res;
     }
     
     static void Free(const std::string& name)
@@ -100,16 +105,16 @@ private:
     static std::map<std::string, T*> resources;
     static std::map<std::string, int> referenceCount;
     static std::vector<std::string> searchPaths;
-    static std::vector<Reader*> readers;
+    static std::vector<reader*> readers;
 };
 
 template<typename T>
-std::map<std::string, T*> Resource<T>::resources;
+std::map<std::string, T*> resource<T>::resources;
 template<typename T>
-std::map<std::string, int> Resource<T>::referenceCount;
+std::map<std::string, int> resource<T>::referenceCount;
 template<typename T>
-std::vector<std::string> Resource<T>::searchPaths;
+std::vector<std::string> resource<T>::searchPaths;
 template<typename T>
-std::vector<typename Resource<T>::Reader*> Resource<T>::readers;
+std::vector<typename resource<T>::reader*> resource<T>::readers;
 
 #endif

@@ -50,7 +50,7 @@ private:
     FontRasterizer rasterizer;
 };
 
-class FontDataReader : public Resource<FontData>::Reader
+class FontDataReader : public resource<FontData>::reader
 {
 public:
     FontData* operator()(const std::string& filename)
