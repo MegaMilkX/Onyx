@@ -183,7 +183,7 @@ public:
         text = scene.CreateObject()->GetComponent<Text2d>();
         text->GetComponent<Transform>()->Translate(200, 300, 0);
         text->SetText({0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
-        text->SetSize(16);
+        text->SetSize(20);
         //text->font->set("calibri");
     }
     virtual void OnCleanup() 
