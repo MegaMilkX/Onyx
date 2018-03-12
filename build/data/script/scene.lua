@@ -8,10 +8,10 @@ Init = function()
 	--floorPlane:PlaneCollider();
 	--floorPlane:PlaneCollider():Height(0.0f);
     
-    mesh = SceneObject:CreateObject():Mesh();
-    mesh:SetMesh("chara6");
-    mesh:SetMaterial("material");
-    mesh:GetObject():SetName("MIKU");
+    model = SceneObject:CreateObject():Model();
+    model.mesh:Set("chara6");
+    model.material:Set("material");
+    model:GetObject():SetName("MIKU");
     
     camera = SceneObject:CreateObject();
     cube = SceneObject:CreateObject();
@@ -23,11 +23,11 @@ Init = function()
     --SceneObject:CreateObject():Script():SetScript("brick");
     --SceneObject:CreateObject():Script():SetScript("sphere2");
     
-    mesh = SceneObject:CreateObject():Mesh();
-    mesh:SetMesh("env");
-    mesh:SetMaterial("env");
-    --mesh:GetObject():Transform():Scale(0.1);
-    mesh:GetObject():MeshCollider():SetMesh("env");
+    model = SceneObject:CreateObject():Model();
+    model.mesh:Set("env");
+    model.material:Set("env");
+    --model:GetObject():Transform():Scale(0.1);
+    model:GetObject():MeshCollider():SetMesh("env");
     
     lightHinge = SceneObject:CreateObject();
     lightHinge:Transform():Translate(0.0, 2.0, 0.0);

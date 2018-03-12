@@ -36,7 +36,7 @@ public:
         buffer = std::vector<char>((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
-            return ReadMemory(buffer.data(), size);
+            return ReadMemory(buffer.data(), (size_t)size);
         }
         else
         {
@@ -48,7 +48,7 @@ public:
     
     bool ReadMemory(void* data, size_t sz)
     {
-        if(FT_New_Memory_Face(ftLib, (FT_Byte*)buffer.data(), buffer.size(), 0, &face))
+        if(FT_New_Memory_Face(ftLib, (FT_Byte*)data, sz, 0, &face))
         {
             std::cout << "FT_New_Memory_Face failed" << std::endl;
             return false;
@@ -74,20 +74,75 @@ public:
         unsigned height;
         unsigned bpp;
     };
-    
+
     struct GlyphInfo
     {
         unsigned charCode;
         unsigned glyphCode;
         unsigned size;
+        float width, height;
         float advX, advY;
         float vBearingX, vBearingY;
         float hBearingX, hBearingY;
+        Bitmap bitmap;
     };
-    
-    void AddChar(unsigned int charCode, unsigned int size)
+
+    struct GlobalMetrics
     {
-        glyphs.push_back({charCode, 0, size});
+        Au::Math::Vec2i bbox;
+    };
+
+    GlobalMetrics GetGlobalMetrics(unsigned size)
+    {
+        if(FT_Set_Pixel_Sizes(face, size, 0))
+        {
+            std::cout << "FT_Set_Pixel_Sizes failed(GetGlobalMetrics)" << std::endl;
+        }
+        float one64th = 1.0f/64.0f;
+        return GlobalMetrics{
+            Au::Math::Vec2i( (face->bbox.xMax) * one64th, 
+            (face->bbox.yMax) * one64th )
+        };
+    }
+    
+    GlyphInfo* GetGlyph(unsigned charCode, unsigned size)
+    {
+        for(GlyphInfo& g : glyphs)
+        {
+            if(g.charCode == charCode &&
+                g.size == size)
+            {
+                return &g;
+            }
+        }
+        
+        return CreateGlyph(charCode, size);
+    }
+
+    GlyphInfo* CreateGlyph(unsigned charCode, unsigned size)
+    {
+        GlyphInfo info{ charCode, 0, size };
+        if(FT_Set_Pixel_Sizes(face, size, 0))
+        {
+            std::cout << "FT_Set_Pixel_Sizes failed (CreateGlyph)" << std::endl;
+            return 0;
+        }
+        unsigned glyphCode = FT_Get_Char_Index(face, charCode);
+        info.glyphCode = glyphCode;
+        FT_Load_Glyph(face, glyphCode, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL);
+        info.size = size;
+        float one64th = 1.0f/64.0f;
+        info.width = (float)face->glyph->metrics.width * one64th;
+        info.height = (float)face->glyph->metrics.height * one64th;
+        info.advX = (float)face->glyph->metrics.horiAdvance * one64th;
+        info.advY = (float)face->glyph->metrics.vertAdvance * one64th;
+        info.hBearingX = face->glyph->metrics.horiBearingX * one64th;
+        info.hBearingY = face->glyph->metrics.horiBearingY * one64th;
+        info.vBearingX = face->glyph->metrics.vertBearingX * one64th;
+        info.vBearingY = face->glyph->metrics.vertBearingY * one64th;
+        info.bitmap = Rasterize(charCode, size);
+        glyphs.push_back(info);
+        return &glyphs.back();
     }
     
     Bitmap Rasterize(unsigned int charCode, unsigned int faceSize)
@@ -104,12 +159,18 @@ public:
             return bmp;
         }
         
+        if(FT_Set_Pixel_Sizes(face, faceSize, 0))
+        {
+            std::cout << "FT_Set_Pixel_Sizes failed" << std::endl;
+            return bmp;
+        }
+        /*
         if(FT_Set_Char_Size(face, 0, faceSize * 64, 72, 72))
         {
             std::cout << "FT_Set_Char_Size failed" << std::endl;
             return bmp;
         }
-        
+        */
         unsigned int glyphCode = FT_Get_Char_Index(face, charCode);
         
         if(FT_Load_Glyph(face, glyphCode, FT_LOAD_DEFAULT | FT_LOAD_TARGET_NORMAL))
@@ -200,24 +261,24 @@ public:
     {
         bp2D::BinPacker2D packer;
         std::vector<Bitmap> bmps;
-        for(GlyphInfo glyph : glyphs)
+        for(GlyphInfo& glyph : glyphs)
         {
-            Bitmap bmp = Rasterize(glyph.charCode, glyph.size);
-            packer.AddRect(bp2D::BinRect(bmps.size(), bmp.width, bmp.height));
+            Bitmap& bmp = glyph.bitmap;//Rasterize(glyph.charCode, glyph.size);
+            packer.AddRect(bp2D::BinRect(bmps.size(), (float)bmp.width, (float)bmp.height));
             bmps.push_back(bmp);
         }
         packer.Pack(BINPACKPARAM_POWEROFTWO, bp2D::SORT_MAXSIDE);
         std::vector<bp2D::BinRect> rects = packer.GetVolumes();
         bp2D::BinRect rootRect = packer.GetRootRect();
         
-        bmp.data = (char*)malloc(rootRect.w * rootRect.h);
-        bmp.width = rootRect.w;
-        bmp.height = rootRect.h;
+        bmp.data = (char*)malloc((size_t)(rootRect.w * rootRect.h));
+        bmp.width = (unsigned)rootRect.w;
+        bmp.height = (unsigned)rootRect.h;
         bmp.bpp = 1;
         
         for(bp2D::BinRect rect : rects)
         {
-            BmpBlit(bmp, bmps[rect.id], rect.x, rect.y);
+            BmpBlit(bmp, bmps[rect.id], (unsigned)rect.x, (unsigned)rect.y);
         }
     }
 private:

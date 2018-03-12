@@ -1,7 +1,7 @@
 #ifndef TEXTURE2D_H
 #define TEXTURE2D_H
 
-#include <resource.h>
+#include <asset.h>
 #include <aurora/gfx.h>
 
 extern "C"{
@@ -12,12 +12,13 @@ class Texture2D
 {
 public:
     Texture2D()
-    {
-        
+    : glTexName(0), dirty(true)
+    {       
     }
     
     ~Texture2D()
     {
+        glDeleteTextures(1, &glTexName);
     }
     
     void Fill(Au::GFX::Texture2D* texture)
@@ -31,57 +32,96 @@ public:
         this->width = width;
         this->height = height;
         this->bpp = bpp;
+        dirty = true;
+    }
+    
+    GLuint GetGlName()
+    {
+        if(glTexName == 0)
+            _initGlData();
+        if(dirty)
+            _reloadGlBuffer();
+        return glTexName; 
     }
 private:
+    bool dirty;
     std::vector<unsigned char> _data;
     int width, height;
     int bpp;
-};
-
-class Texture2DReaderJPG : public Resource<Texture2D>::Reader
-{
-public:
-    Texture2D* operator()(const std::string& filename)
+    GLuint glTexName;
+    
+    void _initGlData()
     {
-        stbi_set_flip_vertically_on_load(1);
-        int w, h, bpp;
-        unsigned char* data = 
-            stbi_load(filename.c_str(), &w, &h, &bpp, 3);
-        if(!data)
-            return 0;
-     
-        Texture2D* texture = new Texture2D();
-        texture->Data(data, w, h, 3);
+        glGenTextures(1, &glTexName);
+        glBindTexture(GL_TEXTURE_2D, glTexName);
         
-        return texture;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    }
+
+    void _reloadGlBuffer()
+    {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        GLenum format;
+        if(bpp == 1) format = GL_RED;
+        else if(bpp == 2) format = GL_RG;
+        else if(bpp == 3) format = GL_RGB;
+        else if(bpp == 4) format = GL_RGBA;
+        else return;
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, glTexName);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, (const GLvoid*)_data.data());
+        dirty = false;
     }
 };
 
-class Texture2DReaderPNG : public Resource<Texture2D>::Reader
+class Texture2DReaderJPG : public asset<Texture2D>::reader
 {
 public:
-    Texture2D* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, Texture2D* texture)
     {
+        bool result = false;
         stbi_set_flip_vertically_on_load(1);
         int w, h, bpp;
         unsigned char* data = 
-            stbi_load(filename.c_str(), &w, &h, &bpp, 3);
+            stbi_load(filename.c_str(), &w, &h, &bpp, 4);
         if(!data)
-            return 0;
+            return result;
      
-        Texture2D* texture = new Texture2D();
-        texture->Data(data, w, h, 3);
+        result = true;
+        texture->Data(data, w, h, 4);
         
-        return texture;
+        return result;
     }
 };
 
-class Texture2DReader : public Resource<Texture2D>::Reader
+class Texture2DReaderPNG : public asset<Texture2D>::reader
 {
 public:
-    Texture2D* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, Texture2D* texture)
     {
-        Texture2D* texture = new Texture2D();
+        bool result = false;
+        stbi_set_flip_vertically_on_load(1);
+        int w, h, bpp;
+        unsigned char* data = 
+            stbi_load(filename.c_str(), &w, &h, &bpp, 4);
+        if(!data)
+            return result;
+     
+        result = true;
+        texture->Data(data, w, h, 4);
+        
+        return result;
+    }
+};
+
+class Texture2DReader : public asset<Texture2D>::reader
+{
+public:
+    bool operator()(const std::string& filename, Texture2D* texture)
+    {
         
         
         
@@ -103,7 +143,7 @@ public:
         
         texture->Data(data.data(), 256, 256, 3);
         
-        return texture;
+        return true;
     }
 };
 

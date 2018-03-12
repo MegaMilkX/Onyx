@@ -85,6 +85,20 @@ public:
             return (T*)it->second;
     }
     
+    template<typename T>
+    std::vector<T*> FindAllOf()
+    {
+        std::vector<T*> result;
+        T* c = FindComponent<T>();
+        if(c) result.push_back(c);
+        for(unsigned i = 0; i < objects.size(); ++i)
+        {
+            std::vector<T*> r = objects[i]->FindAllOf<T>();
+            result.insert(result.end(), r.begin(), r.end());
+        }
+        return result;
+    }
+    
     void Name(const std::string& name) { this->name = name; }
     std::string Name() const { return name; }
     

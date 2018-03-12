@@ -8,6 +8,7 @@ set INCLUDE_PATHS=/I "%~dp0\..\Aurora\include" ^
 /I "%~dp0\..\lib\bullet3-2.86.1\src" ^
 /I "%~dp0\..\lib\freetype-2.8\include" ^
 /I "%~dp0\..\lib\serial\include" ^
+/I "%~dp0\src" ^
 /I "%~dp0\src\external" ^
 /I "%~dp0\src\resources" ^
 /I "%~dp0\src\components"
@@ -40,7 +41,7 @@ LinearMath_vs2010.lib ^
 freetype28MT.lib ^
 serial.lib
 
-set COMPILER_ARGS=/D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
+set COMPILER_ARGS=/MP /D NOMINMAX /D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
 
 setlocal enableextensions enabledelayedexpansion
 

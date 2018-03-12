@@ -1,6 +1,6 @@
 #include "transform.h"
 
-#include "mesh.h"
+#include <algorithm>
 
 typedef Au::Math::Vec4f vec4;
 typedef Au::Math::Vec3f vec3;
@@ -33,7 +33,7 @@ void Transform::Rotate(const Au::Math::Quat& q)
 
 void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f)
 {
-	f = max(-1.0f, min(f, 1.0f));
+	f = std::max(-1.0f, std::min(f, 1.0f));
 	
     Transform* trans = GetObject()->GetComponent<Transform>();
     Au::Math::Mat4f mat = trans->GetTransform();
@@ -56,7 +56,7 @@ void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& for
     }*/
     else
 	{
-        float rotAngle = acosf(max(-1.0f, min(dot, 1.0f))) * f;
+        float rotAngle = acosf(std::max(-1.0f, std::min(dot, 1.0f))) * f;
         q = Au::Math::AngleAxis(rotAngle, rotAxis);
     }
     
@@ -89,7 +89,7 @@ void Transform::Track(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forw
     vec3 rotationAxis = Au::Math::Normalize(Au::Math::Cross(vforward, vtarget));
     rotationAxis = Au::Math::Inverse(GetTransform()) * vec4(rotationAxis.x, rotationAxis.y, rotationAxis.z, 0.0f);
     float dot = Au::Math::Dot(vforward, vtarget);
-    float angle = (float)acos(max(-1.0f, min(dot, 1.0f)));
+    float angle = (float)acos(std::max(-1.0f, std::min(dot, 1.0f)));
     
     quat q = Au::Math::AngleAxis(angle, rotationAxis);
     Rotate(q);
@@ -121,7 +121,7 @@ void Transform::IKChain(const Au::Math::Vec3f& target, int chain)
     vec3 rotationAxis = Au::Math::Normalize(Au::Math::Cross(vforward, vtarget));
     rotationAxis = Au::Math::Inverse(origin->GetTransform()) * vec4(rotationAxis.x, rotationAxis.y, rotationAxis.z, 0.0f);
     float dot = Au::Math::Dot(vforward, vtarget);
-    float angle = (float)acos(max(-1.0f, min(dot, 1.0f)));
+    float angle = (float)acos(std::max(-1.0f, std::min(dot, 1.0f)));
     quat q = Au::Math::AngleAxis(angle, rotationAxis);
     origin->Rotate(q);
 }

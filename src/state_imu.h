@@ -6,7 +6,7 @@
 
 #include "components/transform.h"
 #include "components/camera.h"
-#include "components/mesh.h"
+#include "components/solid_mesh.h"
 #include "components/material.h"
 #include "components/light_omni.h"
 
@@ -304,8 +304,8 @@ public:
         camera->GetComponent<Transform>()->Translate(0.0f, 1.5f, 5.0f);
         
         object = scene.CreateObject()->GetComponent<Transform>();
-        object->GetComponent<Mesh>()->SetMesh("miku2");
-        object->GetComponent<Mesh>()->SetMaterial("material");
+        object->GetComponent<Model>()->SetMesh("miku2");
+        object->GetComponent<Model>()->SetMaterial("material");
         
         //object = camera->GetComponent<Transform>();
         

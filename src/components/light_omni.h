@@ -11,7 +11,6 @@ class LightDirect : public SceneObject::Component
 public:
     ~LightDirect()
     {
-        GetObject()->Root()->GetComponent<Renderer>()->RemoveLightDirect(this);
     }
     
     void Color(float r, float g, float b)
@@ -27,7 +26,6 @@ public:
     
     void OnCreate()
     {
-        GetObject()->Root()->GetComponent<Renderer>()->AddLightDirect(this);
     }
     virtual std::string Serialize() 
     { 
@@ -70,7 +68,6 @@ class LightOmni : public SceneObject::Component
 public:
     ~LightOmni()
     {
-        GetObject()->Root()->GetComponent<Renderer>()->RemoveLightOmni(this);
     }
 
     void Color(float r, float g, float b)
@@ -87,7 +84,6 @@ public:
 
     void OnCreate()
     {
-        GetObject()->Root()->GetComponent<Renderer>()->AddLightOmni(this);
     }
     
     virtual std::string Serialize() 

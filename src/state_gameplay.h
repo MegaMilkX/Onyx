@@ -10,20 +10,16 @@
 
 #include "components/transform.h"
 #include "components/camera.h"
-#include "components/mesh.h"
+#include "components/model.h"
 #include "components/light_omni.h"
-
 #include "components/luascript.h"
-
 #include "components/animation.h"
 #include "components/skeleton.h"
-
 #include "components/dynamics/rigid_body.h"
 #include "components/collision/collider.h"
-
 #include "components/sound_emitter.h"
-
 #include "components/text_mesh.h"
+#include "components/overlay/overlay_root.h"
 
 #include "lib/font_rasterizer.h"
 
@@ -172,25 +168,6 @@ public:
         SoundEmitter* snd = scene.CreateObject()->GetComponent<SoundEmitter>();
         snd->SetClip("test");
         
-        Mesh* mesh = scene.CreateObject()->GetComponent<Mesh>();
-        mesh->SetMesh("brick");
-        
-        FontData* font = Resource<FontData>::Get("calibri");
-        font->AddChar('H', 100);
-        font->AddChar('u', 100);
-        font->AddChar('i', 100);
-        font->AddChar('!', 100);
-        font->RebuildTexture();
-        
-        TextMesh* textMesh = scene.CreateObject()->GetComponent<TextMesh>();
-        textMesh->SetText("Hello, World!");
-        
-        Material* mat = new Material();
-        mat->SetLayer(0, "Diffuse");
-        mat->SetTexture2D("DiffuseTexture", font->GetTexture());
-        
-        mesh->SetMaterial(mat);
-        
         std::ofstream file("scene.scn", std::ios::out);
         file << std::setw(4) << scene.Serialize();
         file.close();
@@ -198,6 +175,16 @@ public:
         animation = scene.GetComponent<Animation>();
         collision = scene.GetComponent<Collision>();
         soundRoot = scene.GetComponent<SoundRoot>();
+        
+        scene.CreateObject()->GetComponent<TextMesh>()->SetText("Hello, World!");
+
+        quad = scene.CreateObject()->GetComponent<Quad>();
+        quad->image.set("V8fBNZhT");
+        text = scene.CreateObject()->GetComponent<Text2d>();
+        text->GetComponent<Transform>()->Translate(200, 300, 0);
+        text->SetText({0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
+        text->SetSize(16);
+        //text->font->set("calibri");
     }
     virtual void OnCleanup() 
     {
@@ -217,6 +204,7 @@ public:
         
         soundRoot->Update();
         //scene.FindObject("MIKU")->GetComponent<Transform>()->Track(character->GetComponent<Transform>()->WorldPosition());
+        
     }
     virtual void OnRender(Au::GFX::Device* device)
     {
@@ -224,18 +212,31 @@ public:
         //scene.GetComponent<Collision>()->DebugDraw();
         //camera->Render(device);
     }
+
+    virtual void OnChar(int charCode)
+    {
+        if(charCode == 8)
+        {
+            str.pop_back();
+        }
+        else
+        {
+            str.push_back(charCode);
+        }
+        text->SetText(str);
+    }
     
     virtual void KeyDown(Au::Input::KEYCODE key)
     {
         script->Relay("KeyDown", (int)key);
         charController->KeyDown(key);
-        
+        /*
         if(key == Au::Input::KEY_2)
         {
             GameState::Pop();
             GameState::Push<StateTest>();
         }
-        
+        */
         if(key == Au::Input::KEY_Q)
         {
             character->GetComponent<Transform>()->Position(0.0f, 0.25f, 0.0f);
@@ -249,6 +250,8 @@ public:
             character->GetComponent<Transform>()->Position(7.0f, 5.25f, -10.0f);
         }
     }
+    Text2d* text;
+    std::vector<int> str;
     
     virtual void KeyUp(Au::Input::KEYCODE key)
     {
@@ -262,6 +265,7 @@ public:
     {
         script->Relay("MouseMove", x, y);
         
+        quad->GetComponent<Transform>()->Position(200 + x, 100 + y, 0.0f);
         camera->MouseMove(x, y);
     }
 private:    
@@ -271,6 +275,8 @@ private:
     Animation* animation;
     Collision* collision;
     SoundRoot* soundRoot;
+
+    Quad* quad;
     
     Actor* character;
     CharacterCamera* camera;

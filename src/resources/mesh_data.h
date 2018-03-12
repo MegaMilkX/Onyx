@@ -5,7 +5,17 @@
 #include <aurora/gfx.h>
 #include <aurora/media/fbx.h>
 
-#include <resource.h>
+#include <asset.h>
+
+#include "../util/gl_helpers.h"
+
+struct GLAttribDesc
+{
+    std::string name;
+    int elemCount;
+    GLenum elemType;
+    GLboolean normalized;
+};
 
 class MeshData
 {
@@ -53,10 +63,16 @@ public:
         );
         
         attribArrays[ATTR()] = bytes;
+        for(unsigned i = 0; i < vaoDirty.size(); ++i)
+            vaoDirty[i] = true;
     }
     
     void SetIndices(const std::vector<unsigned short>& data)
-    { indices = data; }
+    { 
+        indices = data;
+        for(unsigned i = 0; i < vaoDirty.size(); ++i)
+            vaoDirty[i] = true;
+    }
     
     template<typename T>
     unsigned GetAttribCount()
@@ -74,31 +90,118 @@ public:
         return (T*)attribArrays[T()].data();
     }
     
+    template<typename T>
+    std::vector<unsigned char>& GetAttribBytes()
+    {
+        return attribArrays[T()];
+    }
+    
+    std::vector<unsigned char>& GetAttribBytesByName(const std::string& name)
+    {
+        for(auto& kv : attribArrays)
+        {
+            if(kv.first.name == name)
+                return kv.second;
+        }
+        return attribArrays[Au::Empty()];
+    }
+    
     std::vector<unsigned short>& GetIndices()
     {
         return indices;
     }
     
+    GLuint GetVao(const std::vector<GLAttribDesc>& vertexDesc)
+    {
+        for(unsigned i = 0; i < vertexArrayObjects.size(); ++i)
+        {
+            if(_compareDesc(vertexDesc, vertexArrayObjects[i]))
+            {
+                if(vaoDirty[i])
+                {
+                    vaoDirty.erase(vaoDirty.begin() + i);
+                    vertexArrayObjects[i].Cleanup();
+                    vertexArrayObjects.erase(vertexArrayObjects.begin() + i);
+                    break;
+                }
+                else
+                    return vertexArrayObjects[i].GetGlName();
+            }
+        }
+        
+        GLVertexArrayObject vao;
+        std::vector<GLVertexBufferDesc> desc;
+        for(const GLAttribDesc& d : vertexDesc)
+        {
+            desc.push_back({ 
+                d.name, 
+                d.elemCount, 
+                d.elemType, d.normalized, 
+                (GLsizei)(d.elemCount * glTypeSize(d.elemType)), 
+                GL_STATIC_DRAW 
+            });
+        }
+        vao.Init(desc);
+        for(const GLAttribDesc& d : vertexDesc)
+        {
+            vao.FillArrayBuffer(d.name, GetAttribBytesByName(d.name));
+        }
+        vao.FillIndexBuffer(GetIndices());
+        
+        vertexArrayObjects.push_back(vao);
+        vaoDirty.push_back(false);
+        
+        return vao.GetGlName();
+    }
+    unsigned GetIndexCount() 
+    { return indices.size(); }
+    
+    std::vector<GLVertexArrayObject> vertexArrayObjects;
+    std::vector<bool> vaoDirty;
     std::map<Au::AttribInfo, std::vector<unsigned char>> attribArrays;
     std::vector<unsigned short> indices;
+    
+    bool _compareDesc(
+        const std::vector<GLAttribDesc>& vertexDesc,
+        const GLVertexArrayObject& vao)
+    {
+        const std::vector<GLVertexBufferDesc>& vaoDesc =
+            vao.Desc();
+        if(vertexDesc.size() != vaoDesc.size())
+            return false;
+        for(unsigned i = 0; i < vertexDesc.size(); ++i)
+        {
+            const GLAttribDesc& d1 = vertexDesc[i];
+            const GLVertexBufferDesc& d2 = vaoDesc[i];
+
+            if(d1.name != d2.name ||
+                d1.elemCount != d2.size ||
+                d1.elemType != d2.type ||
+                d1.normalized != d2.normalized)
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
 };
 
-class MeshReaderFBX : public Resource<MeshData>::Reader
+class MeshReaderFBX : public asset<MeshData>::reader
 {
 public:
-    MeshData* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, MeshData* meshData)
     {
-        MeshData* meshData = 0;
-        
+        bool result = false;        
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())
-            return 0;
+            return result;
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
         std::vector<char> buffer((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
-            meshData = new MeshData();
+            result = true;
             
             Au::Media::FBX::Reader fbxReader;
             fbxReader.ReadMemory(buffer.data(), buffer.size());
@@ -190,7 +293,7 @@ public:
         
         file.close();
         
-        return meshData;
+        return result;
     }
 };
 

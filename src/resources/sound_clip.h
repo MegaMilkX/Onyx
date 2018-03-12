@@ -2,7 +2,7 @@
 #define SOUND_CLIP_H
 
 #include "../game_state.h"
-#include <resource.h>
+#include <asset.h>
 
 #define STB_VORBIS_HEADER_ONLY
 extern "C"{
@@ -30,25 +30,24 @@ private:
     AudioBuffer* buffer;
 };
 
-class SoundClipReaderOGG : public Resource<SoundClip>::Reader
+class SoundClipReaderOGG : public asset<SoundClip>::reader
 {
 public:
-    SoundClip* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, SoundClip* clip)
     {
-        SoundClip* clip = 0;
-        
+        bool result = false;        
         int channels = 2;
         int sampleRate = 48000;
         short* decoded;
         int len;
         len = stb_vorbis_decode_filename(filename.c_str(), &channels, &sampleRate, &decoded);
         if(len == 0)
-            return clip;
+            return result;
         
-        clip = new SoundClip();
+        result = true;
         clip->Upload((void*)decoded, len * sizeof(short) * channels, sampleRate, 16, channels);
         
-        return clip;
+        return result;
     }
 };
 

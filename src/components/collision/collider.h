@@ -116,9 +116,9 @@ public:
     }
     
     void SetMesh(const std::string& resourceName)
-    { SetMesh(Resource<MeshData>::Get(resourceName)); }
+    { SetMesh(asset<MeshData>::get(resourceName)); }
     
-    void SetMesh(MeshData* meshData)
+    void SetMesh(asset<MeshData> meshData)
     {
         if(!meshData)
             return;
@@ -147,7 +147,7 @@ public:
     }
 private:
     btTriangleMesh* triMesh;
-    MeshData* meshData;
+    asset<MeshData> meshData;
 };
 
 #endif

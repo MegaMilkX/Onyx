@@ -6,108 +6,76 @@
 #include <vector>
 
 template<typename T>
-class Resource
+class resource
 {
 public:
-    class Reader
-    {
-    friend Resource;
-    public:
-        virtual ~Reader() {}
-        virtual T* operator()(const std::string& filename) = 0;
-    private:
-        std::string extension;
-    };
+    // Non-static
+    resource(T* data = 0)
+    : data(data), name(name) {}
+    resource(const std::string& name, T* data)
+    : data(data), name(name) {}
+    ~resource() { decrease_count(name); }
+    T* operator->() const { return data; }
+    operator T*() const { return data; }
+    operator bool() const { return data != 0; }
+    T& operator *() const { return *data; }
 
-    static void AddSearchPath(const std::string& path)
-    { searchPaths.push_back(path); }
-    
-    template<typename READER>
-    static void AddReader(const std::string& extension)
+    bool equals(const resource<T>& other) const { return data == other.data; }
+
+    // Static 
+
+    static bool exists(const std::string& name)
     {
-        READER* reader = new READER();
-        reader->extension = extension;
-        readers.push_back(reader);
+        return resources.count(name) != 0;
     }
 
-    static T* Get(const std::string& name)
+    static resource<T> get(const std::string& name)
     {
-        T* resource = 0;
-        std::string filename;
-        std::map<std::string, T*>::iterator it =
-            resources.begin();
-        for(it; it != resources.end(); ++it)
+        T* res = 0;
+        std::map<std::string, T*>::iterator it = 
+            resources.find(name);
+        if(it != resources.end())
         {
-            if(it->first == name)
-            {
-                resource = it->second;
-                goto resourceFound;
-            }
+            referenceCount[name]++;
+            return it->second;
         }
-        
-        
-        for(unsigned i = 0; i < searchPaths.size(); ++i)
+        else
         {
-            for(unsigned j = 0; j < readers.size(); ++j)
-            {
-                // TODO: REMOVE PLATFORM DEPENDENT CODE
-                // TODO: RESPECT EMPTY SEARCH PATHS
-                // TODO: MAKE FULL FILE PATH
-                filename = 
-                    searchPaths[i] + 
-                    "\\" + 
-                    name +
-                    "." +
-                    readers[j]->extension;
-                
-                resource = (T*)readers[j]->operator()(filename);
-                
-                if(resource)
-                {
-                    resources[name] = resource;
-                    goto resourceFound;
-                }
-            }
+            T* r = new T;
+            resources[name] = r;
+            referenceCount[name]++;
+            return r;
         }
-        
-        resourceFound:
-        if(resource) referenceCount[name]++;
-        else std::cout << "Resource not found: " << filename << std::endl;
-        return resource;
     }
     
-    static void Free(const std::string& name)
+    static void free(const std::string& name)
     {
-        referenceCount[name]--;
         if(referenceCount[name] > 0)
             return;
         
         std::map<std::string, T*>::iterator it =
-            resources.begin();
-        for(it; it != resources.end(); ++it)
+            resources.find(name);
+        if(it != resources.end())
         {
-            if(it->first == name)
-            {
-                delete it->second;
-                resources.erase(name);
-            }
+            delete it->second;
+            resources.erase(name);
         }
     }
     
 private:
+    static void decrease_count(const std::string& name)
+    {
+        referenceCount[name]--;
+    }
+    T* data;
+    std::string name;
     static std::map<std::string, T*> resources;
     static std::map<std::string, int> referenceCount;
-    static std::vector<std::string> searchPaths;
-    static std::vector<Reader*> readers;
 };
 
 template<typename T>
-std::map<std::string, T*> Resource<T>::resources;
+std::map<std::string, T*> resource<T>::resources;
 template<typename T>
-std::map<std::string, int> Resource<T>::referenceCount;
-template<typename T>
-std::vector<std::string> Resource<T>::searchPaths;
-template<typename T>
-std::vector<typename Resource<T>::Reader*> Resource<T>::readers;
+std::map<std::string, int> resource<T>::referenceCount;
 
 #endif

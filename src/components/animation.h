@@ -50,22 +50,20 @@ private:
     float fps;
 };
 
-struct AnimDataReaderFBX : public Resource<AnimData>::Reader
+struct AnimDataReaderFBX : public asset<AnimData>::reader
 {
-    AnimData* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, AnimData* animData)
     {
-        AnimData* animData = 0;
-        
+        bool result = false;
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())
-            return 0;
+            return result;
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
         std::vector<char> buffer((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
-            animData = new AnimData();
-            
+            result = true;
             Au::Media::FBX::Reader fbxReader;
             fbxReader.ReadMemory(buffer.data(), buffer.size());
             fbxReader.DumpFile(filename);
@@ -84,7 +82,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                 if(length < 2.0)
                     continue;
                 
-                std::cout << "AnimStack " << stackName << " len: " << length << std::endl;
+                //std::cout << "AnimStack " << stackName << " len: " << length << std::endl;
                 
                 std::vector<Au::Media::FBX::SceneNode> nodes = stacks[i].GetAnimatedNodes();
                 for(unsigned j = 0; j < nodes.size(); ++j)
@@ -94,7 +92,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
                     float frame = 0.0f;
                     anim.Length((float)length);
                     
-                    std::cout << "  CurveNode " << nodeName << std::endl;
+                    //std::cout << "  CurveNode " << nodeName << std::endl;
                     
                     for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
                     {
@@ -125,7 +123,7 @@ struct AnimDataReaderFBX : public Resource<AnimData>::Reader
         
         file.close();
         
-        return animData;
+        return result;
     }
 
 private:
@@ -272,38 +270,14 @@ class Animation : public SceneObject::Component
 public:
     Animation()
     : fps(0.0f), blend(0.0f), blendStep(0.0f) {}
-    /*
-    void SetAnimData(const std::string& name)
-    {
-        SetAnimData(Resource<AnimData>::Get(name));
-    }
-    
-    void SetAnimData(AnimData* data)
-    {
-        animData = data;
-        FrameRate(animData->FrameRate());
-        for(unsigned i = 0; i < animData->ChildCount(); ++i)
-        {
-            AnimData& childData = animData->GetChild(i);
-            SceneObject* o = GetObject()->FindObject(childData.Name());
-            if(!o)
-                continue;
-            for(unsigned j = 0; j < childData.AnimCount(); ++j)
-            {
-                Au::Curve& anim = childData.GetAnim(j);
-                o->GetComponent<Animation>()->SetAnim(anim.Name(), anim);
-                o->GetComponent<Animation>()->FrameRate(animData->FrameRate());
-            }
-        }
-    }
-    */
+
     void SetAnim(const std::string& name, const std::string& resourceName)
     {
         animResourceName = resourceName;
-        SetAnim(name, Resource<AnimData>::Get(resourceName));
+        SetAnim(name, asset<AnimData>::get(resourceName));
     }
     
-    void SetAnim(const std::string& name, AnimData* data)
+    void SetAnim(const std::string& name, asset<AnimData> data)
     {
         animName = name;
         FrameRate(data->FrameRate());
