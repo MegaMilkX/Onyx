@@ -83,8 +83,49 @@ protected:
     virtual bool compare_same_type_wrapper(const task_wrap_base* other) const = 0;
 };
 
-template<typename Arg1, typename Arg2 = void>
+template<typename Arg1, typename Arg2 = void, typename Arg3 = void>
 class task_wrap : public task_wrap_base
+{
+public:
+    task_wrap(void(*f)(Arg1, Arg2, Arg3), bool once = false)
+    : func(f)
+    {
+        this->once = once;
+        func_type = TypeInfo<decltype(f)>::Index();
+        typeindex a1 = TypeInfo<std::remove_cv<typename std::remove_reference<Arg1>::type>::type>::Index();
+        typeindex a2 = TypeInfo<std::remove_cv<typename std::remove_reference<Arg2>::type>::type>::Index();
+        typeindex a3 = TypeInfo<std::remove_cv<typename std::remove_reference<Arg3>::type>::type>::Index();
+        
+        std::is_const<typename std::remove_reference<Arg1>::type>::value ?
+            inputs.push_back(a1) : outputs.push_back(a1);
+        std::is_const<typename std::remove_reference<Arg2>::type>::value ?
+            inputs.push_back(a2) : outputs.push_back(a2);
+        std::is_const<typename std::remove_reference<Arg3>::type>::value ?
+            inputs.push_back(a3) : outputs.push_back(a3);
+    }
+    
+    virtual void run()
+    {
+        if(once && !first_call)
+            return;
+        Arg1& a1 = task_data_storage<std::remove_cv<typename std::remove_reference<Arg1>::type>::type>::Get();
+        Arg2& a2 = task_data_storage<std::remove_cv<typename std::remove_reference<Arg2>::type>::type>::Get();
+        Arg3& a3 = task_data_storage<std::remove_cv<typename std::remove_reference<Arg3>::type>::type>::Get();
+        func(a1, a2, a3);
+        first_call = false;
+    }
+private:
+    void(*func)(Arg1, Arg2, Arg3);
+    
+    virtual bool compare_same_type_wrapper(const task_wrap_base* other) const
+    {
+        auto o = (const task_wrap<Arg1, Arg2, Arg3>*)other;
+        return func == o->func;
+    }
+};
+
+template<typename Arg1, typename Arg2>
+class task_wrap<Arg1, Arg2, void> : public task_wrap_base
 {
 public:
     task_wrap(void(*f)(Arg1, Arg2), bool once = false)
@@ -109,18 +150,19 @@ public:
         func(a1, a2);
         first_call = false;
     }
+    
 private:
-    void(*func)(Arg1, Arg2);
+    void (*func)(Arg1, Arg2);
     
     virtual bool compare_same_type_wrapper(const task_wrap_base* other) const
     {
-        auto o = (const task_wrap<Arg1, Arg2>*)other;
+        auto o = (const task_wrap<Arg1, Arg2, void>*)other;
         return func == o->func;
     }
 };
 
 template<typename Arg1>
-class task_wrap<Arg1, void> : public task_wrap_base
+class task_wrap<Arg1, void, void> : public task_wrap_base
 {
 public:
     task_wrap(void(*f)(Arg1), bool once = false)

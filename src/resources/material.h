@@ -37,17 +37,17 @@ private:
     std::map<std::string, std::string> strstr;
 };
 
-class MaterialReaderJSON : public resource<Material>::reader
+class MaterialReaderJSON : public asset<Material>::reader
 {
 public:
-    Material* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, Material* material)
     {
+        bool result = false;
         using json = nlohmann::json;
-        Material* material = 0;
         
         std::ifstream file(filename, std::ios::in);
         if(!file.is_open())
-            return 0;
+            return result;
         
         json j;
         try
@@ -58,10 +58,10 @@ public:
         {
             std::cout << "Material json parse error: " << e.what() << std::endl;
             file.close();
-            return 0;
+            return result;
         }
 
-        material = new Material();
+        result = true;
         for(json::iterator it = j.begin(); it != j.end(); ++it)
         {
             if(it.value().is_string())
@@ -73,7 +73,7 @@ public:
         
         file.close();
         
-        return material;
+        return result;
     }
 };
 

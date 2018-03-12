@@ -18,12 +18,12 @@ public:
     {}
     void SetMeshData(const std::string& name)
     {
-        SetMeshData(resource<MeshData>::get(name));
+        SetMeshData(asset<MeshData>::get(name));
     }
     void SetMeshData(MeshData* md) { meshData = md; }
     void SetMaterial(const std::string& name)
     {
-        SetMaterial(resource<Material>::get(name));
+        SetMaterial(asset<Material>::get(name));
     }
     void SetMaterial(Material* mat) { material = mat; }
     
@@ -35,8 +35,8 @@ public:
         Renderer* renderer = GetObject()->Root()->GetComponent<Renderer>();
     }
 private:
-    MeshData* meshData;
-    Material* material;
+    asset<MeshData> meshData;
+    asset<Material> material;
 };
 
 #endif

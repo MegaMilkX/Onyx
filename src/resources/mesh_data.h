@@ -5,7 +5,7 @@
 #include <aurora/gfx.h>
 #include <aurora/media/fbx.h>
 
-#include <resource.h>
+#include <asset.h>
 
 #include "../util/gl_helpers.h"
 
@@ -63,10 +63,16 @@ public:
         );
         
         attribArrays[ATTR()] = bytes;
+        for(unsigned i = 0; i < vaoDirty.size(); ++i)
+            vaoDirty[i] = true;
     }
     
     void SetIndices(const std::vector<unsigned short>& data)
-    { indices = data; }
+    { 
+        indices = data;
+        for(unsigned i = 0; i < vaoDirty.size(); ++i)
+            vaoDirty[i] = true;
+    }
     
     template<typename T>
     unsigned GetAttribCount()
@@ -110,7 +116,17 @@ public:
         for(unsigned i = 0; i < vertexArrayObjects.size(); ++i)
         {
             if(_compareDesc(vertexDesc, vertexArrayObjects[i]))
-                return vertexArrayObjects[i].GetGlName();
+            {
+                if(vaoDirty[i])
+                {
+                    vaoDirty.erase(vaoDirty.begin() + i);
+                    vertexArrayObjects[i].Cleanup();
+                    vertexArrayObjects.erase(vertexArrayObjects.begin() + i);
+                    break;
+                }
+                else
+                    return vertexArrayObjects[i].GetGlName();
+            }
         }
         
         GLVertexArrayObject vao;
@@ -133,6 +149,7 @@ public:
         vao.FillIndexBuffer(GetIndices());
         
         vertexArrayObjects.push_back(vao);
+        vaoDirty.push_back(false);
         
         return vao.GetGlName();
     }
@@ -140,6 +157,7 @@ public:
     { return indices.size(); }
     
     std::vector<GLVertexArrayObject> vertexArrayObjects;
+    std::vector<bool> vaoDirty;
     std::map<Au::AttribInfo, std::vector<unsigned char>> attribArrays;
     std::vector<unsigned short> indices;
     
@@ -169,22 +187,21 @@ public:
     }
 };
 
-class MeshReaderFBX : public resource<MeshData>::reader
+class MeshReaderFBX : public asset<MeshData>::reader
 {
 public:
-    MeshData* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, MeshData* meshData)
     {
-        MeshData* meshData = 0;
-        
+        bool result = false;        
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())
-            return 0;
+            return result;
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
         std::vector<char> buffer((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
-            meshData = new MeshData();
+            result = true;
             
             Au::Media::FBX::Reader fbxReader;
             fbxReader.ReadMemory(buffer.data(), buffer.size());
@@ -276,7 +293,7 @@ public:
         
         file.close();
         
-        return meshData;
+        return result;
     }
 };
 

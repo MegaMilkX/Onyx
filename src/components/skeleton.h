@@ -2,8 +2,11 @@
 #define SKELETON_H
 
 #include "renderer.h"
+#include "model.h"
 
 #include <algorithm>
+#include <mutex>
+#include "../util/gl_render_state.h"
 
 #undef GetObject
 
@@ -70,21 +73,20 @@ struct SkeletonData
     int boneCount;
 };
 
-struct SkeletonDataReaderFBX : public resource<SkeletonData>::reader
+struct SkeletonDataReaderFBX : public asset<SkeletonData>::reader
 {
-    SkeletonData* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, SkeletonData* skel)
     {
-        SkeletonData* skel = 0;
-        
+        bool result = false; 
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())
-            return 0;
+            return result;
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
         std::vector<char> buffer((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
-            skel = new SkeletonData();
+            result = true;
             
             Au::Media::FBX::Reader fbxReader;
             fbxReader.ReadMemory(buffer.data(), buffer.size());
@@ -120,7 +122,7 @@ struct SkeletonDataReaderFBX : public resource<SkeletonData>::reader
         
         file.close();
         
-        return skel;
+        return result;
     }
     
     Au::Media::FBX::Bone* GetBoneByUID(std::vector<Au::Media::FBX::Bone>& bones, int64_t uid)
@@ -133,6 +135,33 @@ struct SkeletonDataReaderFBX : public resource<SkeletonData>::reader
         return 0;
     }
 };
+
+class Skeleton;
+struct RenderUnitSkin
+{    
+    GLuint vao;
+    int indexCount;
+    asset<Texture2D> texDiffuse;
+
+    int vertexSize;
+    Transform* transform;
+    Skeleton* skeleton;
+};
+
+struct SkinDrawData
+{
+    resource<gl::ShaderProgram> program;
+    GLuint uniProjection;
+    GLuint uniView;
+    GLuint uniModel;
+    GLuint uniAmbientColor;
+    GLuint uniBoneInverseTransforms;
+    GLuint uniBoneTransforms; 
+    std::vector<RenderUnitSkin> units;
+};
+
+inline void fg_SkinRebuild(const FrameCommon& frame, SkinDrawData& out);
+inline void fg_SkinDraw(const FrameCommon& frame, const SkinDrawData& out);
 
 class Skeleton : public SceneObject::Component
 {
@@ -187,7 +216,7 @@ public:
     void SetData(const std::string& name)
     {
         resourceName = name;
-        SetData(resource<SkeletonData>::get(name));
+        SetData(asset<SkeletonData>::get(name));
     }
     
     void SetData(SkeletonData* data)
@@ -243,12 +272,12 @@ public:
     virtual void OnCreate()
     {        
         renderer = GetObject()->Root()->GetComponent<Renderer>();
-        /*
+        
         static std::once_flag once_flag;
         std::call_once(
             once_flag,
-            [](){
-                gl::ShaderProgram* prog = 
+            [this](){
+                resource<gl::ShaderProgram> prog = 
                     resource<gl::ShaderProgram>::get("skin_shader");
                 gl::Shader vs;
                 gl::Shader fs;
@@ -275,14 +304,31 @@ public:
                 prog->BindFragData(0, "fragOut");
                 prog->Link();
 
+                prog->Use();
                 glUniform1i(prog->GetUniform("DiffuseTexture"), 0);
+
+                SkinDrawData sdd{ 
+                    prog,
+                    prog->GetUniform("MatrixProjection"),
+                    prog->GetUniform("MatrixView"),
+                    prog->GetUniform("MatrixModel"),
+                    prog->GetUniform("AmbientColor"),
+                    prog->GetUniform("BoneInverseBindTransforms"),
+                    prog->GetUniform("BoneTransforms")
+                };
+                renderer->GetFrameGraph().set_data(sdd);
+                
             }
         );
 
+        Model* m = GetComponent<Model>();
+        if(m)
+            m->program = resource<gl::ShaderProgram>::get("skin_shader");
+
         task_graph::graph& fg = renderer->GetFrameGraph();
-        fg += task_graph::once(ShaderSkinInit);
-        fg += task_graph::once(SkinDrawInitUnits);
-        fg += SkinDraw;*/
+        fg += task_graph::once(fg_SkinRebuild);
+        fg.reset_once_flag(fg_SkinRebuild);
+        fg += fg_SkinDraw;
     }
     virtual std::string Serialize() 
     { 
@@ -358,7 +404,7 @@ private:
             Au::GFX::GetUniform<Au::Math::Mat4f>("BoneTransforms", bones.size());
     }
 
-    SkeletonData* skelData;
+    asset<SkeletonData> skelData;
     std::string resourceName;
     
     Renderer* renderer;
@@ -372,5 +418,71 @@ private:
     
     std::string skinShaderSource;
 };
+
+inline void fg_SkinRebuild(const FrameCommon& frame, SkinDrawData& out)
+{
+    Renderer* renderer = frame.scene->GetComponent<Renderer>();
+    std::vector<Model*> models = frame.scene->FindAllOf<Model>();
+    for(Model* model : models)
+    {
+        if(!model->GetObject()->FindComponent<Skeleton>())
+            continue;
+        if(!model->program.equals(out.program))
+            continue;
+        if(model->mesh.empty())
+            continue;
+        RenderUnitSkin unit;
+        unit.skeleton = model->GetComponent<Skeleton>();
+        unit.transform = model->GetComponent<Transform>();
+        unit.vao = model->mesh->GetVao({
+            { "Position", 3, GL_FLOAT, GL_FALSE },
+            { "UV", 2, GL_FLOAT, GL_FALSE },
+            { "Normal", 3, GL_FLOAT, GL_FALSE },
+            { "BoneIndex4", 4, GL_FLOAT, GL_FALSE },
+            { "BoneWeight4", 4, GL_FLOAT, GL_FALSE }
+        });
+        unit.indexCount = model->mesh->GetIndexCount();
+        unit.texDiffuse.set(model->material->GetString("Diffuse"));
+
+        out.units.push_back(unit);
+    }
+
+    std::cout << "Created " << out.units.size() << " skin units" << std::endl;
+}
+inline void fg_SkinDraw(const FrameCommon& frame, const SkinDrawData& in)
+{
+    in.program->Use();
+    glUniformMatrix4fv(
+        in.uniProjection, 1, GL_FALSE,
+        (float*)&frame.projection
+    );
+    glUniformMatrix4fv(
+        in.uniView, 1, GL_FALSE,
+        (float*)&frame.view
+    );
+    glUniform3f(
+        in.uniAmbientColor,
+        0.4f, 0.3f, 0.2f
+    );
+    for(const RenderUnitSkin& unit : in.units)
+    {
+        unit.skeleton->Update();
+        unit.skeleton->Bind(in.program->GetId());
+        glUniformMatrix4fv(
+            in.uniModel, 1, GL_FALSE,
+            (float*)&unit.transform->GetTransform()
+        );
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, unit.texDiffuse->GetGlName());
+        
+        glBindVertexArray(unit.vao);
+        glDrawElements(
+            GL_TRIANGLES, 
+            unit.indexCount, 
+            GL_UNSIGNED_SHORT, 
+            (void*)0
+        );
+    }
+}
 
 #endif

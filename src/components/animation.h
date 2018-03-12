@@ -50,22 +50,20 @@ private:
     float fps;
 };
 
-struct AnimDataReaderFBX : public resource<AnimData>::reader
+struct AnimDataReaderFBX : public asset<AnimData>::reader
 {
-    AnimData* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, AnimData* animData)
     {
-        AnimData* animData = 0;
-        
+        bool result = false;
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())
-            return 0;
+            return result;
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
         std::vector<char> buffer((unsigned int)size);
         if(file.read(buffer.data(), size))
         {
-            animData = new AnimData();
-            
+            result = true;
             Au::Media::FBX::Reader fbxReader;
             fbxReader.ReadMemory(buffer.data(), buffer.size());
             fbxReader.DumpFile(filename);
@@ -125,7 +123,7 @@ struct AnimDataReaderFBX : public resource<AnimData>::reader
         
         file.close();
         
-        return animData;
+        return result;
     }
 
 private:
@@ -276,10 +274,10 @@ public:
     void SetAnim(const std::string& name, const std::string& resourceName)
     {
         animResourceName = resourceName;
-        SetAnim(name, resource<AnimData>::get(resourceName));
+        SetAnim(name, asset<AnimData>::get(resourceName));
     }
     
-    void SetAnim(const std::string& name, AnimData* data)
+    void SetAnim(const std::string& name, asset<AnimData> data)
     {
         animName = name;
         FrameRate(data->FrameRate());

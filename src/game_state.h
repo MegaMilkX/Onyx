@@ -31,6 +31,7 @@ public:
     public:
         void KeyUp(Au::Input::KEYCODE key) { PostKeyUp(key); }
         void KeyDown(Au::Input::KEYCODE key) { PostKeyDown(key); }
+        void OnChar(int charCode) { PostOnChar(charCode); }
     };
     
     virtual ~GameState(){}
@@ -47,6 +48,7 @@ public:
     virtual void MouseWheel(short value) {}
     virtual void KeyUp(Au::Input::KEYCODE key) {}
     virtual void KeyDown(Au::Input::KEYCODE key) {}
+    virtual void OnChar(int charCode) {}
     
     template<typename T>
     static void Push()
@@ -130,6 +132,7 @@ public:
     static void PostMouseWheel(short value) { stateStack.top()->MouseWheel(value); }
     static void PostKeyUp(Au::Input::KEYCODE key) { stateStack.top()->KeyUp(key); }
     static void PostKeyDown(Au::Input::KEYCODE key) { stateStack.top()->KeyDown(key); }
+    static void PostOnChar(int charCode) { stateStack.top()->OnChar(charCode); }
 private:
     static float deltaTime;
     static Au::Timer timer;

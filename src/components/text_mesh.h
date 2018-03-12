@@ -78,6 +78,7 @@ public:
         mesh->VertexData(vertexData);
         mesh->IndexData(indexData);
        */ 
+      /*
         std::vector<float> posData;
         std::vector<float> uvData;
         std::vector<unsigned short> indexData;
@@ -86,7 +87,7 @@ public:
         for(unsigned i = 0; i < text.size(); ++i)
         {
             char charCode = text[i];
-            GlyphInfo* glyph = fontData->GetGlyph(charCode);
+            FontRasterizer::GlyphInfo* glyph = fontData->GetGlyph(charCode, 32);
             std::vector<float> newPosData = {
                 advX, 0.0f, 0.0f, 
                 advX + glyph->width, 0.0f, 0.0f,
@@ -115,6 +116,7 @@ public:
         vao.FillArrayBuffer("Position", (void*)posData.data(), posData.size() * sizeof(float));
         vao.FillArrayBuffer("UV", (void*)uvData.data(), uvData.size() * sizeof(float));
         vao.FillIndexBuffer(indexData);
+        */
     }
     
     void Render(GLuint shaderProgram)

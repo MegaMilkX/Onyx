@@ -17,20 +17,54 @@ void Model::OnCreate()
     static std::once_flag once_flag;
     std::call_once(
         once_flag,
-        [](){
-            std::cout << "Called once!" << std::endl;
+        [this](){
+            resource<gl::ShaderProgram> prog = 
+                resource<gl::ShaderProgram>::get("solid_shader");
+            gl::Shader vs;
+            gl::Shader fs;
+            vs.Init(GL_VERTEX_SHADER);
+            vs.Source(
+                #include "../shaders/solid_vs.glsl"
+            );
+            vs.Compile();
+            fs.Init(GL_FRAGMENT_SHADER);
+            fs.Source(
+                #include "../shaders/solid_fs.glsl"
+            );
+            fs.Compile();
+
+            prog->AttachShader(&vs);
+            prog->AttachShader(&fs);
+
+            prog->BindAttrib(0, "Position");
+            prog->BindAttrib(1, "UV");
+            prog->BindAttrib(2, "Normal");
+
+            prog->BindFragData(0, "fragOut");
+            prog->Link();
+
+            prog->Use();
+            glUniform1i(prog->GetUniform("DiffuseTexture"), 0);
         }
     );
+
+    program = resource<gl::ShaderProgram>::get("solid_shader");
+    SolidDrawData sdd{ 
+        program,
+        program->GetUniform("MatrixProjection"),
+        program->GetUniform("MatrixView"),
+        program->GetUniform("MatrixModel"),
+        program->GetUniform("AmbientColor")
+    };
+    renderer->GetFrameGraph().set_data(sdd);
 
     transform = GetObject()->GetComponent<Transform>();
     renderer = GetObject()->Root()->GetComponent<Renderer>();
     
     task_graph::graph& fg = renderer->GetFrameGraph();
-    fg += SolidMeshDraw;
-    fg += task_graph::once(ShaderSolidInit);
-    fg += task_graph::once(ShaderSkinInit);
-    fg += task_graph::once(SolidMeshDrawInitUnits);
-    fg.reset_once_flag(SolidMeshDrawInitUnits);
+    fg += fg_SolidDraw;
+    fg += task_graph::once(fg_SolidRebuild);
+    fg.reset_once_flag(fg_SolidRebuild);
 }
 std::string Model::Serialize() 
 {

@@ -23,6 +23,9 @@
 class ScriptData
 {
 public:
+    ScriptData()
+    : source("")
+    {}
     ScriptData(const std::string& source)
     : source(source)
     {}
@@ -31,20 +34,21 @@ private:
     std::string source;
 };
 
-class ScriptReaderLUA : public resource<ScriptData>::reader
+class ScriptReaderLUA : public asset<ScriptData>::reader
 {
 public:
-    ScriptData* operator()(const std::string& filename)
+    bool operator()(const std::string& filename, ScriptData* script)
     {
         std::ifstream file(filename);
         if(!file.is_open())
-            return 0;
+            return false;
         std::string source((std::istreambuf_iterator<char>(file)),
                  std::istreambuf_iterator<char>());
-                 
-        return new ScriptData(source);
+
+        *script = ScriptData(source);
         
         file.close();
+        return true;
     }
 };
 
@@ -72,7 +76,7 @@ public:
     
     void SetScript(const std::string& name)
     {
-        ScriptData* sd = resource<ScriptData>::get(name);
+        ScriptData* sd = asset<ScriptData>::get(name);
         if(!sd)
             return;
         scriptName = name;

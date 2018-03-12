@@ -16,7 +16,7 @@ public:
 
     void SetClip(const std::string& name)
     {
-        clip = resource<SoundClip>::get(name);
+        clip = asset<SoundClip>::get(name);
         if(!clip)
             return;
         emitter = GameState::GetAudioMixer()->CreateEmitter(clip->GetBuffer());
@@ -30,7 +30,7 @@ public:
     }
 protected:
     SoundRoot* soundRoot;
-    SoundClip* clip;
+    asset<SoundClip> clip;
     AudioEmitter* emitter;
 };
 

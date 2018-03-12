@@ -21,38 +21,20 @@ struct RenderUnitSolid
 {    
     GLuint vao;
     int indexCount;
-    GLuint texDiffuse;
+    asset<Texture2D> texDiffuse;
 
     int vertexSize;
     Transform* transform;
 };
 
-struct ShaderProgramSolid
+struct SolidDrawData
 {
-    gl::ShaderProgram* prog;
+    resource<gl::ShaderProgram> program;
     GLuint uniProjection;
     GLuint uniView;
     GLuint uniModel;
     GLuint uniAmbientColor;
-};
-
-struct ShaderProgramSkin
-{
-    GLuint id;
-    GLuint uniProjection;
-    GLuint uniView;
-    GLuint uniModel;
-    GLuint uniAmbientColor;
-    GLuint uniBoneInverseTransforms;
-    GLuint uniBoneTransforms;
-};
-
-struct SolidMeshDrawData
-{
-    ShaderProgramSolid shaderSolid;
-    ShaderProgramSkin shaderSkin;
-    std::vector<RenderUnitSolid> renderUnits;
-    std::vector<RenderUnitSolid> skinUnits;
+    std::vector<RenderUnitSolid> units;
 };
 
 struct SolidDrawStats
@@ -60,39 +42,37 @@ struct SolidDrawStats
     int drawCalls;
 };
 
-inline void ShaderSolidInit(const FrameCommon& frame, SolidMeshDrawData& out);
-inline void ShaderSkinInit(const FrameCommon& frame, SolidMeshDrawData& out);
-inline void SolidMeshDrawInitUnits(const FrameCommon& frame, SolidMeshDrawData& out);
+inline void fg_SolidRebuild(const FrameCommon& frame, SolidDrawData& out);
 
-inline void SolidMeshDraw(
+inline void fg_SolidDraw(
     const FrameCommon& frame, 
-    const SolidMeshDrawData& in)
+    const SolidDrawData& in)
 {
-    in.shaderSolid.prog->Use();
+    in.program->Use();
     
     glUniformMatrix4fv(
-        in.shaderSolid.uniProjection, 1, GL_FALSE,
+        in.uniProjection, 1, GL_FALSE,
         (float*)&frame.projection
     );
     glUniformMatrix4fv(
-        in.shaderSolid.uniView, 1, GL_FALSE,
+        in.uniView, 1, GL_FALSE,
         (float*)&frame.view
     );
     
     glUniform3f(
-        in.shaderSolid.uniAmbientColor,
+        in.uniAmbientColor,
         0.4f, 0.3f, 0.2f
     );
     
-    for(const RenderUnitSolid& unit : in.renderUnits)
+    for(const RenderUnitSolid& unit : in.units)
     {
         glUniformMatrix4fv(
-            in.shaderSolid.uniModel, 1, GL_FALSE,
+            in.uniModel, 1, GL_FALSE,
             (float*)&unit.transform->GetTransform()
         );
         
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, unit.texDiffuse);
+        glBindTexture(GL_TEXTURE_2D, unit.texDiffuse->GetGlName());
         
         glBindVertexArray(unit.vao);
         glDrawElements(GL_TRIANGLES, unit.indexCount, GL_UNSIGNED_SHORT, (void*)0);
@@ -108,6 +88,7 @@ public:
 
     asset<MeshData> mesh;
     asset<Material> material;
+    resource<gl::ShaderProgram> program;
     
     virtual void OnCreate();
     virtual std::string Serialize() ;
@@ -123,120 +104,37 @@ protected:
     std::string subMeshName;
 };
 
-void ShaderSolidInit(const FrameCommon& frame, SolidMeshDrawData& out)
+void fg_SolidRebuild(const FrameCommon& frame, SolidDrawData& out)
 {
-    gl::Shader vs;
-    gl::Shader fs;
-    vs.Init(GL_VERTEX_SHADER);
-    vs.Source(
-        #include "../shaders/solid_vs.glsl"
-    );
-    vs.Compile();
-    fs.Init(GL_FRAGMENT_SHADER);
-    fs.Source(
-        #include "../shaders/solid_fs.glsl"
-    );
-    fs.Compile();
+    out.units.clear();
 
-    gl::ShaderProgram* prog = new gl::ShaderProgram;
-    prog->AttachShader(&vs);
-    prog->AttachShader(&fs);
-
-    prog->BindAttrib(0, "Position");
-    prog->BindAttrib(1, "UV");
-    prog->BindAttrib(2, "Normal");
-
-    prog->BindFragData(0, "fragOut");
-
-    prog->Link();
-
-    glUniform1i(prog->GetUniform("DiffuseTexture"), 0);
-
-    out.shaderSolid.prog = prog;
-    out.shaderSolid.uniProjection = prog->GetUniform("MatrixProjection");
-    out.shaderSolid.uniView = prog->GetUniform("MatrixView");
-    out.shaderSolid.uniModel = prog->GetUniform("MatrixModel");
-    out.shaderSolid.uniAmbientColor = prog->GetUniform("AmbientColor");
-
-    std::cout << "Solid shader initialized" << std::endl;
-}
-
-void ShaderSkinInit(const FrameCommon& frame, SolidMeshDrawData& out)
-{
-    GLuint program = glCreateProgram();
-    _initShader(
-        #include "../shaders/skin_vs.glsl"
-        , program,
-        GL_VERTEX_SHADER
-    );
-    _initShader(
-        #include "../shaders/solid_fs.glsl"
-        , program,
-        GL_FRAGMENT_SHADER
-    );
-    glBindAttribLocation(program, 0, "Position");
-    glBindAttribLocation(program, 1, "UV");
-    glBindAttribLocation(program, 2, "Normal");
-    glBindAttribLocation(program, 3, "BoneIndex4");
-    glBindAttribLocation(program, 4, "BoneWeight4");
-    
-    glBindFragDataLocation(program, 0, "fragOut");
-    
-    glLinkProgram(program);
-
-    std::string error_str;
-    int result;
-    int info_log_len;
-    glValidateProgram(program);
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &result);
-    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_len);
-    if (info_log_len > 1)
-    {
-        std::vector<char> ShaderErrorMessage(info_log_len + 1);
-        glGetProgramInfoLog(program, info_log_len, NULL, &ShaderErrorMessage[0]);
-        error_str = &ShaderErrorMessage[0];
-        std::cout << error_str << std::endl;
-    }
-    
-    glUseProgram(program);
-    glUniform1i(glGetUniformLocation(program, "DiffuseTexture"), 0);
-
-    out.shaderSkin.id = program;
-    out.shaderSkin.uniProjection = glGetUniformLocation(program, "MatrixProjection");
-    out.shaderSkin.uniView = glGetUniformLocation(program, "MatrixView");
-    out.shaderSkin.uniModel = glGetUniformLocation(program, "MatrixModel");
-    out.shaderSkin.uniAmbientColor = glGetUniformLocation(program, "AmbientColor");
-    
-    std::cout << "Skin shader initialized" << std::endl;
-}
-
-void SolidMeshDrawInitUnits(const FrameCommon& frame, SolidMeshDrawData& out)
-{
     Renderer* renderer = frame.scene->GetComponent<Renderer>();
     std::vector<Model*> meshes = frame.scene->FindAllOf<Model>();
-    for(Model* mesh : meshes)
+    for(Model* model : meshes)
     {
-        if(!mesh->mesh.get())
+        if(!model->program.equals(out.program))
+            continue;
+        if(!model->mesh)
             continue;
         
         RenderUnitSolid unit;
-        unit.transform = mesh->GetComponent<Transform>();
+        unit.transform = model->GetComponent<Transform>();
         
-        unit.vao = mesh->mesh->GetVao({
+        unit.vao = model->mesh->GetVao({
             { "Position", 3, GL_FLOAT, GL_FALSE },
             { "UV", 2, GL_FLOAT, GL_FALSE },
             { "Normal", 3, GL_FLOAT, GL_FALSE }
         });
-        unit.indexCount = mesh->mesh->GetIndexCount();
+        unit.indexCount = model->mesh->GetIndexCount();
         
         Texture2D* tex = 
-            resource<Texture2D>::get(mesh->material->GetString("Diffuse"));
-        unit.texDiffuse = tex->GetGlName();
+            asset<Texture2D>::get(model->material->GetString("Diffuse"));
+        unit.texDiffuse.set(model->material->GetString("Diffuse"));
         
-        out.renderUnits.push_back(unit);
+        out.units.push_back(unit);
     }
     
-    std::cout << "Created " << out.renderUnits.size() << " render units" << std::endl;
+    std::cout << "Created " << out.units.size() << " render units" << std::endl;
 }
 
 /*
