@@ -106,11 +106,12 @@ public:
         deltaTime = timer.End() / 1000000.0f;
         
         // Maintaining 60fps, TODO: remove hack, add fps limiting system
+        /*
         while(deltaTime < 1.0f/60.0f)
         {
             deltaTime = timer.End() / 1000000.0f;
         }
-        
+        */
         return result;
     }
     
