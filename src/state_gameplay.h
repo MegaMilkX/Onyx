@@ -181,17 +181,37 @@ public:
         quad = scene.CreateObject()->GetComponent<Quad>();
         quad->image.set("V8fBNZhT");
         text = scene.CreateObject()->GetComponent<Text2d>();
-        text->GetComponent<Transform>()->Translate(200, 300, 0);
-        text->SetText({0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
+        text->GetComponent<Transform>()->Translate(0, 200, 0);
+        text->SetText(std::vector<int>{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
         text->SetSize(20);
+
+        fpsText = scene.CreateObject()->GetComponent<Text2d>();
+        fpsText->SetSize(16);
         //text->font->set("calibri");
+
+        Text2d* t = scene.CreateObject()->GetComponent<Text2d>();
+        t->GetComponent<Transform>()->Translate(0, 500, 0);
+        t->SetSize(24);
+        t->SetText(R"(Three Rings for the Elven-kings under the sky,
+Seven for the Dwarf-lords in their halls of stone,
+Nine for Mortal Men doomed to die,
+One for the Dark Lord on his dark throne
+In the Land of Mordor where the Shadows lie.
+One Ring to rule them all, One Ring to find them,
+One Ring to bring them all and in the darkness bind them
+In the Land of Mordor where the Shadows lie.)");
     }
     virtual void OnCleanup() 
     {
     }
 
+    float fps = 0.0f;
     virtual void OnUpdate() 
     {
+        fps = 1.0f / DeltaTime();
+        std::string s = std::to_string(fps);
+        fpsText->SetText(std::string("FPS: ") + s);
+
         animation->Update(DeltaTime());
         collision->Update(DeltaTime());
         
@@ -217,7 +237,8 @@ public:
     {
         if(charCode == 8)
         {
-            str.pop_back();
+            if(!str.empty())
+                str.pop_back();
         }
         else
         {
@@ -250,6 +271,7 @@ public:
             character->GetComponent<Transform>()->Position(7.0f, 5.25f, -10.0f);
         }
     }
+    Text2d* fpsText;
     Text2d* text;
     std::vector<int> str;
     
