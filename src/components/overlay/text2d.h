@@ -77,6 +77,12 @@ public:
         SetText(string);
     }
 
+    void SetFont(const std::string& name)
+    {
+        fontData = asset<FontData>::get(name);
+        SetText(string);
+    }
+
     void OnCreate()
     {
         static FontData* fd = CreateDefaultFontData();
