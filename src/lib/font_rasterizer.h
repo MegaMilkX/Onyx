@@ -90,6 +90,7 @@ public:
     struct GlobalMetrics
     {
         Au::Math::Vec2i bbox;
+        float lineHeight;
     };
 
     GlobalMetrics GetGlobalMetrics(unsigned size)
@@ -101,7 +102,8 @@ public:
         float one64th = 1.0f/64.0f;
         return GlobalMetrics{
             Au::Math::Vec2i( (face->bbox.xMax) * one64th, 
-            (face->bbox.yMax) * one64th )
+            (face->bbox.yMax) * one64th ),
+            face->size->metrics.height * one64th
         };
     }
     

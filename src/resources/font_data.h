@@ -19,6 +19,7 @@ public:
         int width, height;
         int advX;
         int hBearingY;
+        int hBearingX;
         float u0, v0, u1, v1;
         float layer;
     };
@@ -130,6 +131,7 @@ public:
                     (int)g->width, (int)g->height,
                     (int)g->advX,
                     (int)g->hBearingY,
+                    (int)g->hBearingX,
                     (float)(atlas->slot.x) / (float)GLYPH_PAGE_SIZE, 
                     (float)(atlas->slot.y) / (float)GLYPH_PAGE_SIZE, 
                     (float)(atlas->slot.x) / (float)GLYPH_PAGE_SIZE + 

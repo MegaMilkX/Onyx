@@ -17,6 +17,10 @@ class Text2d : public SceneObject::Component
 public:
     Text2d()
     : size(16) {}
+    void SetText(const std::string& str)
+    {
+        SetText(std::vector<int>(str.begin(), str.end()));
+    }
     void SetText(const std::vector<int>& str)
     {
         string = str;
@@ -24,20 +28,29 @@ public:
         std::vector<float> uvw;
         float adv = 0.0f;
         charCount = str.size();
+        FontData::GlyphAtlas* atlas = fontData->GetGlyphAtlas(size);
+        float line = 1.0f;
         for(unsigned i = 0; i < str.size(); ++i)
         {
             int charCode = str[i];
+            if(charCode == 13 || charCode == '\n')
+            {
+                line += 1.0f;
+                adv = 0.0f;
+                continue;
+            }
             FontData::Glyph* g = fontData->GetGlyph(charCode, size);
             float heightBearingDiff = g->height - g->hBearingY;
+            float loff = line * atlas->metrics.lineHeight;
             vertices.insert(
                 vertices.end(),
                 {
-                    adv + 0.0f,         (float)-g->height + heightBearingDiff,               0.0f,
-                    adv + g->width,     (float)-g->height + heightBearingDiff,               0.0f,
-                    adv + g->width,     (float)heightBearingDiff,   0.0f,
-                    adv + g->width,     (float)heightBearingDiff,   0.0f,
-                    adv + 0.0f,         (float)heightBearingDiff,   0.0f,
-                    adv + 0.0f,         (float)-g->height + heightBearingDiff,               0.0f
+                    adv + g->hBearingX + 0.0f,      (float)-g->height + heightBearingDiff + loff,               0.0f,
+                    adv + g->hBearingX + g->width,  (float)-g->height + heightBearingDiff + loff,               0.0f,
+                    adv + g->hBearingX + g->width,  (float)heightBearingDiff + loff,   0.0f,
+                    adv + g->hBearingX + g->width,  (float)heightBearingDiff + loff,   0.0f,
+                    adv + g->hBearingX + 0.0f,      (float)heightBearingDiff + loff,   0.0f,
+                    adv + g->hBearingX + 0.0f,      (float)-g->height + heightBearingDiff + loff,               0.0f
                 }
             );
             uvw.insert(

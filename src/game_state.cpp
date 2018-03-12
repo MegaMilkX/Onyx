@@ -1,6 +1,6 @@
 #include "game_state.h"
 
-float GameState::deltaTime;
+float GameState::deltaTime = 0.0f;
 Au::Timer GameState::timer;
 
 std::stack<GameState*> GameState::stateStack;
