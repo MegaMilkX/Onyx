@@ -200,6 +200,13 @@ In the Land of Mordor where the Shadows lie.
 One Ring to rule them all, One Ring to find them,
 One Ring to bring them all and in the darkness bind them
 In the Land of Mordor where the Shadows lie.)");
+        t->SetFont("Cup and Talon");
+
+        Text2d* title = scene.CreateObject()->GetComponent<Text2d>();
+        title->GetComponent<Transform>()->Translate(960, 500, 0);
+        title->SetSize(86);
+        title->SetFont("FantaisieArtistique");
+        title->SetText("Fantasy Title");
     }
     virtual void OnCleanup() 
     {
