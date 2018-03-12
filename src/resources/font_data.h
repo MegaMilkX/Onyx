@@ -33,6 +33,7 @@ public:
         FontRasterizer::GlobalMetrics metrics;
         Au::Math::Vec2i glyphPerPage;
         Au::Math::Vec3i slot;
+        int lastRowHeight = 0;
         Texture3D* texture;
         unsigned char* data;
         int pages;
@@ -46,6 +47,7 @@ public:
             pages++;
             delete[] data;
             data = new unsigned char[GLYPH_PAGE_SIZE * GLYPH_PAGE_SIZE * pages];
+            memset(data, 0, GLYPH_PAGE_SIZE * GLYPH_PAGE_SIZE * pages);
             unsigned char* old = texture->GetData();
             memcpy(data, old, GLYPH_PAGE_SIZE * GLYPH_PAGE_SIZE * (pages - 1));
             texture->Data(data, GLYPH_PAGE_SIZE, GLYPH_PAGE_SIZE, pages, 1);
@@ -84,6 +86,7 @@ public:
         {
             atlases[size].texture = new Texture3D();
             atlases[size].data = new unsigned char[GLYPH_PAGE_SIZE * GLYPH_PAGE_SIZE];
+            memset(atlases[size].data, 0, GLYPH_PAGE_SIZE * GLYPH_PAGE_SIZE);
             atlases[size].texture->Data(atlases[size].data, GLYPH_PAGE_SIZE, GLYPH_PAGE_SIZE, 1, 1);
         }
         GlyphAtlas& a = atlases[size];
@@ -100,11 +103,26 @@ public:
             rasterizer.GetGlyph(charCode, size);
         if(!atlas->Exists(charCode))
         {
+            if(GLYPH_PAGE_SIZE - atlas->slot.x < (int)g->bitmap.width)
+            {
+                atlas->slot.x = 0;
+                atlas->slot.y += atlas->lastRowHeight;
+                atlas->lastRowHeight = 0;
+            }
+            if(GLYPH_PAGE_SIZE - atlas->slot.y < (int)g->bitmap.height)
+            {
+                atlas->slot.x = 0;
+                atlas->slot.y = 0;
+                atlas->slot.z += 1;
+                atlas->lastRowHeight = 0;
+                atlas->AddPage();
+            }
+
             atlas->texture->Blit2d(
                 (unsigned char*)g->bitmap.data,
                 g->bitmap.width, g->bitmap.height, 1,
-                atlas->slot.x * atlas->metrics.bbox.x, 
-                atlas->slot.y * atlas->metrics.bbox.y,
+                atlas->slot.x, 
+                atlas->slot.y,
                 atlas->slot.z
             );
             atlas->glyphs[charCode] = 
@@ -112,28 +130,18 @@ public:
                     (int)g->width, (int)g->height,
                     (int)g->advX,
                     (int)g->hBearingY,
-                    (float)(atlas->slot.x * atlas->metrics.bbox.x) / (float)GLYPH_PAGE_SIZE, 
-                    (float)(atlas->slot.y * atlas->metrics.bbox.y) / (float)GLYPH_PAGE_SIZE, 
-                    (float)(atlas->slot.x * atlas->metrics.bbox.x) / (float)GLYPH_PAGE_SIZE + 
+                    (float)(atlas->slot.x) / (float)GLYPH_PAGE_SIZE, 
+                    (float)(atlas->slot.y) / (float)GLYPH_PAGE_SIZE, 
+                    (float)(atlas->slot.x) / (float)GLYPH_PAGE_SIZE + 
                     (float)g->bitmap.width / (float)GLYPH_PAGE_SIZE, 
-                    (float)(atlas->slot.y * atlas->metrics.bbox.y) / (float)GLYPH_PAGE_SIZE + 
+                    (float)(atlas->slot.y) / (float)GLYPH_PAGE_SIZE + 
                     (float)g->bitmap.height / (float)GLYPH_PAGE_SIZE,
                     (float)atlas->slot.z
                 };
-
-            atlas->slot.x += 1;
-            if(atlas->slot.x >= atlas->glyphPerPage.x)
-            {
-                atlas->slot.x = 0;
-                atlas->slot.y += 1;
-            }
-            if(atlas->slot.y >= atlas->glyphPerPage.y)
-            {
-                atlas->slot.x = 0;
-                atlas->slot.y = 0;
-                atlas->slot.z += 1;
-                atlas->AddPage();
-            }
+            
+            atlas->slot.x += g->width;
+            if(atlas->lastRowHeight < g->height)
+                atlas->lastRowHeight = g->height;
         }
         return &atlas->glyphs[charCode];
     }

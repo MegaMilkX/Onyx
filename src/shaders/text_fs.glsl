@@ -9,7 +9,7 @@ R"(#version 450
     void main()
     {
         vec4 Diffuse;
-         
+        
         Diffuse = texture ( GlyphAtlas , UVFrag ) ; 
         fragOut = Diffuse.xxxx ; 
     }

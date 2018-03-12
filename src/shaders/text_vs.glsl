@@ -8,13 +8,18 @@ R"(#version 450
     uniform mat4 MatrixView;
     uniform mat4 MatrixProjection;
 
+    uniform float GlyphPageCount;
+
     void main()
     {
         vec4 PositionScreen;
         vec4 PositionModel;
         
         PositionModel = vec4 ( Position , 1.0 ) ;
-        UVFrag = UVW;
+
+        float texelPageStep = 1.0 / (GlyphPageCount + 1.0);
+        UVFrag = vec3(UVW.x, UVW.y, (UVW.z+0.5) / GlyphPageCount);
+
         PositionScreen = 
             MatrixProjection *
             MatrixModel *

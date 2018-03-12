@@ -78,8 +78,12 @@ inline void fg_GuiDraw(const FrameCommon& frame, const GuiDrawData& in)
         //glBindTexture(GL_TEXTURE_2D, text->texture->GetGlName());
         glBindTexture(GL_TEXTURE_3D, text->fontData->GetGlyphAtlas(text->size)->texture->GetGlName());
         glUniformMatrix4fv(
-            in.program->GetUniform("MatrixModel"), 1, GL_FALSE,
+            in.program_text->GetUniform("MatrixModel"), 1, GL_FALSE,
             (float*)&text->GetComponent<Transform>()->GetTransform()
+        );
+        glUniform1f(
+            in.program_text->GetUniform("GlyphPageCount"),
+            (float)text->fontData->GetGlyphAtlas(text->size)->pages
         );
 
         glBindVertexArray(text->mesh->GetVao({
@@ -141,7 +145,7 @@ public:
                 prog_text->AttachShader(&vst);
                 prog_text->AttachShader(&fst);
                 prog_text->BindAttrib(0, "Position");
-                prog_text->BindAttrib(1, "UV");
+                prog_text->BindAttrib(1, "UVW");
                 prog_text->BindFragData(0, "fragOut");
                 prog_text->Link();
                 prog_text->Use();
