@@ -236,6 +236,12 @@ public:
         T& data = task_data_storage<T>::Get();
         data = d;
     }
+
+    template<typename T>
+    T& get_data()
+    {
+        return task_data_storage<T>::Get();
+    }
     
     void sort()
     {
