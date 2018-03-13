@@ -179,7 +179,9 @@ public:
         scene.CreateObject()->GetComponent<TextMesh>()->SetText("Hello, World!");
 
         quad = scene.CreateObject()->GetComponent<Quad>();
-        quad->image.set("V8fBNZhT");
+        quad->image.set("AngeHalloween_A");
+        quad->width = 960;
+        quad->height = 800;
         text = scene.CreateObject()->GetComponent<Text2d>();
         text->GetComponent<Transform>()->Translate(0, 200, 0);
         text->SetText(std::vector<int>{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
