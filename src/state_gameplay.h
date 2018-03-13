@@ -37,7 +37,7 @@ public:
     {
         this->chara = chara;
     }
-    
+
     void Update()
     {
         if(!chara)
@@ -57,7 +57,14 @@ public:
         t = t * 3;
         
         chara->Velocity(t);
+
+        while(eKeyDown* e = disp_onKeyDown.poll())    
+            KeyDown(e->key);
+        while(eKeyUp* e = disp_onKeyUp.poll())
+            KeyUp(e->key);
     }
+    event_dispatcher<eKeyDown> disp_onKeyDown;
+    event_dispatcher<eKeyUp> disp_onKeyUp;
 
     void KeyDown(Au::Input::KEYCODE key)
     {
@@ -99,8 +106,12 @@ public:
         transform->Rotate(-y * 0.005f, transform->Right());
     }
     
+    event_dispatcher<eMouseMove> disp_onMouseMove;
     void Update(float dt)
     {
+        while(eMouseMove* e = disp_onMouseMove.poll())
+            MouseMove(e->x, e->y);
+        
         Au::Math::Vec3f tgt = target->Position();
         tgt.y += 1.5f;
         tgt = (tgt - transform->Position()) * (dt * 7.0f);
@@ -215,8 +226,46 @@ In the Land of Mordor where the Shadows lie.)");
     }
 
     float fps = 0.0f;
+    event_dispatcher<eChar> dispatcher_onChar;
+    event_dispatcher<eKeyDown> disp_KeyDown;
+    event_dispatcher<eKeyUp> disp_KeyUp;
+    event_dispatcher<eMouseMove> disp_onMouseMove;
     virtual void OnUpdate() 
     {
+        while(eChar* e = dispatcher_onChar.poll())    
+        {
+            if(e->code == 8)
+            {
+                if(!str.empty())
+                    str.pop_back();
+            }
+            else
+            {
+                str.push_back(e->code);
+            }
+            text->SetText(str);
+        }
+        while(auto e = disp_KeyDown.poll())
+        {
+            script->Relay("KeyDown", (int)e->key);
+
+            if(e->key == Au::Input::KEY_Q)
+                character->GetComponent<Transform>()->Position(0.0f, 0.25f, 0.0f);
+            if(e->key == Au::Input::KEY_E)
+                character->GetComponent<Transform>()->Position(0.0f, 2.25f, -15.0f);
+            if(e->key == Au::Input::KEY_R)
+                character->GetComponent<Transform>()->Position(7.0f, 5.25f, -10.0f);
+        }
+        while(auto e = disp_KeyUp.poll())
+        {
+            script->Relay("KeyUp", (int)e->key);
+        }
+        while(auto e = disp_onMouseMove.poll())
+        {
+            script->Relay("MouseMove", e->x, e->y);
+            quad->GetComponent<Transform>()->Position(200 + e->x, 100 + e->y, 0.0f);
+        }
+
         fps = 1.0f / DeltaTime();
         std::string s = std::to_string(fps);
         fpsText->SetText(std::string("FPS: ") + s);
@@ -241,64 +290,10 @@ In the Land of Mordor where the Shadows lie.)");
         //scene.GetComponent<Collision>()->DebugDraw();
         //camera->Render(device);
     }
-
-    virtual void OnChar(int charCode)
-    {
-        if(charCode == 8)
-        {
-            if(!str.empty())
-                str.pop_back();
-        }
-        else
-        {
-            str.push_back(charCode);
-        }
-        text->SetText(str);
-    }
     
-    virtual void KeyDown(Au::Input::KEYCODE key)
-    {
-        script->Relay("KeyDown", (int)key);
-        charController->KeyDown(key);
-        /*
-        if(key == Au::Input::KEY_2)
-        {
-            GameState::Pop();
-            GameState::Push<StateTest>();
-        }
-        */
-        if(key == Au::Input::KEY_Q)
-        {
-            character->GetComponent<Transform>()->Position(0.0f, 0.25f, 0.0f);
-        }
-        if(key == Au::Input::KEY_E)
-        {
-            character->GetComponent<Transform>()->Position(0.0f, 2.25f, -15.0f);
-        }
-        if(key == Au::Input::KEY_R)
-        {
-            character->GetComponent<Transform>()->Position(7.0f, 5.25f, -10.0f);
-        }
-    }
     Text2d* fpsText;
     Text2d* text;
     std::vector<int> str;
-    
-    virtual void KeyUp(Au::Input::KEYCODE key)
-    {
-        script->Relay("KeyUp", (int)key);
-        charController->KeyUp(key);
-        
-        
-    }
-    
-    virtual void MouseMove(int x, int y)
-    {
-        script->Relay("MouseMove", x, y);
-        
-        quad->GetComponent<Transform>()->Position(200 + x, 100 + y, 0.0f);
-        camera->MouseMove(x, y);
-    }
 private:    
     SceneObject scene;
     Renderer* renderer;

@@ -14,24 +14,69 @@
 
 #include "lib/audio/audio_mixer_3d.h"
 
+#include "lib/event.h"
+
+struct eKeyDown{
+    Au::Input::KEYCODE key;
+};
+struct eKeyUp{
+    Au::Input::KEYCODE key;
+};
+struct eChar{
+    int code;
+};
+struct eMouseMove{
+    int x, y;
+};
+struct eMouseWheel{
+    short value;
+};
+struct eMouseDown{
+    Au::Input::KEYCODE key;
+};
+struct eMouseUp{
+    Au::Input::KEYCODE key;
+};
+
 class GameState
 {
 public:
     class MouseHandler : public Au::Input::MouseHandler
     {
     public:
-        void KeyUp(Au::Input::KEYCODE key) { PostMouseKeyUp(key); }
-        void KeyDown(Au::Input::KEYCODE key) { PostMouseKeyDown(key); }
-        void Move(int x, int y) { PostMouseMove(x, y); }
-        void Wheel(short value) { PostMouseWheel(value); }
+        void KeyUp(Au::Input::KEYCODE key) { 
+            event_post(eMouseUp{key});
+            PostMouseKeyUp(key); 
+        }
+        void KeyDown(Au::Input::KEYCODE key) { 
+            event_post(eMouseDown{key});
+            PostMouseKeyDown(key); 
+        }
+        void Move(int x, int y) { 
+            event_post(eMouseMove{x, y});
+            PostMouseMove(x, y); 
+        }
+        void Wheel(short value) { 
+            event_post(eMouseWheel{value});
+            PostMouseWheel(value); 
+        }
     };
 
     class KeyboardHandler : public Au::Input::KeyboardHandler
     {
     public:
-        void KeyUp(Au::Input::KEYCODE key) { PostKeyUp(key); }
-        void KeyDown(Au::Input::KEYCODE key) { PostKeyDown(key); }
-        void OnChar(int charCode) { PostOnChar(charCode); }
+        void KeyUp(Au::Input::KEYCODE key) { 
+            event_post(eKeyUp{key});
+            PostKeyUp(key); 
+        }
+        void KeyDown(Au::Input::KEYCODE key) { 
+            event_post(eKeyDown{key});
+            PostKeyDown(key); 
+        }
+        void OnChar(int charCode) { 
+            event_post(eChar{charCode});
+            PostOnChar(charCode); 
+        }
     };
     
     virtual ~GameState(){}
