@@ -40,7 +40,7 @@ public:
                 continue;
             }
             FontData::Glyph* g = fontData->GetGlyph(charCode, size);
-            float heightBearingDiff = g->height - g->hBearingY;
+            float heightBearingDiff = (float)(g->height - g->hBearingY);
             float loff = line * atlas->metrics.lineHeight;
             vertices.insert(
                 vertices.end(),

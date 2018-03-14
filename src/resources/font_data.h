@@ -32,7 +32,6 @@ public:
         }
 
         FontRasterizer::GlobalMetrics metrics;
-        Au::Math::Vec2i glyphPerPage;
         Au::Math::Vec3i slot;
         int lastRowHeight = 0;
         Texture3D* texture;
@@ -92,8 +91,6 @@ public:
         }
         GlyphAtlas& a = atlases[size];
         a.metrics = rasterizer.GetGlobalMetrics(size);
-        a.glyphPerPage.x = GLYPH_PAGE_SIZE / a.metrics.bbox.x;
-        a.glyphPerPage.y = GLYPH_PAGE_SIZE / a.metrics.bbox.y;
         return &atlases[size]; 
     }
     Texture2D* GetTexture() { return &texture; }
@@ -141,9 +138,9 @@ public:
                     (float)atlas->slot.z
                 };
             
-            atlas->slot.x += g->width;
+            atlas->slot.x += (int)g->width;
             if(atlas->lastRowHeight < g->height)
-                atlas->lastRowHeight = g->height;
+                atlas->lastRowHeight = (int)g->height;
         }
         return &atlas->glyphs[charCode];
     }

@@ -263,7 +263,6 @@ In the Land of Mordor where the Shadows lie.)");
         while(auto e = disp_onMouseMove.poll())
         {
             script->Relay("MouseMove", e->x, e->y);
-            quad->GetComponent<Transform>()->Position(200 + e->x, 100 + e->y, 0.0f);
         }
 
         fps = 1.0f / DeltaTime();
