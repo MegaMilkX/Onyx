@@ -33,6 +33,7 @@ struct eMouseWheel{
 };
 struct eMouseDown{
     Au::Input::KEYCODE key;
+    int x, y;
 };
 struct eMouseUp{
     Au::Input::KEYCODE key;
@@ -49,7 +50,10 @@ public:
             PostMouseKeyUp(key); 
         }
         void KeyDown(Au::Input::KEYCODE key) { 
-            event_post(eMouseDown{key});
+            POINT pt;
+            GetCursorPos(&pt);
+            ScreenToClient(hWnd, &pt);
+            event_post(eMouseDown{key, pt.x, pt.y});
             PostMouseKeyDown(key); 
         }
         void Move(int x, int y) { 
