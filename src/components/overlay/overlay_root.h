@@ -1,5 +1,5 @@
-#ifndef GUI_ROOT_H
-#define GUI_ROOT_H
+#ifndef OVERLAY_ROOT_H
+#define OVERLAY_ROOT_H
 
 #undef GetObject
 
