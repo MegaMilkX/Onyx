@@ -20,6 +20,7 @@
 #include "components/sound_emitter.h"
 #include "components/text_mesh.h"
 #include "components/overlay/overlay_root.h"
+#include "components/gui/gui_root.h"
 
 #include "lib/font_rasterizer.h"
 
@@ -220,6 +221,8 @@ In the Land of Mordor where the Shadows lie.)");
         title->SetSize(86);
         title->SetFont("FantaisieArtistique");
         title->SetText("Fantasy Title");
+
+        scene.Get<GuiRoot>();
     }
     virtual void OnCleanup() 
     {
@@ -268,6 +271,8 @@ In the Land of Mordor where the Shadows lie.)");
         fps = 1.0f / DeltaTime();
         std::string s = std::to_string(fps);
         fpsText->SetText(std::string("FPS: ") + s);
+
+        scene.Get<GuiRoot>()->Update();
 
         animation->Update(DeltaTime());
         collision->Update(DeltaTime());
