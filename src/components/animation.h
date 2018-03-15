@@ -66,7 +66,7 @@ struct AnimDataReaderFBX : public asset<AnimData>::reader
             result = true;
             Au::Media::FBX::Reader fbxReader;
             fbxReader.ReadMemory(buffer.data(), buffer.size());
-            fbxReader.DumpFile(filename);
+            //fbxReader.DumpFile(filename);
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
             std::vector<Au::Media::FBX::AnimationStack> stacks =

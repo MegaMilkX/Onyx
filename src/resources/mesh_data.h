@@ -207,7 +207,7 @@ public:
             fbxReader.ReadMemory(buffer.data(), buffer.size());
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
-            fbxReader.DumpFile(filename);
+            //fbxReader.DumpFile(filename);
             
             int meshCount = fbxReader.MeshCount();
             std::vector<float> vertices;
