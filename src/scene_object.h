@@ -18,6 +18,7 @@ public:
     friend SceneObject;
     public:
         virtual ~Component() {}
+        SceneObject* Object() { return object; }
         SceneObject* GetObject() { return object; }
         template<typename T>
         T* GetComponent()
