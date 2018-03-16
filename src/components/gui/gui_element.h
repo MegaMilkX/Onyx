@@ -9,6 +9,8 @@ class GuiElement : public SceneObject::Component
 public:
     Au::Math::Vec2f dimensions;
     Au::Math::Vec2f center;
+    Au::Math::Vec4f margin;
+    Au::Math::Vec4f padding;
     int layer;
 };
 
