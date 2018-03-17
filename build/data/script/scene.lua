@@ -9,7 +9,7 @@ Init = function()
 	--floorPlane:PlaneCollider():Height(0.0f);
     
     model = SceneObject:CreateObject():Model();
-    model.mesh:Set("chara6");
+    model.mesh:Set("miku2");
     model.material:Set("material");
     model:GetObject():SetName("MIKU");
     
@@ -18,10 +18,10 @@ Init = function()
     --cube:Script():SetScript("cube");
     --camera:Script():SetScript("camera");
     
-    --SceneObject:CreateObject():Script():SetScript("teapot");
-    --SceneObject:CreateObject():Script():SetScript("sphere");
-    --SceneObject:CreateObject():Script():SetScript("brick");
-    --SceneObject:CreateObject():Script():SetScript("sphere2");
+    SceneObject:CreateObject():Script():SetScript("teapot");
+    SceneObject:CreateObject():Script():SetScript("sphere");
+    SceneObject:CreateObject():Script():SetScript("brick");
+    SceneObject:CreateObject():Script():SetScript("sphere2");
     
     model = SceneObject:CreateObject():Model();
     model.mesh:Set("env");
