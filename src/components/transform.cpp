@@ -9,11 +9,21 @@ typedef Au::Math::Mat4f mat4;
 typedef Au::Math::Mat3f mat3;
 typedef Au::Math::Quat quat;
 
+void Transform::Dirty()
+{
+    dirty = true;
+    for(auto c : _children)
+    {
+        c->Dirty();
+    }
+}
+
 void Transform::Translate(float x, float y, float z)
 { Translate(Au::Math::Vec3f(x, y, z)); }
 void Transform::Translate(const Au::Math::Vec3f& vec)
 {
     _position = _position + vec;
+    Dirty();
 }
 void Transform::Rotate(float angle, float axisX, float axisY, float axisZ)
 { Rotate(angle, Au::Math::Vec3f(axisX, axisY, axisZ)); }
@@ -29,10 +39,12 @@ void Transform::Rotate(const Au::Math::Quat& q)
             q * 
             _rotation
         );
+    Dirty();
 }
 
 void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f)
 {
+    Dirty();
 	f = std::max(-1.0f, std::min(f, 1.0f));
 	
     Transform* trans = GetObject()->GetComponent<Transform>();
@@ -210,20 +222,20 @@ void Transform::FABRIK(const Au::Math::Vec3f& target, int chainLength)
 void Transform::Position(float x, float y, float z)
 { Position(Au::Math::Vec3f(x, y, z)); }
 void Transform::Position(const Au::Math::Vec3f& position)
-{ _position = position; }
+{ _position = position; Dirty(); }
 void Transform::Rotation(float x, float y, float z)
-{ _rotation = EulerToQuat(Au::Math::Vec3f(x, y, z)); }
+{ _rotation = EulerToQuat(Au::Math::Vec3f(x, y, z)); Dirty(); }
 void Transform::Rotation(float x, float y, float z, float w)
 { Rotation(Au::Math::Quat(x, y, z, w)); }
 void Transform::Rotation(const Au::Math::Quat& rotation)
-{ _rotation = rotation; }
+{ _rotation = rotation; Dirty(); }
 
 void Transform::Scale(float scale)
 { Scale(Au::Math::Vec3f(scale, scale, scale)); }
 void Transform::Scale(float x, float y, float z)
 { Scale(Au::Math::Vec3f(x, y, z)); }
 void Transform::Scale(const Au::Math::Vec3f& scale)
-{ _scale = scale; }
+{ _scale = scale; Dirty(); }
 
 Au::Math::Vec3f Transform::WorldPosition()
 {
@@ -258,6 +270,7 @@ void Transform::SetTransform(Au::Math::Mat4f& t)
     Au::Math::Vec3f up = t[1];
     Au::Math::Vec3f back = t[2];
     _scale = Au::Math::Vec3f(right.length(), up.length(), back.length());
+    Dirty();
 }
 
 Au::Math::Mat4f Transform::GetLocalTransform()
@@ -270,13 +283,15 @@ Au::Math::Mat4f Transform::GetLocalTransform()
 
 Au::Math::Mat4f Transform::GetTransform()
 {
-    Au::Math::Mat4f localTransform = GetLocalTransform();
-            
-    if(_parent)
-        _transform = _parent->GetTransform() * localTransform;
-    else
-        _transform = localTransform;
-    
+    if(dirty)
+    {
+        dirty = false;
+        Au::Math::Mat4f localTransform = GetLocalTransform();           
+        if(_parent)
+            _transform = _parent->GetTransform() * localTransform;
+        else
+            _transform = localTransform;
+    }
     return _transform;
 }
 

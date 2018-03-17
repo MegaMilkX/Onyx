@@ -14,7 +14,8 @@ public:
     : _parent(parent),
     _position(0.0f, 0.0f, 0.0f),
     _rotation(0.0f, 0.0f, 0.0f, 1.0f),
-    _scale(1.0f, 1.0f, 1.0f)
+    _scale(1.0f, 1.0f, 1.0f),
+    dirty(true)
     {
         if(_parent)
             AttachTo(parent);
@@ -24,6 +25,8 @@ public:
         if(_parent)
             _parent->Detach(this);
     }
+
+    void Dirty();
     
     void Translate(float x, float y, float z);
     void Translate(const Au::Math::Vec3f& vec);
@@ -145,7 +148,7 @@ public:
         }
     }
 private:
-
+    bool dirty;
     Au::Math::Vec3f _position;
     Au::Math::Quat _rotation;
     Au::Math::Vec3f _scale;
