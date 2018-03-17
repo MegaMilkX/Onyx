@@ -265,12 +265,13 @@ public:
     {
         for(unsigned i = 0; i < bones.size(); ++i)
             boneTransforms[i] = 
-                Au::Math::Inverse(GetObject()->GetComponent<Transform>()->GetTransform()) *
+                Au::Math::Inverse(transform->GetTransform()) *
                 bones[i]->GetTransform();
     }
 
     virtual void OnCreate()
-    {        
+    {
+        transform = Get<Transform>();
         renderer = GetObject()->Root()->GetComponent<Renderer>();
         
         static std::once_flag once_flag;
@@ -407,6 +408,7 @@ private:
     asset<SkeletonData> skelData;
     std::string resourceName;
     
+    Transform* transform;
     Renderer* renderer;
     
     std::vector<Transform*> bones;
