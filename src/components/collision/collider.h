@@ -30,7 +30,7 @@ public:
     
     void UpdateTransform()
     {
-        Au::Math::Mat4f mat4f = GetComponent<Transform>()->GetTransform();
+        Au::Math::Mat4f mat4f = transform->GetTransform();
         mat4f = Au::Math::Translate(mat4f, offset);
 		btTransform trans;
         trans.setFromOpenGLMatrix((btScalar*)&mat4f);
@@ -41,6 +41,7 @@ public:
     
 	virtual void OnCreate()
 	{
+        transform = Get<Transform>();
 		collision = GetObject()->Root()->GetComponent<Collision>();
 
 		collisionObject = new btCollisionObject();		
@@ -52,6 +53,7 @@ protected:
 	btCollisionObject* collisionObject;
 	btCollisionShape* shape;
 	
+    Transform* transform;
 	Collision* collision;
     
     Au::Math::Vec3f offset;
