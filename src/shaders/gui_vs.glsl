@@ -17,7 +17,7 @@ R"(#version 450
         vec4 PositionModel;
         
         PositionModel = vec4 ( Position , 1.0 ) ;
-        UVFrag = UV ;
+        UVFrag = vec2(UV.x, 1.0 - UV.y) ;
         PositionScreen = 
             MatrixProjection *
             MatrixModel *

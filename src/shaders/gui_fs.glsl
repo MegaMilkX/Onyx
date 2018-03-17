@@ -4,12 +4,13 @@ R"(#version 450
     out vec4 fragOut;
 
     uniform sampler2D DiffuseTexture;
+    uniform vec4 Color;
 
     void main()
     {
         vec4 Diffuse;
          
-        Diffuse = texture ( DiffuseTexture , UVFrag ) ; 
+        Diffuse = texture ( DiffuseTexture , UVFrag ) * Color ; 
         fragOut = Diffuse ; 
     }
 )"
