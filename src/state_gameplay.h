@@ -21,6 +21,7 @@
 #include "components/text_mesh.h"
 #include "components/overlay/overlay_root.h"
 #include "components/gui/gui_root.h"
+#include "components/gui/gui_box.h"
 
 #include "lib/font_rasterizer.h"
 
@@ -111,7 +112,7 @@ public:
     void Update(float dt)
     {
         while(eMouseMove* e = disp_onMouseMove.poll())
-            MouseMove(e->x, e->y);
+            MouseMove(e->dx, e->dy);
         
         Au::Math::Vec3f tgt = target->Position();
         tgt.y += 1.5f;
@@ -191,9 +192,8 @@ public:
         scene.CreateObject()->GetComponent<TextMesh>()->SetText("Hello, World!");
 
         quad = scene.CreateObject()->GetComponent<Quad>();
-        quad->image.set("AngeHalloween_A");
-        quad->width = 960;
-        quad->height = 800;
+        quad->SetImage("AngeHalloween_A");
+        quad->SetSize(960, 800);
         text = scene.CreateObject()->GetComponent<Text2d>();
         text->GetComponent<Transform>()->Translate(0, 200, 0);
         text->SetText(std::vector<int>{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
@@ -223,6 +223,8 @@ In the Land of Mordor where the Shadows lie.)");
         title->SetText("Fantasy Title");
 
         scene.Get<GuiRoot>();
+        scene.CreateObject()->Get<GuiBox>();
+        scene.CreateObject()->Get<GuiBox>()->Get<Transform>()->Translate(0.0, 300.0, 0.0);
     }
     virtual void OnCleanup() 
     {
@@ -265,7 +267,7 @@ In the Land of Mordor where the Shadows lie.)");
         }
         while(auto e = disp_onMouseMove.poll())
         {
-            script->Relay("MouseMove", e->x, e->y);
+            script->Relay("MouseMove", e->dx, e->dy);
         }
 
         fps = 1.0f / DeltaTime();

@@ -26,6 +26,7 @@ struct eChar{
     int code;
 };
 struct eMouseMove{
+    int dx, dy;
     int x, y;
 };
 struct eMouseWheel{
@@ -57,7 +58,10 @@ public:
             PostMouseKeyDown(key); 
         }
         void Move(int x, int y) { 
-            event_post(eMouseMove{x, y});
+            POINT pt;
+            GetCursorPos(&pt);
+            ScreenToClient(hWnd, &pt);
+            event_post(eMouseMove{x, y, pt.x, pt.y});
             PostMouseMove(x, y); 
         }
         void Wheel(short value) { 
