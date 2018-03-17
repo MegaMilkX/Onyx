@@ -40,27 +40,21 @@ inline void fg_GuiDraw(const FrameCommon& frame, const GuiDrawData& in)
     in.program->Use();    
     glUniformMatrix4fv(
         in.program->GetUniform("MatrixProjection"), 1, GL_FALSE,
-        (float*)&Au::Math::Ortho(0, frame.width, 0, frame.height, -1.0f, 1.0f)
+        (float*)&Au::Math::Ortho(0, frame.width, frame.height, 0, -1.0f, 1.0f)
     );    
     glUniformMatrix4fv(
         in.program->GetUniform("MatrixView"), 1, GL_FALSE,
         (float*)&frame.view
     );    
+    glBindVertexArray(in.vao);
     for(Quad* quad : in.quads)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, quad->image->GetGlName());
-        glUniformMatrix4fv(
-            in.program->GetUniform("MatrixModel"), 1, GL_FALSE,
-            (float*)&quad->GetComponent<Transform>()->GetTransform()
-        );
-        glUniform2f(
+        quad->quad.Draw(
+            in.program->GetUniform("MatrixModel"),
             in.program->GetUniform("QuadSize"),
-            quad->width,
-            quad->height
+            in.program->GetUniform("Color"),
+            quad->GetComponent<Transform>()->GetTransform()
         );
-        glBindVertexArray(in.vao);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
     in.program_text->Use();
@@ -74,23 +68,11 @@ inline void fg_GuiDraw(const FrameCommon& frame, const GuiDrawData& in)
     );
     for(Text2d* text : in.texts)
     {
-        glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, text->texture->GetGlName());
-        glBindTexture(GL_TEXTURE_3D, text->fontData->GetGlyphAtlas(text->size)->texture->GetGlName());
-        glUniformMatrix4fv(
-            in.program_text->GetUniform("MatrixModel"), 1, GL_FALSE,
-            (float*)&text->GetComponent<Transform>()->GetTransform()
+        text->text->Draw(
+            in.program_text->GetUniform("MatrixModel"),
+            text->GetComponent<Transform>()->GetTransform(),
+            in.program_text->GetUniform("GlyphPageCount")
         );
-        glUniform1f(
-            in.program_text->GetUniform("GlyphPageCount"),
-            (float)text->fontData->GetGlyphAtlas(text->size)->pages
-        );
-
-        glBindVertexArray(text->mesh->GetVao({
-            { "Position", 3, GL_FLOAT, GL_FALSE },
-            { "UVW", 3, GL_FLOAT, GL_FALSE }
-        }));
-        glDrawArrays(GL_TRIANGLES, 0, text->charCount * 6);
     }
 }
 
