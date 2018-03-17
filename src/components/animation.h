@@ -334,7 +334,7 @@ public:
             anim = animBlendTarget;
         }
 
-        Transform* t = GetObject()->GetComponent<Transform>();
+        Transform* t = transform;
         
         Au::Math::Vec3f pos0 = anim.GetPosition(t->Position());
         Au::Math::Quat rot0 = anim.GetRotation(t->Rotation());
@@ -370,6 +370,7 @@ public:
         anim = anims[""];
         animBlendTarget = anims[""];
         GetObject()->Root()->GetComponent<Animation>()->_addChild(this);
+        transform = Get<Transform>();
     }
     virtual std::string Serialize() 
     { 
@@ -417,6 +418,8 @@ private:
         }
     }
     
+    Transform* transform;
+
     std::string animResourceName;
     std::string animName;
     
