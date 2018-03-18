@@ -11,25 +11,50 @@ class GuiBox : public SceneObject::Component
 public:
     void OnMouseEnter()
     {
-        //Get<Quad>()->SetColor(0.4f, 0.0f, 0.0f, 1.0f);
+        titleBar->Get<Quad>()->SetColor(0.7f, 0.7f, 0.7f, 1.0f);
     }
     void OnMouseLeave()
     {
-        //Get<Quad>()->SetColor(0.4f, 0.4f, 0.4f, 1.0f);
+        titleBar->Get<Quad>()->SetColor(0.4f, 0.4f, 0.4f, 1.0f);
+        drag = false;
     }
+    void OnMouseMove(const eMouseMove* e)
+    {
+        if(drag)
+            Get<Transform>()->Translate(e->dx, e->dy, 0.0f);
+    }
+    void OnMouseDown(const eMouseDown* e)
+    {
+        if(e->key == Au::Input::KEY_LBUTTON)
+        {
+            drag = true;
+        }
+    }
+    void OnMouseUp(const eMouseUp* e)
+    {
+        if(e->key == Au::Input::KEY_LBUTTON)
+        {
+            drag = false;
+        }
+    }
+
+    bool drag = false;
 
     void OnCreate()
     {
         Get<GuiListener>()->onMouseEnter = std::bind(&GuiBox::OnMouseEnter, this);
         Get<GuiListener>()->onMouseLeave = std::bind(&GuiBox::OnMouseLeave, this);
+        Get<GuiListener>()->onMouseMove = std::bind(&GuiBox::OnMouseMove, this, std::placeholders::_1);
+        Get<GuiListener>()->onMouseDown = std::bind(&GuiBox::OnMouseDown, this, std::placeholders::_1);
+        Get<GuiListener>()->onMouseUp = std::bind(&GuiBox::OnMouseUp, this, std::placeholders::_1);
 
-        SceneObject* titleBar = Object()->CreateObject();
+        titleBar = Object()->CreateObject();
         titleBar->Get<Quad>()->quad.height = 25;
         titleBar->Get<Quad>()->quad.width = 300;
         titleBar->Get<Quad>()->quad.color = { 0.4f, 0.4f, 0.4f, 1.0f };
         titleBar->Get<Transform>()->AttachTo(Get<Transform>());
 
-        SceneObject* clientArea = Object()->CreateObject();
+        clientArea = Object()->CreateObject();
         clientArea->Get<Quad>()->quad.height = 500;
         clientArea->Get<Quad>()->quad.width = 300;
         clientArea->Get<Quad>()->quad.color = { 0.2f, 0.2f, 0.2f, 1.0f };
@@ -47,6 +72,9 @@ public:
         q->SetSize(100, 100);
         q->SetColor(0.4f, 0.4f, 0.4f, 1.0f);*/
     }
+
+    SceneObject* titleBar;
+    SceneObject* clientArea;
 };
 
 #endif
