@@ -4,6 +4,8 @@
 #include <scene_object.h>
 #include "../../util/gfx_quad.h"
 
+#include <mutex>
+
 class OverlayRoot;
 class Quad : public SceneObject::Component
 {
@@ -29,6 +31,18 @@ public:
     void OnCreate()
     {
         Object()->Root()->GetComponent<OverlayRoot>();
+
+        static std::once_flag once_flag;
+        std::call_once(
+            once_flag,
+            [this](){
+                resource<Texture2D> tex = 
+                    resource<Texture2D>::get("$white_pixel");
+                unsigned char color[4] = { 255, 255, 255, 255 };
+                tex->Data(color, 1, 1, 4);
+            }
+        );
+        quad.image = resource<Texture2D>::get("$white_pixel");
     }
 };
 
