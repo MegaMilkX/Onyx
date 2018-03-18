@@ -19,7 +19,8 @@ public:
 
     virtual ~GuiListenerBase(){}
     virtual void OnMouseDown(const eMouseDown* e) {}
-    virtual void OnMouseUp(const eMouseDown* e) {}
+    virtual void OnMouseUp(const eMouseUp* e) {}
+    virtual void OnMouseMove(const eMouseMove* e) {}
     virtual void OnMouseEnter() {}
     virtual void OnMouseLeave() {}
     void ProcMouseMove(const eMouseMove* e)
@@ -30,6 +31,7 @@ public:
             e->y > pos.y &&
             e->y < pos.y + bbox.w)
         {
+            OnMouseMove(e);
             if(!mouseOver)
             {
                 OnMouseEnter();
@@ -41,6 +43,14 @@ public:
             mouseOver = false;
             OnMouseLeave();
         }
+    }
+    void ProcMouseDown(const eMouseDown* e)
+    {
+        if(mouseOver) OnMouseDown(e);
+    }
+    void ProcMouseUp(const eMouseUp* e)
+    {
+        OnMouseUp(e);
     }
 
     void OnCreate()
@@ -66,7 +76,13 @@ public:
         }
         while(auto e = dispMouseDown.poll())
         {
-            std::cout << "MouseDown: " << e->x << " " << e->y << std::endl;
+            for(auto l : listeners)
+                l->ProcMouseDown(e);
+        }
+        while(auto e = dispMouseUp.poll())
+        {
+            for(auto l : listeners)
+                l->ProcMouseUp(e);
         }
     }
     void AddListener(GuiListenerBase* l) { listeners.insert(l); }
@@ -74,6 +90,7 @@ public:
 private:
     std::set<GuiListenerBase*> listeners;
     event_dispatcher<eMouseDown> dispMouseDown;
+    event_dispatcher<eMouseUp> dispMouseUp;
     event_dispatcher<eMouseMove> dispMouseMove;
 };
 
@@ -82,6 +99,7 @@ class GuiListener : public GuiListenerBase
 public:
     std::function<void(const eMouseDown*)> onMouseDown;
     std::function<void(const eMouseUp*)> onMouseUp;
+    std::function<void(const eMouseMove*)> onMouseMove;
     std::function<void(void)> onMouseEnter;
     std::function<void(void)> onMouseLeave;
 
@@ -98,6 +116,7 @@ public:
 private:
     virtual void OnMouseDown(const eMouseDown* e) { if(onMouseDown) onMouseDown(e); }
     virtual void OnMouseUp(const eMouseUp* e) { if(onMouseUp) onMouseUp(e); }
+    virtual void OnMouseMove(const eMouseMove* e) { if(onMouseMove) onMouseMove(e); }
     virtual void OnMouseEnter() { if(onMouseEnter) onMouseEnter(); }
     virtual void OnMouseLeave() { if(onMouseLeave) onMouseLeave(); }
 };
