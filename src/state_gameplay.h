@@ -222,9 +222,7 @@ In the Land of Mordor where the Shadows lie.)");
         title->SetFont("FantaisieArtistique");
         title->SetText("Fantasy Title");
 
-        scene.Get<GuiRoot>();
-        scene.CreateObject()->Get<GuiBox>();
-        scene.CreateObject()->Get<GuiBox>()->Get<Transform>()->Translate(0.0, 300.0, 0.0);
+        scene.CreateObject()->Get<GuiBox>()->Get<Transform>()->Translate(120.0, 300.0, 0.0);
     }
     virtual void OnCleanup() 
     {
