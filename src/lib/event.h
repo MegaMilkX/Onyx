@@ -28,14 +28,30 @@ public:
         dispatchers[TypeInfo<T>::Index()].erase(disp);
     }
     template<typename T>
+    static void set_exclusive(event_dispatcher_base* const disp, bool v)
+    {
+        if(v)
+            exclusives[TypeInfo<T>::Index()] = disp;
+        else
+            if(exclusives[TypeInfo<T>::Index()] == disp)
+                exclusives[TypeInfo<T>::Index()] = 0;
+    }
+    template<typename T>
     static void post(const T& e)
     {
+        event_dispatcher_base* exclusive = exclusives[TypeInfo<T>::Index()];
+        if(exclusive)
+        {
+            exclusive->post((void*)&e);
+            return;
+        }
         for(auto disp : dispatchers[TypeInfo<T>::Index()])
         {
             disp->post((void*)&e);
         }
     }
 private:
+    static std::map<typeindex, event_dispatcher_base*> exclusives;
     static std::map<typeindex, std::set<event_dispatcher_base*>> dispatchers;
 };
 
@@ -65,6 +81,10 @@ public:
         tmp = events.front();
         events.pop();
         return &tmp;
+    }
+    void set_exclusive(bool v)
+    {
+        dispatcher_storage::set_exclusive<T>(this, v);
     }
 private:
     void post(void* e)
