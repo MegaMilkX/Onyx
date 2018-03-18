@@ -5,6 +5,7 @@
 #include <lib/event.h>
 #include <game_state.h>
 #include <transform.h>
+#include <functional>
 
 class GuiListenerBase : public SceneObject::Component
 {
@@ -17,9 +18,9 @@ public:
     Transform* transform;
 
     virtual ~GuiListenerBase(){}
-    virtual void OnMouseDown() {}
-    virtual void OnMouseUp() {}
-    virtual void OnMouseEnter(const eMouseMove*) {}
+    virtual void OnMouseDown(const eMouseDown* e) {}
+    virtual void OnMouseUp(const eMouseDown* e) {}
+    virtual void OnMouseEnter() {}
     virtual void OnMouseLeave() {}
     void ProcMouseMove(const eMouseMove* e)
     {
@@ -31,7 +32,7 @@ public:
         {
             if(!mouseOver)
             {
-                OnMouseEnter(e);
+                OnMouseEnter();
                 mouseOver = true;
             }
         }
@@ -74,6 +75,31 @@ private:
     std::set<GuiListenerBase*> listeners;
     event_dispatcher<eMouseDown> dispMouseDown;
     event_dispatcher<eMouseMove> dispMouseMove;
+};
+
+class GuiListener : public GuiListenerBase
+{
+public:
+    std::function<void(const eMouseDown*)> onMouseDown;
+    std::function<void(const eMouseUp*)> onMouseUp;
+    std::function<void(void)> onMouseEnter;
+    std::function<void(void)> onMouseLeave;
+
+    ~GuiListener()
+    {
+        Object()->Root()->Get<GuiRoot>()->RemoveListener(this);
+    }
+
+    void OnCreate()
+    {
+        GuiListenerBase::OnCreate();
+        Object()->Root()->Get<GuiRoot>()->AddListener(this);
+    }
+private:
+    virtual void OnMouseDown(const eMouseDown* e) { if(onMouseDown) onMouseDown(e); }
+    virtual void OnMouseUp(const eMouseUp* e) { if(onMouseUp) onMouseUp(e); }
+    virtual void OnMouseEnter() { if(onMouseEnter) onMouseEnter(); }
+    virtual void OnMouseLeave() { if(onMouseLeave) onMouseLeave(); }
 };
 
 #endif
