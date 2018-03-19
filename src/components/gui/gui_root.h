@@ -21,17 +21,19 @@ public:
     virtual void OnMouseDown(const eMouseDown* e) {}
     virtual void OnMouseUp(const eMouseUp* e) {}
     virtual void OnMouseMove(const eMouseMove* e) {}
+    virtual void OnMouseOver(const eMouseMove* e) {}
     virtual void OnMouseEnter() {}
     virtual void OnMouseLeave() {}
     void ProcMouseMove(const eMouseMove* e)
     {
+        OnMouseMove(e);
         Au::Math::Vec3f pos = transform->WorldPosition();
         if(e->x > pos.x && 
             e->x < pos.x + bbox.z &&
             e->y > pos.y &&
             e->y < pos.y + bbox.w)
         {
-            OnMouseMove(e);
+            OnMouseOver(e);
             if(!mouseOver)
             {
                 OnMouseEnter();
@@ -100,6 +102,7 @@ public:
     std::function<void(const eMouseDown*)> onMouseDown;
     std::function<void(const eMouseUp*)> onMouseUp;
     std::function<void(const eMouseMove*)> onMouseMove;
+    std::function<void(const eMouseMove*)> onMouseOver;
     std::function<void(void)> onMouseEnter;
     std::function<void(void)> onMouseLeave;
 
@@ -117,6 +120,7 @@ private:
     virtual void OnMouseDown(const eMouseDown* e) { if(onMouseDown) onMouseDown(e); }
     virtual void OnMouseUp(const eMouseUp* e) { if(onMouseUp) onMouseUp(e); }
     virtual void OnMouseMove(const eMouseMove* e) { if(onMouseMove) onMouseMove(e); }
+    virtual void OnMouseOver(const eMouseMove* e) { if(onMouseOver) onMouseOver(e); }
     virtual void OnMouseEnter() { if(onMouseEnter) onMouseEnter(); }
     virtual void OnMouseLeave() { if(onMouseLeave) onMouseLeave(); }
 };
