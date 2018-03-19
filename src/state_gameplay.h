@@ -201,11 +201,12 @@ public:
 
         fpsText = scene.CreateObject()->GetComponent<Text2d>();
         fpsText->SetSize(16);
+        fpsText->Get<Transform>()->Position(0.0f, 0.0f, 0.0f);
         //text->font->set("calibri");
 
         Text2d* t = scene.CreateObject()->GetComponent<Text2d>();
         t->GetComponent<Transform>()->Translate(0, 500, 0);
-        t->SetSize(24);
+        t->SetSize(32);
         t->SetText(R"(Three Rings for the Elven-kings under the sky,
 Seven for the Dwarf-lords in their halls of stone,
 Nine for Mortal Men doomed to die,

@@ -23,7 +23,6 @@ R"(#version 450
             MatrixModel *
             (PositionModel *
             vec4(QuadSize.x, QuadSize.y, 0.0, 1.0));
-        //PositionScreen = vec4(PositionScreen.x / ScreenSize.x, PositionScreen.y / ScreenSize.y, 0.0, 1.0); 
         gl_Position = PositionScreen ; 
     }
 )"

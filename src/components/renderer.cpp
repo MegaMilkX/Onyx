@@ -40,5 +40,6 @@ void Renderer::Render(const Au::Math::Mat4f& projection,
         }
     );
     glEnable(GL_DEPTH_TEST);
+    glViewport(0, 0, 1920, 1080);
     frameGraph.run();
 }

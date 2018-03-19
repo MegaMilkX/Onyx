@@ -16,17 +16,20 @@ public:
     void OnMouseLeave()
     {
         titleBar->Get<Quad>()->SetColor(0.4f, 0.4f, 0.4f, 1.0f);
-        drag = false;
     }
     void OnMouseMove(const eMouseMove* e)
     {
         if(drag)
-            Get<Transform>()->Translate(e->dx, e->dy, 0.0f);
+        {
+            Get<Transform>()->Position(e->x - dragPoint.x, e->y - dragPoint.y, 0.0f);
+        }
     }
     void OnMouseDown(const eMouseDown* e)
     {
         if(e->key == Au::Input::KEY_LBUTTON)
         {
+            Au::Math::Vec3f pos = Get<Transform>()->WorldPosition();
+            dragPoint = { e->x - (int)pos.x, e->y - (int)pos.y };
             drag = true;
         }
     }
@@ -38,6 +41,7 @@ public:
         }
     }
 
+    Au::Math::Vec2i dragPoint;
     bool drag = false;
 
     void OnCreate()
