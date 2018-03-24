@@ -22,6 +22,8 @@
 #include "components/overlay/overlay_root.h"
 #include "components/gui/gui_root.h"
 #include "components/gui/gui_box.h"
+#include "components/gui/gui_window.h"
+#include "components/gui/gui_layout.h"
 
 #include "lib/font_rasterizer.h"
 
@@ -223,7 +225,14 @@ In the Land of Mordor where the Shadows lie.)");
         title->SetFont("FantaisieArtistique");
         title->SetText("Fantasy Title");
 
-        scene.CreateObject()->Get<GuiBox>()->Get<Transform>()->Translate(120.0, 300.0, 0.0);
+        GuiBox* box = scene.CreateObject()->Get<GuiBox>();
+        box->Get<GuiLayout>()->Dock(GuiLayout::UP);
+        box->Get<GuiLayout>()->SetSize(25, 25);
+        GuiBox* box2 = scene.CreateObject()->Get<GuiBox>();
+        box2->Get<GuiLayout>()->Dock(GuiLayout::DOWN);
+        box2->Get<GuiLayout>()->SetSize(25, 25);
+        //box->Get<Transform>()->Translate(120.0, 300.0, 0.0);
+        //box->Get<GuiLayout>()->SetSize(300, 300);
     }
     virtual void OnCleanup() 
     {
