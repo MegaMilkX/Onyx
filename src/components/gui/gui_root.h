@@ -7,6 +7,8 @@
 #include <transform.h>
 #include <functional>
 
+#include "gui_layout.h"
+
 class GuiListenerBase : public SceneObject::Component
 {
 public:
@@ -16,6 +18,7 @@ public:
     Au::Math::Vec4i bbox;
     bool mouseOver;
     Transform* transform;
+    GuiLayout* layout;
 
     virtual ~GuiListenerBase(){}
     virtual void OnMouseDown(const eMouseDown* e) {}
@@ -28,10 +31,11 @@ public:
     {
         OnMouseMove(e);
         Au::Math::Vec3f pos = transform->WorldPosition();
-        if(e->x > pos.x && 
-            e->x < pos.x + bbox.z &&
-            e->y > pos.y &&
-            e->y < pos.y + bbox.w)
+        Au::Math::Vec4i b = layout->bbox;
+        if(e->x > b.x && 
+            e->x < b.z &&
+            e->y > b.y &&
+            e->y < b.w)
         {
             OnMouseOver(e);
             if(!mouseOver)
@@ -58,6 +62,7 @@ public:
     void OnCreate()
     {
         transform = Get<Transform>();
+        layout = Get<GuiLayout>();
     }
 };
 
@@ -89,6 +94,13 @@ public:
     }
     void AddListener(GuiListenerBase* l) { listeners.insert(l); }
     void RemoveListener(GuiListenerBase* l) { listeners.erase(l); }
+
+    void OnCreate()
+    {
+        Get<GuiLayout>()->docking = GuiLayout::FILL;
+        Get<GuiLayout>()->SetSize(1920, 1080);
+        Get<GuiLayout>()->Rebuild({ 0, 0, 1920, 1080 });
+    }
 private:
     std::set<GuiListenerBase*> listeners;
     event_dispatcher<eMouseDown> dispMouseDown;

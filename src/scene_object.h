@@ -50,6 +50,11 @@ public:
             return parentObject->Root();
     }
     
+    SceneObject* Parent()
+    {
+        return parentObject;
+    }
+
     bool IsRoot()
     {
         return this == Root();
