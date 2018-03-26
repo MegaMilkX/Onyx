@@ -181,7 +181,7 @@ public:
         script->SetScript("scene");
         
         SoundEmitter* snd = scene.CreateObject()->GetComponent<SoundEmitter>();
-        snd->SetClip("test");
+        snd->SetClip("amb01");
         
         std::ofstream file("scene.scn", std::ios::out);
         file << std::setw(4) << scene.Serialize();
@@ -194,8 +194,8 @@ public:
         scene.CreateObject()->GetComponent<TextMesh>()->SetText("Hello, World!");
 
         quad = scene.CreateObject()->GetComponent<Quad>();
-        quad->SetImage("AngeHalloween_A");
-        quad->SetSize(960, 800);
+        quad->SetImage("V8fBNZhT");
+        quad->SetSize(400, 250);
         text = scene.CreateObject()->GetComponent<Text2d>();
         text->GetComponent<Transform>()->Translate(0, 200, 0);
         text->SetText(std::vector<int>{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
@@ -205,19 +205,6 @@ public:
         fpsText->SetSize(16);
         fpsText->Get<Transform>()->Position(0.0f, 0.0f, 0.0f);
         //text->font->set("calibri");
-
-        Text2d* t = scene.CreateObject()->GetComponent<Text2d>();
-        t->GetComponent<Transform>()->Translate(0, 500, 0);
-        t->SetSize(32);
-        t->SetText(R"(Three Rings for the Elven-kings under the sky,
-Seven for the Dwarf-lords in their halls of stone,
-Nine for Mortal Men doomed to die,
-One for the Dark Lord on his dark throne
-In the Land of Mordor where the Shadows lie.
-One Ring to rule them all, One Ring to find them,
-One Ring to bring them all and in the darkness bind them
-In the Land of Mordor where the Shadows lie.)");
-        t->SetFont("Cup and Talon");
 
         Text2d* title = scene.CreateObject()->GetComponent<Text2d>();
         title->GetComponent<Transform>()->Translate(960, 500, 0);
@@ -231,8 +218,9 @@ In the Land of Mordor where the Shadows lie.)");
         GuiBox* box2 = scene.CreateObject()->Get<GuiBox>();
         box2->Get<GuiLayout>()->Dock(GuiLayout::DOWN);
         box2->Get<GuiLayout>()->SetSize(25, 25);
-        //box->Get<Transform>()->Translate(120.0, 300.0, 0.0);
-        //box->Get<GuiLayout>()->SetSize(300, 300);
+        GuiBox* box3 = scene.CreateObject()->Get<GuiBox>();
+        box3->Get<GuiLayout>()->Dock(GuiLayout::LEFT);
+        box3->Get<GuiLayout>()->SetSize(100, 100);
     }
     virtual void OnCleanup() 
     {
@@ -254,7 +242,7 @@ In the Land of Mordor where the Shadows lie.)");
             }
             else
             {
-                str.push_back(e->code);
+                //str.push_back(e->code);
             }
             text->SetText(str);
         }
