@@ -22,7 +22,7 @@ public:
     {
         if(drag)
         {
-            Get<Transform>()->Position(e->x - dragPoint.x, e->y - dragPoint.y, 0.0f);
+            Get<Transform>()->Position((float)(e->x - dragPoint.x), (float)(e->y - dragPoint.y), 0.0f);
         }
     }
     void OnMouseDown(const eMouseDown* e)
@@ -44,16 +44,11 @@ public:
     void OnResize(const GuiLayout* layout)
     {
         Au::Math::Vec4i bbox = layout->bbox;
-        std::cout << "OnResize " << 
-            bbox.x << " " << 
-            bbox.y << " " <<
-            bbox.z << " " <<
-            bbox.w << std::endl;
 
         titleBar->Get<Quad>()->quad.height = 25;
-        titleBar->Get<Quad>()->quad.width = bbox.z - bbox.x;
-        clientArea->Get<Quad>()->quad.height = bbox.w - bbox.y - 25;
-        clientArea->Get<Quad>()->quad.width = bbox.z - bbox.x;
+        titleBar->Get<Quad>()->quad.width = (float)(bbox.z - bbox.x);
+        clientArea->Get<Quad>()->quad.height = (float)(bbox.w - bbox.y - 25);
+        clientArea->Get<Quad>()->quad.width = (float)(bbox.z - bbox.x);
     }
 
     Au::Math::Vec2i dragPoint;

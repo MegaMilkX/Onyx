@@ -60,7 +60,7 @@ public:
             bCut = { b.x, b.y, b.z - size.x, b.w };
             break;
         }
-        Get<Transform>()->Position(bbox.x, bbox.y, 0.0f);
+        Get<Transform>()->Position((float)bbox.x, (float)bbox.y, 0.0f);
         
         Au::Math::Vec4i b2 = bbox;
         for(GuiLayout* l : children)

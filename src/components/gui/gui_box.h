@@ -13,9 +13,9 @@ public:
         Au::Math::Vec4i bbox = layout->bbox;
 
         Get<Quad>()->quad.color = { 0.2f, 0.2f, 0.2f, 1.0f };
-        Get<Quad>()->quad.width = bbox.z - bbox.x;
-        Get<Quad>()->quad.height = bbox.w - bbox.y;
-        Get<Transform>()->Position(bbox.x, bbox.y, 0.0f);
+        Get<Quad>()->quad.width = (float)(bbox.z - bbox.x);
+        Get<Quad>()->quad.height = (float)(bbox.w - bbox.y);
+        Get<Transform>()->Position((float)bbox.x, (float)bbox.y, 0.0f);
     }
 
     void OnCreate()
