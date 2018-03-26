@@ -463,9 +463,51 @@ inline void fg_SkinDraw(const FrameCommon& frame, const SkinDrawData& in)
         (float*)&frame.view
     );
     glUniform3f(
-        in.uniAmbientColor,
-        0.4f, 0.3f, 0.2f
+        in.program->GetUniform("ViewPos"),
+        frame.viewPos.x,
+        frame.viewPos.y,
+        frame.viewPos.z
     );
+    glUniform3f(
+        in.uniAmbientColor,
+        0.2f, 0.3f, 0.5f
+    );
+
+    std::vector<LightDirect*> lds = frame.scene->FindAllOf<LightDirect>();
+    for(unsigned i = 0; i < lds.size(); ++i)
+    {
+        auto l = lds[i];
+        glUniform3f(
+            in.program->GetUniform("LightDirect[" + std::to_string(i) + "]"), 
+            l->Direction().x,
+            l->Direction().y,
+            l->Direction().z
+        );
+        glUniform3f(
+            in.program->GetUniform("LightDirectRGB[" + std::to_string(i) + "]"), 
+            l->Color().x,
+            l->Color().y,
+            l->Color().z
+        );
+    }
+    std::vector<LightOmni*> los = frame.scene->FindAllOf<LightOmni>();
+    for(unsigned i = 0; i < los.size(); ++i)
+    {
+        auto l = los[i];
+        glUniform3f(
+            in.program->GetUniform("LightOmniPos[" + std::to_string(i) + "]"), 
+            l->Get<Transform>()->WorldPosition().x,
+            l->Get<Transform>()->WorldPosition().y,
+            l->Get<Transform>()->WorldPosition().z
+        );
+        glUniform3f(
+            in.program->GetUniform("LightOmniRGB[" + std::to_string(i) + "]"), 
+            l->Color().x,
+            l->Color().y,
+            l->Color().z
+        );
+    }
+
     for(const RenderUnitSkin& unit : in.units)
     {
         unit.skeleton->Update();

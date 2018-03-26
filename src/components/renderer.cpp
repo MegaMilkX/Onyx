@@ -35,6 +35,7 @@ void Renderer::Render(const Au::Math::Mat4f& projection,
         FrameCommon{
             projection,
             Au::Math::Inverse(transform),
+            transform[3],
             1920, 1080,
             GetObject() 
         }

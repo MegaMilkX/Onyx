@@ -14,6 +14,7 @@ struct FrameCommon
 {
     Au::Math::Mat4f projection;
     Au::Math::Mat4f view;
+    Au::Math::Vec3f viewPos;
     float width, height;
     SceneObject* scene;
 };
