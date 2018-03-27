@@ -207,10 +207,10 @@ public:
         //text->font->set("calibri");
 
         Text2d* title = scene.CreateObject()->GetComponent<Text2d>();
-        title->GetComponent<Transform>()->Translate(960, 500, 0);
+        title->GetComponent<Transform>()->Translate(960, 800, 0);
         title->SetSize(86);
         title->SetFont("FantaisieArtistique");
-        title->SetText("Fantasy Title");
+        title->SetText("Irrelevant Text");
 
         GuiBox* box = scene.CreateObject()->Get<GuiBox>();
         box->Get<GuiLayout>()->Dock(GuiLayout::UP);

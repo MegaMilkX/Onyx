@@ -45,7 +45,7 @@ R"(#version 450
             if(dot(NormalModel, ViewDir) >= 0.0)
             {
                 vec3 lightRef = normalize(reflect(-LightDirection[i], NormalModel));
-                float s = max(pow(dot(lightRef, ViewDir), 64.0), 0.0);
+                float s = max(pow(dot(lightRef, ViewDir), 16.0), 0.0);
                 SpecOmni += vec4(LightOmniRGB [ i ] * s * ( 1.0 / ( 1.0 + 0.5 * dist + 3.0 * dist * dist ) ), 1.0);
             }
         } 
@@ -58,7 +58,7 @@ R"(#version 450
             if(dot(NormalModel, ViewDir) >= 0.0)
             {
                 vec3 lightRef = normalize(reflect(LightDirect[i], NormalModel));
-                float s = pow(max(dot(lightRef, ViewDir), 0.0), 64.0);
+                float s = pow(max(dot(lightRef, ViewDir), 0.0), 16.0);
                 SpecDirect += vec4(LightOmniRGB [ i ] * s, 1.0);
             }
         }
