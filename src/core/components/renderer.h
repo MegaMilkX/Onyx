@@ -10,6 +10,8 @@
 
 #include "../lib/task_graph.h"
 
+#undef GetObject
+
 struct FrameCommon
 {
     Au::Math::Mat4f projection;

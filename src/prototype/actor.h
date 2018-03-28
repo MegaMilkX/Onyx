@@ -1,13 +1,12 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
-#include "scene_object.h"
-#include "components/transform.h"
-#include "components/collision/collider.h"
-#include "components/collision/kinematic_object.h"
-#include "components/skin_mesh.h"
-#include "components/animation.h"
-#include "components/skeleton.h"
+#include <transform.h>
+#include <collision/collider.h>
+#include <collision/kinematic_object.h>
+#include <skin_mesh.h>
+#include <animation.h>
+#include <skeleton.h>
 
 class Actor;
 class ActorState : public SceneObject::Component

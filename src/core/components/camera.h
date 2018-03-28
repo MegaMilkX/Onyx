@@ -7,6 +7,8 @@
 #include "../scene_object.h"
 #include "renderer.h"
 
+#undef GetObject
+
 class Camera : public SceneObject::Component
 {
 public:

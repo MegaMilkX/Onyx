@@ -179,6 +179,7 @@ public:
     
     static Au::GFX::Device* GFXDevice() { return &gfxDevice; }
     static AudioMixer3D* GetAudioMixer() { return &audioMixer; }
+    static MouseHandler* GetMouseHandler() { return &mouseHandler; }
     
     static void PostMouseKeyUp(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyUp(key); }
     static void PostMouseKeyDown(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyDown(key); }

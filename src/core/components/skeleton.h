@@ -470,7 +470,7 @@ inline void fg_SkinDraw(const FrameCommon& frame, const SkinDrawData& in)
     );
     glUniform3f(
         in.uniAmbientColor,
-        0.2f, 0.3f, 0.5f
+        0.1f, 0.15f, 0.25f
     );
 
     std::vector<LightDirect*> lds = frame.scene->FindAllOf<LightDirect>();
