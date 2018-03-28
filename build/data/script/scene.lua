@@ -28,11 +28,13 @@ Init = function()
     model.material:Set("env");
     --model:GetObject():Transform():Scale(0.1);
     model:GetObject():MeshCollider():SetMesh("env2");
+    model:GetObject():SetName("environment");
     
     model = SceneObject:CreateObject():Model();
     model.mesh:Set("naga");
     model.material:Set("material1");
     model:GetObject():MeshCollider():SetMesh("cube");
+    model:GetObject():SetName("Secret!");
     --model:GetObject():Transform():Translate(0.0, 0.5, 0.0);
     
     lightHinge = SceneObject:CreateObject();
