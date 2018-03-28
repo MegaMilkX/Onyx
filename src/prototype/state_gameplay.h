@@ -89,7 +89,7 @@ public:
         fpsText->Get<Transform>()->Position(0.0f, 0.0f, 0.0f);
         //text->font->set("calibri");
 
-        Text2d* title = scene.CreateObject()->GetComponent<Text2d>();
+        title = scene.CreateObject()->GetComponent<Text2d>();
         title->GetComponent<Transform>()->Translate(960, 800, 0);
         title->SetSize(86);
         title->SetFont("FantaisieArtistique");
@@ -109,11 +109,13 @@ public:
     {
     }
 
+    Text2d* title;
     float fps = 0.0f;
     event_dispatcher<eChar> dispatcher_onChar;
     event_dispatcher<eKeyDown> disp_KeyDown;
     event_dispatcher<eKeyUp> disp_KeyUp;
     event_dispatcher<eMouseMove> disp_onMouseMove;
+    event_dispatcher<eMouseDown> disp_onMouseDown;
     virtual void OnUpdate() 
     {
         while(eChar* e = dispatcher_onChar.poll())    
@@ -148,6 +150,14 @@ public:
         {
             script->Relay("MouseMove", e->dx, e->dy);
         }
+        SceneObject* o = scene.Get<Collision>()->RayTest(
+            Au::Math::Ray(
+                camera->Get<Transform>()->WorldPosition(),
+                camera->Get<Transform>()->Forward() * 2.0f
+            )
+        );
+        if(o)
+            title->SetText(o->Name());
 
         fps = 1.0f / DeltaTime();
         std::string s = std::to_string(fps);
