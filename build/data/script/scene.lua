@@ -29,6 +29,12 @@ Init = function()
     --model:GetObject():Transform():Scale(0.1);
     model:GetObject():MeshCollider():SetMesh("env2");
     
+    model = SceneObject:CreateObject():Model();
+    model.mesh:Set("naga");
+    model.material:Set("material1");
+    model:GetObject():MeshCollider():SetMesh("cube");
+    --model:GetObject():Transform():Translate(0.0, 0.5, 0.0);
+    
     lightHinge = SceneObject:CreateObject();
     lightHinge:Transform():Translate(0.0, 0.5, 0.0);
     
@@ -38,11 +44,11 @@ Init = function()
     lightObject:LightOmni():Color(0.8, 0.4, 1.0);
     
     ld = SceneObject:CreateObject():LightDirect();
-    ld:Color(0.8, 0.6, 0.4);
+    ld:Color(0.4, 0.3, 0.2);
     ld:Direction(0.0, -1.0, 0.0);
     
     ld = SceneObject:CreateObject():LightDirect();
-    ld:Color(0.4, 0.30, 0.2);
+    ld:Color(0.2, 0.15, 0.1);
     ld:Direction(0.0, -0.5, -0.5);
     
     Print("Done");
