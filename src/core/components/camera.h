@@ -31,6 +31,13 @@ public:
         this->zFar = zFar;
         projection = Au::Math::Perspective(fov, aspect, zNear, zFar);
     }
+
+    Au::Math::Vec2f WorldToScreen(const Au::Math::Vec3f& w)
+    {
+        Au::Math::Vec4f world4(w.x, w.y, w.z, 1.0f);
+        world4 = Projection() * InverseTransform() * world4;
+        return Au::Math::Vec2f(world4.x / world4.w, world4.y / world4.w);
+    }
     
     Au::Math::Mat4f Projection() { return projection; }
     Au::Math::Mat4f InverseTransform() { return Au::Math::Inverse(transform->GetTransform()); }
