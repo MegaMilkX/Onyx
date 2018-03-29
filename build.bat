@@ -8,10 +8,10 @@ set INCLUDE_PATHS=/I "%~dp0\..\Aurora\include" ^
 /I "%~dp0\..\lib\bullet3-2.86.1\src" ^
 /I "%~dp0\..\lib\freetype-2.8\include" ^
 /I "%~dp0\..\lib\serial\include" ^
-/I "%~dp0\src" ^
-/I "%~dp0\src\external" ^
-/I "%~dp0\src\resources" ^
-/I "%~dp0\src\components"
+/I "%~dp0\src\core" ^
+/I "%~dp0\src\core\external" ^
+/I "%~dp0\src\core\resources" ^
+/I "%~dp0\src\core\components"
 set LIB_PATHS=/LIBPATH:"%~dp0\..\Aurora\lib" ^
 /LIBPATH:"%~dp0\..\lib\lua\lib" ^
 /LIBPATH:"%~dp0\..\lib\bullet3-2.86.1\bin" ^
