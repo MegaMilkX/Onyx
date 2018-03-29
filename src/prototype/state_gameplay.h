@@ -23,10 +23,10 @@
 #include <gui/gui_window.h>
 #include <gui/gui_layout.h>
 
+
+#include "fps_display.h"
+#include "test_cube.h"
 #include "actor.h"
-
-#include "util.h"
-
 #include "character_controller.h"
 #include "character_camera.h"
 
@@ -35,6 +35,8 @@ class Gameplay : public GameState
 public:
     Gameplay()
     {}
+
+    FpsDisplay* fpsDisplay;
     
     virtual void OnInit() 
     {
@@ -84,10 +86,7 @@ public:
         text->SetText(std::vector<int>{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
         text->SetSize(20);
 
-        fpsText = scene.CreateObject()->GetComponent<Text2d>();
-        fpsText->SetSize(16);
-        fpsText->Get<Transform>()->Position(0.0f, 0.0f, 0.0f);
-        //text->font->set("calibri");
+        fpsDisplay = scene.Get<FpsDisplay>();
 
         title = scene.CreateObject()->GetComponent<Text2d>();
         title->GetComponent<Transform>()->Translate(960, 800, 0);
@@ -104,20 +103,26 @@ public:
         GuiBox* box3 = scene.CreateObject()->Get<GuiBox>();
         box3->Get<GuiLayout>()->Dock(GuiLayout::LEFT);
         box3->Get<GuiLayout>()->SetSize(100, 100);
+
+        testCube = scene.CreateObject()->Get<TestCube>();
+        testCube->Get<Transform>()->Translate(1.0f, 1.0f, 0.0f);
+        testCube->Object()->Name("cube");
     }
     virtual void OnCleanup() 
     {
     }
 
     Text2d* title;
-    float fps = 0.0f;
     event_dispatcher<eChar> dispatcher_onChar;
     event_dispatcher<eKeyDown> disp_KeyDown;
     event_dispatcher<eKeyUp> disp_KeyUp;
     event_dispatcher<eMouseMove> disp_onMouseMove;
     event_dispatcher<eMouseDown> disp_onMouseDown;
+    TestCube* testCube;
     virtual void OnUpdate() 
     {
+        fpsDisplay->Update(DeltaTime());
+
         while(eChar* e = dispatcher_onChar.poll())    
         {
             if(e->code == 8)
@@ -152,16 +157,33 @@ public:
         }
         SceneObject* o = scene.Get<Collision>()->RayTest(
             Au::Math::Ray(
-                camera->Get<Transform>()->WorldPosition(),
-                camera->Get<Transform>()->Forward() * 2.0f
+                camera->Get<Transform>()->WorldPosition() + camera->Get<Transform>()->Forward() * 0.3f,
+                camera->Get<Transform>()->Forward() * 0.7f
             )
         );
         if(o)
+        {
             title->SetText(o->Name());
-
-        fps = 1.0f / DeltaTime();
-        std::string s = std::to_string(fps);
-        fpsText->SetText(std::string("FPS: ") + s);
+            Au::Math::Vec2f p = renderer->CurrentCamera()->WorldToScreen(o->Get<Transform>()->WorldPosition());
+            title->Get<Transform>()->Position(
+                (p.x * 0.5f + 0.5f) * 1920, 
+                (1080 - (p.y * 0.5f + 0.5f) * 1080), 
+                0.0f
+            );
+        }
+        else
+        {
+            title->SetText("");
+        }
+        while(auto e = disp_onMouseDown.poll())
+        {
+            if(o)
+            {
+                Interactable* i = o->FindComponent<Interactable>();
+                if(i) i->Activate();
+            }
+        }
+        testCube->Update();
 
         scene.Get<GuiRoot>()->Update();
 
