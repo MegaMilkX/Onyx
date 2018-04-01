@@ -165,6 +165,8 @@ public:
             deltaTime = timer.End() / 1000000.0f;
         }
         */
+        frameCount++;
+
         return result;
     }
     
@@ -176,6 +178,7 @@ public:
     }
     
     float DeltaTime() { return deltaTime; }
+    static uint64_t FrameCount() { return frameCount; }
     
     static Au::GFX::Device* GFXDevice() { return &gfxDevice; }
     static AudioMixer3D* GetAudioMixer() { return &audioMixer; }
@@ -189,6 +192,7 @@ public:
     static void PostKeyDown(Au::Input::KEYCODE key) { stateStack.top()->KeyDown(key); }
     static void PostOnChar(int charCode) { stateStack.top()->OnChar(charCode); }
 private:
+    static uint64_t frameCount;
     static float deltaTime;
     static Au::Timer timer;
 

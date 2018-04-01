@@ -1,6 +1,7 @@
 #ifndef FPS_DISPLAY_H
 #define FPS_DISPLAY_H
 
+#include <game_state.h>
 #include <overlay/overlay_root.h>
 
 class FpsDisplay : public SceneObject::Component
@@ -10,7 +11,10 @@ public:
     {
         float fps = 1.0f / dt;
         std::string s = std::to_string((int)(fps + prevFps * 0.5f));
-        text->SetText(std::string("FPS: ") + s);
+        text->SetText(
+            std::string("FPS: ") + s +
+            "\n" +
+            "Frame: " + std::to_string(GameState::FrameCount()));
         prevFps = fps;
     }
 
