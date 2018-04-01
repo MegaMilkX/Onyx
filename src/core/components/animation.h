@@ -333,7 +333,7 @@ public:
                 Au::Curve& anim = animData.GetAnim(j);
                 o->GetComponent<Animation>()->SetAnim(anim.Name(), anim);
                 o->GetComponent<Animation>()->FrameRate(data->FrameRate());
-                std::cout << anim.Name() << ": " << anim.Length() << std::endl;
+                //std::cout << anim.Name() << ": " << anim.Length() << std::endl;
                 child_anims.insert(o->GetComponent<Animation>());
             }
         }
@@ -426,11 +426,11 @@ public:
             Au::Math::Vec3f dpos = Au::Math::Lerp(anim.deltaPosition, animBlendTarget.deltaPosition, blend);
             t->ToWorldDirection(dpos);
             rootMotionTarget->Translate(dpos);
-            
+            /*
             std::cout << "Frame: " << GameState::FrameCount() << "|" << anim.GetCursor() << 
             "\n" <<
             dpos.x << ", " << dpos.y << ", " << dpos.z << std::endl;
-                
+            */  
         }
         t->Rotation(Au::Math::Slerp(rot0, rot1, blend));
         t->Scale(Au::Math::Lerp(scl0, scl1, blend));

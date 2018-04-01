@@ -23,6 +23,8 @@
 #include <gui/gui_window.h>
 #include <gui/gui_layout.h>
 
+#include <anim_state.h>
+
 
 #include "fps_display.h"
 #include "test_cube.h"
@@ -58,7 +60,7 @@ public:
             pelvis->GetComponent<LightOmni>()->Color(0.8f, 0.8f, 0.8f);
         }
 
-        character->GetComponent<Transform>()->Translate(0.0f, 0.5f, 3.0f);
+        character->GetComponent<Transform>()->Translate(0.0f, 0.0f, 3.0f);
         camera = scene.CreateObject()->GetComponent<CharacterCamera>();
         camera->SetTarget(character);
         charController = scene.GetComponent<CharacterController>();
@@ -109,6 +111,11 @@ public:
         testCube = scene.CreateObject()->Get<TestCube>();
         testCube->Get<Transform>()->Translate(1.0f, 1.0f, 0.0f);
         testCube->Object()->Name("cube");
+
+        Au::Math::Vec3f velo;
+        AnimState* animState = scene.Get<AnimState>();
+        animState->Set("velocity", velo);
+        animState->Update();
     }
     virtual void OnCleanup() 
     {

@@ -80,7 +80,7 @@ public:
         if(!sd)
             return;
         scriptName = name;
-        _state.SetGlobal(GetObject(), "SceneObject");
+        _state.SetGlobal("SceneObject", GetObject());
         _state.LoadSource(sd->Get());
         _state.Call("Init");
     }
