@@ -281,6 +281,14 @@ Au::Math::Mat4f Transform::GetLocalTransform()
         Au::Math::Scale(Au::Math::Mat4f(1.0f), _scale);
 }
 
+Au::Math::Mat4f Transform::GetParentTransform()
+{
+    if(_parent)
+        return _parent->GetTransform();
+    else
+        return Au::Math::Mat4f(1.0f);
+}
+
 Au::Math::Mat4f Transform::GetTransform()
 {
     if(dirty)

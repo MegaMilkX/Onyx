@@ -168,7 +168,7 @@ public:
         _state.Bind(&Model::material, "material");
         _state.Bind<Model, SceneObject*>(&Model::GetObject, "GetObject");
         
-        _state.Bind<Animation, void, const std::string&, const std::string&>(&Animation::SetAnim, "SetAnim");
+        _state.Bind<Animation, void, const std::string&>(&Animation::Set, "SetAnim");
         _state.Bind(&Animation::Play, "Play");
         _state.Bind<Animation, SceneObject*>(&Animation::GetObject, "GetObject");
         

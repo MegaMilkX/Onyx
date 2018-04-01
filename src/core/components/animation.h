@@ -8,6 +8,7 @@
 
 #include "../scene_object.h"
 #include "transform.h"
+#include <game_state.h>
 
 struct AnimData
 {
@@ -28,7 +29,13 @@ struct AnimData
     }
     unsigned AnimCount() { return anims.size(); }
     Au::Curve& GetAnim(const std::string& name)
-    { return anims[name]; }
+    {
+        if(anims.find(name) == anims.end())
+        {
+            anims[name] = Au::Curve(name);
+        } 
+        return anims[name]; 
+    }
     Au::Curve& GetAnim(unsigned i)
     {
         std::map<std::string, Au::Curve>::iterator it =
@@ -78,9 +85,15 @@ struct AnimDataReaderFBX : public asset<AnimData>::reader
             for(unsigned i = 0; i < stacks.size(); ++i)
             {
                 std::string stackName = stacks[i].GetName();
+                {
+                    // TODO: Check if fbx is made in blender, only then cut by first pipe symbol
+                    size_t pipe_pos = stackName.find_first_of("|");
+                    if(pipe_pos != std::string::npos)
+                    {
+                        stackName = stackName.substr(pipe_pos + 1);
+                    }
+                }
                 double length = stacks[i].GetLength() / timePerFrame;
-                if(length < 2.0)
-                    continue;
                 
                 //std::cout << "AnimStack " << stackName << " len: " << length << std::endl;
                 
@@ -191,6 +204,7 @@ public:
     
     void ResetCursor() { cursor = 0.0f; }
     
+    Au::Math::Vec3f deltaPosition;
     Au::Math::Vec3f& GetPosition(Au::Math::Vec3f& defaultValue)
     { 
         if(props & POSITION)
@@ -199,6 +213,7 @@ public:
             Au::Curve& py = anim["Position"]["y"];
             Au::Curve& pz = anim["Position"]["z"];
             position = Au::Math::Vec3f(px.value, py.value, pz.value);
+            deltaPosition = Au::Math::Vec3f(px.delta, py.delta, pz.delta);
             return position;
         }
         else
@@ -246,16 +261,43 @@ public:
     }
     
     void Tick(float dt)
-    {
+    {/*
         cursor += dt;
-        int loopCount = (int)(cursor / anim.Length());
+        loopCount = (int)(cursor / anim.Length());
+        float overflow = loopCount * anim.Length();
+        cursor -= overflow;*/
+        cursor += dt;
+        if(cursor > (float)(anim.Length() - 1))
+        {
+            cursor -= (float)(anim.Length() - 1);
+        }
+        anim.Evaluate(cursor);
+    }
+
+    void SetCursor(float cur)
+    {
+        cursor = cur;
+        loopCount = (int)(cursor / anim.Length());
         float overflow = loopCount * anim.Length();
         cursor -= overflow;
-        anim.Evaluate(cursor);
+    }
+
+    float GetCursor()
+    {
+        return cursor;
+    }
+
+    void Evaluate(float& cur)
+    {
+        int loopCount = (int)(cur / anim.Length());
+        float overflow = loopCount * anim.Length();
+        cur -= overflow;
+        anim.Evaluate(cur);
     }
     
 private:
     float cursor;
+    int loopCount;
     float fps;
     Au::Curve anim;
     ANIM_PROPS props;
@@ -269,29 +311,31 @@ class Animation : public SceneObject::Component
 {
 public:
     Animation()
-    : fps(0.0f), blend(0.0f), blendStep(0.0f) {}
+    : fps(0.0f), blend(0.0f), blendStep(0.0f), rootMotionTarget(0) {}
 
-    void SetAnim(const std::string& name, const std::string& resourceName)
+    void Set(const std::string& resource)
     {
-        animResourceName = resourceName;
-        SetAnim(name, asset<AnimData>::get(resourceName));
+        Set(asset<AnimData>::get(resource));
     }
-    
-    void SetAnim(const std::string& name, asset<AnimData> data)
+
+    void Set(asset<AnimData> data)
     {
-        animName = name;
+        if(data.empty())
+            return;
         FrameRate(data->FrameRate());
         for(unsigned i = 0; i < data->ChildCount(); ++i)
         {
-            AnimData& childData = data->GetChild(i);
-            SceneObject* o = GetObject()->FindObject(childData.Name());
-            if(!o)
-                continue;
-            
-            Au::Curve& anim = childData.GetAnim(0);
-            o->GetComponent<Animation>()->SetAnim(name, anim);
-            o->GetComponent<Animation>()->FrameRate(data->FrameRate());
-            child_anims.push_back(o->GetComponent<Animation>());
+            AnimData& animData = data->GetChild(i);
+            SceneObject* o = Object()->FindObject(animData.Name());
+            if(!o) continue;
+            for(unsigned j = 0; j < animData.AnimCount(); ++j)
+            {                
+                Au::Curve& anim = animData.GetAnim(j);
+                o->GetComponent<Animation>()->SetAnim(anim.Name(), anim);
+                o->GetComponent<Animation>()->FrameRate(data->FrameRate());
+                std::cout << anim.Name() << ": " << anim.Length() << std::endl;
+                child_anims.insert(o->GetComponent<Animation>());
+            }
         }
     }
     
@@ -306,9 +350,9 @@ public:
     { 
         anim = anims[name];
         anim.ResetCursor();
-        for(unsigned i = 0; i < child_anims.size(); ++i)
+        for(auto c : child_anims)
         {
-            child_anims[i]->Play(name);
+            c->Play(name);
         }
     }
     void BlendOverTime(const std::string& to, float t)
@@ -317,10 +361,40 @@ public:
         blendStep = 1.0f/t;
         animBlendTarget = anims[to];
         animBlendTarget.ResetCursor();
-        for(unsigned i = 0; i < child_anims.size(); ++i)
+        for(auto c : child_anims)
         {
-            child_anims[i]->BlendOverTime(to, t);
+            c->BlendOverTime(to, t);
         }
+    }
+
+    void SetRootMotionTarget(SceneObject* root)
+    {
+        if(!root)
+            return;
+        rootMotionTarget = root->Get<Transform>();
+    }
+    Transform* rootMotionTarget;
+
+    void Reset(float frame = 0, bool moveCursor = true)
+    {
+        anim.Evaluate(frame);
+        animBlendTarget.Evaluate(frame);
+        if(moveCursor)
+        {
+            anim.SetCursor(frame);
+            animBlendTarget.SetCursor(frame);
+        }
+        Transform* t = transform;
+        Au::Math::Vec3f pos0 = anim.GetPosition(t->Position());
+        Au::Math::Quat rot0 = anim.GetRotation(t->Rotation());
+        Au::Math::Vec3f scl0 = anim.GetScale(t->Scale());
+        Au::Math::Vec3f pos1 = animBlendTarget.GetPosition(t->Position());
+        Au::Math::Quat rot1 = animBlendTarget.GetRotation(t->Rotation());
+        Au::Math::Vec3f scl1 = animBlendTarget.GetScale(t->Scale());
+        
+        t->Position(Au::Math::Lerp(pos0, pos1, blend));
+        t->Rotation(Au::Math::Slerp(rot0, rot1, blend));
+        t->Scale(Au::Math::Lerp(scl0, scl1, blend));
     }
     
     void Tick(float dt)
@@ -343,16 +417,30 @@ public:
         Au::Math::Quat rot1 = animBlendTarget.GetRotation(t->Rotation());
         Au::Math::Vec3f scl1 = animBlendTarget.GetScale(t->Scale());
         
-        t->Position(Au::Math::Lerp(pos0, pos1, blend));
+        if(!rootMotionTarget)
+        {
+            t->Position(Au::Math::Lerp(pos0, pos1, blend));
+        }
+        else
+        {
+            Au::Math::Vec3f dpos = Au::Math::Lerp(anim.deltaPosition, animBlendTarget.deltaPosition, blend);
+            t->ToWorldDirection(dpos);
+            rootMotionTarget->Translate(dpos);
+            
+            std::cout << "Frame: " << GameState::FrameCount() << "|" << anim.GetCursor() << 
+            "\n" <<
+            dpos.x << ", " << dpos.y << ", " << dpos.z << std::endl;
+                
+        }
         t->Rotation(Au::Math::Slerp(rot0, rot1, blend));
         t->Scale(Au::Math::Lerp(scl0, scl1, blend));
     }
     
     void Update(float time)
     {        
-        for(unsigned i = 0; i < children.size(); ++i)
+        for(auto c : children)
         {
-            children[i]->Tick(time);
+            c->Tick(time);
         }
     }
     
@@ -396,26 +484,18 @@ public:
         }
         if(!animResourceName.empty())
         {
-            SetAnim(animName, animResourceName);
+            Set(animResourceName);
         }
     }
 private:
     void _addChild(Animation* anim)
     {
-        _removeChild(anim);
-        children.push_back(anim);
+        children.insert(anim);
     }
     
     void _removeChild(Animation* anim)
     {
-        for(unsigned i = 0; i < children.size(); ++i)
-        {
-            if(children[i] == anim)
-            {
-                children.erase(children.begin() + i);
-                break;
-            }
-        }
+        children.erase(anim);
     }
     
     Transform* transform;
@@ -430,10 +510,10 @@ private:
     AnimTrack anim;
     std::map<std::string, AnimTrack> anims;
     
-    std::vector<Animation*> child_anims;
+    std::set<Animation*> child_anims;
     
     //-- Root anim only
-    std::vector<Animation*> children;
+    std::set<Animation*> children;
 };
 
 #endif

@@ -121,7 +121,7 @@ void ActorRun::Update(float dt)
         velo = (tgtPos - pos) * actor->Velocity().length() * dt;
     }
     
-    trans->Position(tgtPos);
+    //trans->Position(tgtPos);
     
     _checkForGround();
     
@@ -217,9 +217,16 @@ void Actor::OnCreate()
 	m->material.set("material2");
 	
 	GetObject()->Name("character");
+
+    Get<Animation>()->Set("character");
+    SceneObject* animRoot = Get<Animation>()->Object()->FindObject("Root");
+    if(animRoot)
+    {
+        animRoot->Get<Animation>()->SetRootMotionTarget(Object());
+    }
 	
-	GetComponent<Animation>()->SetAnim("idle", "character_idle");
-	GetComponent<Animation>()->SetAnim("run", "character_run");
+	//GetComponent<Animation>()->SetAnim("idle", "character_idle");
+	//GetComponent<Animation>()->SetAnim("run", "character_run");
 	
 	Switch(GetComponent<ActorIdle>());
 }

@@ -64,7 +64,7 @@ class ActorIdle : public ActorState
 public:
 	virtual void Switch()
 	{
-		GetComponent<Animation>()->BlendOverTime("idle", 0.1f);
+		GetComponent<Animation>()->BlendOverTime("Idle", 0.1f);
 	}
 	
 	virtual void Velocity(const Au::Math::Vec3f& v);
@@ -90,7 +90,7 @@ class ActorRun : public ActorState
 public:
 	virtual void Switch()
 	{
-		GetComponent<Animation>()->BlendOverTime("run", 0.1f);
+		GetComponent<Animation>()->BlendOverTime("Run", 0.1f);
 	}
 	
 	virtual void Velocity(const Au::Math::Vec3f& v);

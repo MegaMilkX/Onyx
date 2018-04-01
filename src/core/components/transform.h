@@ -67,7 +67,30 @@ public:
     
     void SetTransform(Au::Math::Mat4f& t);
     Au::Math::Mat4f GetLocalTransform();
+    Au::Math::Mat4f GetParentTransform();
     Au::Math::Mat4f GetTransform();
+
+    void ToWorldPosition(Au::Math::Vec3f& pos)
+    {
+        Au::Math::Vec4f posw(pos.x, pos.y, pos.z, 1.0f);
+        posw = (GetTransform()) * posw;
+        pos = Au::Math::Vec3f(posw.x, posw.y, posw.z);
+        //pos = Au::Math::Inverse(GetTransform()) * pos;
+    }
+
+    void ToWorldDirection(Au::Math::Vec3f& dir)
+    {
+        Au::Math::Mat3f m3 = Au::Math::ToMat3(GetParentTransform());
+        //m3[0] = m3[0] / m3[0].length();
+        //m3[1] = m3[1] / m3[1].length();
+        //m3[2] = m3[2] / m3[2].length();
+        dir = m3 * dir;
+    }
+
+    void ToWorldScale(Au::Math::Vec3f& vec)
+    {
+        vec = Au::Math::Inverse(GetTransform()) * vec;
+    }
     
     void AttachTo(Transform* parent)
     { parent->Attach(this); }

@@ -359,7 +359,7 @@ private:
             boneObject->Name(bone->name);
         }
         
-        std::cout << boneObject->Name() << std::endl;
+        //std::cout << boneObject->Name() << std::endl;
         
         Transform* boneTransform = boneObject->GetComponent<Transform>();
         

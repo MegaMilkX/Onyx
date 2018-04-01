@@ -11,6 +11,7 @@ int main()
     asset<Material>::add_search_path("data\\material");
     asset<Material>::add_reader<MaterialReaderJSON>("json");
     asset<AnimData>::add_search_path("data\\anim");
+    asset<AnimData>::add_search_path("data\\model");
     asset<AnimData>::add_reader<AnimDataReaderFBX>("fbx");
     asset<SkeletonData>::add_search_path("data\\model");
     asset<SkeletonData>::add_reader<SkeletonDataReaderFBX>("fbx");

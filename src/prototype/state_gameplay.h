@@ -52,10 +52,12 @@ public:
         SceneObject* pelvis = character->GetObject()->FindObject("Pelvis");
         if(pelvis)
         {
+            //pelvis->Get<Animation>()->SetRelativeTranslation(true);
+
             pelvis->GetComponent<LightOmni>()->Intensity(1.0f);
             pelvis->GetComponent<LightOmni>()->Color(0.8f, 0.8f, 0.8f);
         }
-        
+
         character->GetComponent<Transform>()->Translate(0.0f, 0.5f, 3.0f);
         camera = scene.CreateObject()->GetComponent<CharacterCamera>();
         camera->SetTarget(character);
