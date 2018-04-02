@@ -18,12 +18,29 @@ public:
     AnimState()
     {
         lua.Init();
+
+        lua.Bind(&Transform::Back, "Back");
+        lua.Bind(&Transform::Forward, "Front");
+        lua.Bind(&Transform::Up, "Up");
+        lua.Bind<Transform, void, float, float, float>(&Transform::Translate, "Translate");
+        lua.Bind<Transform, Au::Math::Vec3f>(&Transform::Position, "GetPosition");
+        lua.Bind<Transform, void, float, float, float>(&Transform::Position, "SetPosition");
+        lua.Bind(&Transform::LookDir, "LookDir");
+
+        lua.Bind(&Au::Math::Vec3f::x, "x");
+        lua.Bind(&Au::Math::Vec3f::y, "y");
+        lua.Bind(&Au::Math::Vec3f::z, "z");
+
         lua.Bind(&PrintTest, "Print");
         lua.Bind(&AnimState::Blend, "Blend");
         lua.Bind(&AnimState::Switch, "Switch");
-        lua.SetGlobal("State", this);
-
+        lua.SetGlobal("State", this);        
         
+    }
+
+    void OnCreate()
+    {
+        lua.SetGlobal("Transform", Get<Transform>());
     }
 
     void AppendScript(const std::string& source)
@@ -38,6 +55,7 @@ public:
     {
         currentState = state;
         lua.CallMember(currentState, "Start");
+        std::cout << state << std::endl;
     }
     template<typename T>
     void Set(const std::string& name, const T& data)

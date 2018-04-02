@@ -35,6 +35,7 @@ public:
     void Rotate(const Au::Math::Quat& q);
     
     void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f), float f = 1.0f);
+    void LookDir(const Au::Math::Vec3f& dir, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f), float f = 1.0f);
     void LookAtChain(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f = 1.0f, int chain = 2);
     
     void Track(const Au::Math::Vec3f& target, float f = 1.0f);

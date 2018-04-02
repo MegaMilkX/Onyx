@@ -90,9 +90,16 @@ void Actor::OnCreate()
             State:Blend("Idle", 0.1)
         end
         Idle.Update = function()
+            if not grounded then
+                State:Switch("Fall")
+                return
+            end
             if velocity > 0.0 then
                 State:Switch("Walk")
+                return
             end
+            vec = Transform:GetPosition()
+            Transform:SetPosition(vec.x, groundHit.y, vec.z)
         end
     )");
     animState->AppendScript(R"(
@@ -101,11 +108,36 @@ void Actor::OnCreate()
             State:Blend("Run", 0.1)
         end
         Walk.Update = function()
+            if not grounded then
+                State:Switch("Fall")
+                return
+            end
             if velocity == 0.0 then
                 State:Switch("Idle")
+                return
             end
+            Transform:LookDir(direction, Transform:Front(), Transform:Up(), 10.0 * dt)
+            vec = Transform:GetPosition()
+            Transform:SetPosition(vec.x, groundHit.y, vec.z)
         end
     )");
-    animState->Set("velocity", 0.0);
+    animState->AppendScript(R"(
+        grav_velo = 0.0
+        Fall = {}
+        Fall.Start = function()
+            State:Blend("Bind", 0.1)
+        end
+        Fall.Update = function()
+            if grounded then
+                State:Switch("Idle")
+                grav_velo = 0.0
+                return
+            end
+            grav_velo = grav_velo + gravity * dt * dt
+            Transform:Translate(0.0, -grav_velo, 0.0)
+        end
+    )");
+    animState->Set("velocity", 0.0f);
+    animState->Set("gravity", 9.8f);
     animState->Switch("Idle");
 }

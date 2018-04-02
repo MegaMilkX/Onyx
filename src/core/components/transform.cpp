@@ -42,6 +42,11 @@ void Transform::Rotate(const Au::Math::Quat& q)
     Dirty();
 }
 
+void Transform::LookDir(const Au::Math::Vec3f& dir, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f)
+{
+    LookAt(WorldPosition() - dir, forward, up, f);
+}
+
 void Transform::LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f)
 {
     Dirty();
