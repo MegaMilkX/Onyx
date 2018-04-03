@@ -11,7 +11,7 @@
 #include <model.h>
 #include <light_omni.h>
 #include <luascript.h>
-#include <animation.h>
+#include <animator.h>
 #include <skeleton.h>
 #include <dynamics/rigid_body.h>
 #include <collision/collider.h>
@@ -76,7 +76,7 @@ public:
         file << std::setw(4) << scene.Serialize();
         file.close();
         
-        animation = scene.GetComponent<Animation>();
+        animation = scene.GetComponent<Animator>();
         collision = scene.GetComponent<Collision>();
         soundRoot = scene.GetComponent<SoundRoot>();
         
@@ -224,7 +224,7 @@ private:
     SceneObject scene;
     Renderer* renderer;
     LuaScript* script;
-    Animation* animation;
+    Animator* animation;
     Collision* collision;
     SoundRoot* soundRoot;
 

@@ -10,7 +10,7 @@
 #include "light_omni.h"
 #include "model.h"
 
-#include "animation.h"
+#include "animator.h"
 #include "skeleton.h"
 
 #include "dynamics/rigid_body.h"
@@ -105,7 +105,7 @@ public:
 
         _state.Bind(&asset<MeshData>::set, "Set");
         _state.Bind(&asset<Material>::set, "Set");
-        _state.Bind(&asset<AnimData>::set, "Set");
+        _state.Bind(&asset<AnimationSet>::set, "Set");
         _state.Bind(&asset<SkeletonData>::set, "Set");
         
         _state.Bind(&SceneObject::Root, "Root");
@@ -120,7 +120,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<LightDirect>, "LightDirect");
         _state.Bind(&SceneObject::GetComponent<Renderer>, "Renderer");
         _state.Bind(&SceneObject::GetComponent<Model>, "Model");
-        _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
+        _state.Bind(&SceneObject::GetComponent<Animator>, "Animation");
         _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
 		_state.Bind(&SceneObject::GetComponent<PlaneCollider>, "PlaneCollider");
 		_state.Bind(&SceneObject::GetComponent<SphereCollider>, "SphereCollider");
@@ -168,9 +168,9 @@ public:
         _state.Bind(&Model::material, "material");
         _state.Bind<Model, SceneObject*>(&Model::GetObject, "GetObject");
         
-        _state.Bind<Animation, void, const std::string&>(&Animation::Set, "SetAnim");
-        _state.Bind(&Animation::Play, "Play");
-        _state.Bind<Animation, SceneObject*>(&Animation::GetObject, "GetObject");
+        _state.Bind<Animator, void, const std::string&>(&Animator::Set, "SetAnim");
+        _state.Bind(&Animator::Play, "Play");
+        _state.Bind<Animator, SceneObject*>(&Animator::GetObject, "GetObject");
         
         _state.Bind<Skeleton, void, const std::string&>(&Skeleton::SetData, "SetData");
         _state.Bind<Skeleton, SceneObject*>(&Skeleton::GetObject, "GetObject");

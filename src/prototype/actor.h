@@ -5,7 +5,7 @@
 #include <collision/collider.h>
 #include <collision/kinematic_object.h>
 #include <skin_mesh.h>
-#include <animation.h>
+#include <animator.h>
 #include <anim_state.h>
 #include <skeleton.h>
 

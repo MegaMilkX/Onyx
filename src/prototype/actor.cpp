@@ -76,12 +76,14 @@ void Actor::OnCreate()
 	
 	GetObject()->Name("character");
 
-    Get<Animation>()->Set("character");
-    SceneObject* animRoot = Get<Animation>()->Object()->FindObject("Root");
+    Get<Animator>()->Set("character");
+    SceneObject* animRoot = Get<Animator>()->Object()->FindObject("Root");
     if(animRoot)
     {
-        animRoot->Get<Animation>()->SetRootMotionTarget(Object());
+        animRoot->Get<Animator>()->SetRootMotionTarget(Object());
     }
+
+    //Get<Animation>()->Layer(1, "TurnLeft", "Override", 1.0f);
 	
     animState = Get<AnimState>();
     animState->AppendScript(R"(
