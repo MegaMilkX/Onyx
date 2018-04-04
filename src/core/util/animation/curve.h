@@ -1,7 +1,7 @@
 #ifndef CURVE_H
 #define CURVE_H
 
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include <vector>
 
 struct keyframe
@@ -85,13 +85,13 @@ private:
 
 struct curve2
 {
-    Au::Math::Vec2f at(float t, const Au::Math::Vec2f& def)
+    gfxm::vec2 at(float t, const gfxm::vec2& def)
     {
-        return Au::Math::Vec2f(x.at(t, def.x), y.at(t, def.y));
+        return gfxm::vec2(x.at(t, def.x), y.at(t, def.y));
     }
-    Au::Math::Vec2f delta(float from, float to)
+    gfxm::vec2 delta(float from, float to)
     {
-        return Au::Math::Vec2f(
+        return gfxm::vec2(
             x.delta(from, to), 
             y.delta(from, to)
         );
@@ -101,16 +101,16 @@ struct curve2
 
 struct curve3
 {
-    Au::Math::Vec3f at(float t, const Au::Math::Vec3f& def)
+    gfxm::vec3 at(float t, const gfxm::vec3& def)
     {
-        return Au::Math::Vec3f(
+        return gfxm::vec3(
             x.at(t, def.x), 
             y.at(t, def.y), 
             z.at(t, def.z));
     }
-    Au::Math::Vec3f delta(float from, float to)
+    gfxm::vec3 delta(float from, float to)
     {
-        return Au::Math::Vec3f(
+        return gfxm::vec3(
             x.delta(from, to),
             y.delta(from, to),
             z.delta(from, to)
@@ -121,17 +121,17 @@ struct curve3
 
 struct curve4
 {
-    Au::Math::Vec4f at(float t, const Au::Math::Vec4f& def)
+    gfxm::vec4 at(float t, const gfxm::vec4& def)
     {
-        return Au::Math::Vec4f(
+        return gfxm::vec4(
             x.at(t, def.x), 
             y.at(t, def.y), 
             z.at(t, def.z), 
             w.at(t, def.w));
     }
-    Au::Math::Vec4f delta(float from, float to)
+    gfxm::vec4 delta(float from, float to)
     {
-        return Au::Math::Vec4f(
+        return gfxm::vec4(
             x.delta(from, to),
             y.delta(from, to),
             z.delta(from, to),

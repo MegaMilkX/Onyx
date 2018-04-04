@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_MATH_H
-#define GRAPHICS_MATH_H
+#ifndef GFXM_MATH_H
+#define GFXM_MATH_H
 
 #include <math.h>
 
@@ -73,9 +73,15 @@ struct tquat
     T y;
     T z;
     T w;
+
+    tquat<T>& operator=(const tvec4<T>& v) {
+        tquat<T>(v);
+        return *this;
+    }
     
     tquat() : x(0), y(0), z(0), w(1) {}
     tquat(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
+    tquat(const tvec4<T>& v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
 };
 
 template<typename T>

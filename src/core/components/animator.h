@@ -14,70 +14,27 @@
 
 #include <animation.h>
 
-class AnimNodeController
-{
-public:
-    AnimNodeController() {}
-    AnimNodeController(Transform* t, const AnimNode& node)
-    : transform(t), animNode(node) {}
-    Transform* transform;
-    AnimNode animNode;
-};
-
-class AnimController
-{
-public:
-    AnimController() {}
-    AnimController(Transform* root)
-    : root(root) {}
-    void AddNode(AnimNode& node)
-    {
-        SceneObject* o = root->Object()->FindObject(node.name);
-        if(!o) return;
-        nodes.push_back(AnimNodeController(o->Get<Transform>(), node));
-    }
-    
-    void Tick(float dt)
-    {
-        for(auto& con : nodes)
-        {
-            std::cout << con.animNode.name << std::endl;
-        }
-    }
-
-    Transform* root;
-    std::vector<AnimNodeController> nodes;
-};
-
-class AnimBlendController
-{
-public:
-
-};
-
-class AnimNodePersist
-{
-public:
-private:
-    AnimNode node;
-    float cursor;
-    float length;
-};
-
 class AnimLayer
 {
 public:
     void Tick(float dt)
     {
-
+        animFrom += dt * 60.0f;
     }
     void Apply(gfxm::transform& t)
     {
-
+        AnimPose& pose = animFrom.GetPose();
+        t.position(pose.position);
+        t.rotation(pose.rotation);
+        t.scale(pose.scale);
+    }
+    void Set(AnimTrack& track)
+    {
+        animFrom = track.GetCursor();
     }
 private:
-    AnimNodePersist nodeFrom;
-    AnimNodePersist nodeTo;
+    AnimTrack::Cursor animFrom;
+    AnimTrack::Cursor animTo;
     float blendWeight;
     float blendStep;
 };
@@ -86,7 +43,9 @@ class Animator : public SceneObject::Component
 {
 public:
     Animator()
-    {}
+    {
+        SetLayerCount(1);
+    }
 
     void Set(const std::string& resource)
     {
@@ -104,18 +63,14 @@ public:
     }    
     void SetAnim(const std::string& name, AnimTrack& anim)
     {
-        AnimController con(Get<Transform>());
-        for(auto& kv : anim.GetNodes())
-        {
-            con.AddNode(kv.second);
-        }
-        anims[name] = con;
+        anims[name] = anim;
         Play(name);
     }
     
     void FrameRate(float fps) { }
     void Play(const std::string& name)
-    { 
+    {
+        layers[0].Set(anims[name]);
     }
     void BlendOverTime(const std::string& to, float t)
     {
@@ -137,6 +92,7 @@ public:
             l.Tick(dt);
             l.Apply(transform);
         }
+        // TODO: Apply transform
     }
     
     void Update(float time)
@@ -178,7 +134,7 @@ private:
     
     std::vector<AnimLayer> layers;
 
-    std::map<std::string, AnimController> anims;    
+    std::map<std::string, AnimTrack> anims;    
     //-- Root anim only
     std::set<Animator*> children;
 };

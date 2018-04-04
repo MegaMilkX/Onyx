@@ -8,6 +8,13 @@
 #include <fstream>
 #include <util/animation/curve.h>
 
+struct AnimNodePose
+{
+    gfxm::vec3 position;
+    gfxm::quat rotation;
+    gfxm::vec3 scale;
+};
+
 struct AnimNode
 {
     std::string name;
@@ -16,12 +23,59 @@ struct AnimNode
     curve3 scale;
 };
 
+struct AnimPose
+{
+    AnimNodePose& operator[](const std::string& node)
+    {
+        AnimNodePose& n = animNodePoses[node];
+        return n;
+    }
+    std::map<std::string, AnimNodePose> animNodePoses;
+};
+
 class AnimTrack
 {
 public:
+    class Cursor
+    {
+    public:
+        Cursor() : track(0) {}
+        Cursor(AnimTrack* t) : track(t), cursor(0) {}
+        void operator+=(float t)
+        {
+            Advance(t);
+        }
+        void Advance(float t)
+        {
+            if(!track) return;
+            cursor += t;
+            float len = track->Length();
+            if(cursor > len) cursor -= len;
+        }
+        AnimPose& GetPose() 
+        {
+            for(auto& kv : track->GetNodes())
+            {
+                AnimNodePose np;
+                np.position = kv.second.position.at(cursor, gfxm::vec3());
+                np.rotation = kv.second.rotation.at(cursor, gfxm::vec4());
+                np.scale = kv.second.scale.at(cursor, gfxm::vec3());
+                pose[kv.first] = np;
+            } 
+            return pose; 
+        }
+    private:
+        float cursor;
+        AnimTrack* track;
+        AnimPose pose;
+    };
+
+    Cursor GetCursor() { return Cursor(this); }
+
     void FrameRate(float fps) { this->fps = fps; }
     float FrameRate() { return fps; }
     void Length(float l) { length = l; }
+    float Length() { return length; }
     AnimNode& operator[](const std::string& node)
     {
         AnimNode& n = animNodes[node];
