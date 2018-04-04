@@ -1,6 +1,8 @@
 #ifndef ANIMATOR_H
 #define ANIMATOR_H
 
+#include <util/gfxm.h>
+
 #include <fstream>
 
 #include <aurora/media/fbx.h>
@@ -11,372 +13,112 @@
 #include <game_state.h>
 
 #include <animation.h>
-/*
-struct AnimData
-{
-    unsigned ChildCount() { return children.size(); }
-    AnimData& GetChild(const std::string& name)
-    { 
-        AnimData& data = children[name];
-        data.Name(name);
-        return data;
-    }
-    AnimData& GetChild(unsigned i)
-    {
-        std::map<std::string, AnimData>::iterator it =
-            children.begin();
-        for(unsigned j = 0; j < i; ++j)
-            ++it;
-        return it->second;
-    }
-    unsigned AnimCount() { return anims.size(); }
-    Au::Curve& GetAnim(const std::string& name)
-    {
-        if(anims.find(name) == anims.end())
-        {
-            anims[name] = Au::Curve(name);
-        } 
-        return anims[name]; 
-    }
-    Au::Curve& GetAnim(unsigned i)
-    {
-        std::map<std::string, Au::Curve>::iterator it =
-            anims.begin();
-        for(unsigned j = 0; j < i; ++j)
-            ++it;
-        return it->second;
-    }
-    void FrameRate(float fps) { this->fps = fps; }
-    float FrameRate() { return fps; }
-    
-    std::string& Name() { return name; }
-    void Name(const std::string& name) { this->name = name; }
-    
-private:
-    std::string name;
-    std::map<std::string, AnimData> children;
-    std::map<std::string, Au::Curve> anims;
-    float fps;
-};
 
-struct AnimDataReaderFBX : public asset<AnimData>::reader
-{
-    bool operator()(const std::string& filename, AnimData* animData)
-    {
-        bool result = false;
-        std::ifstream file(filename, std::ios::binary | std::ios::ate);
-        if(!file.is_open())
-            return result;
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<char> buffer((unsigned int)size);
-        if(file.read(buffer.data(), size))
-        {
-            result = true;
-            Au::Media::FBX::Reader fbxReader;
-            fbxReader.ReadMemory(buffer.data(), buffer.size());
-            //fbxReader.DumpFile(filename);
-            fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
-            
-            std::vector<Au::Media::FBX::AnimationStack> stacks =
-                fbxReader.GetAnimationStacks();
-            double fps = fbxReader.GetFrameRate();
-            
-            double timePerFrame = Au::Media::FBX::TimeSecond / fps;
-            animData->FrameRate((float)fps);
-            for(unsigned i = 0; i < stacks.size(); ++i)
-            {
-                std::string stackName = stacks[i].GetName();
-                {
-                    // TODO: Check if fbx is made in blender, only then cut by first pipe symbol
-                    size_t pipe_pos = stackName.find_first_of("|");
-                    if(pipe_pos != std::string::npos)
-                    {
-                        stackName = stackName.substr(pipe_pos + 1);
-                    }
-                }
-                double length = stacks[i].GetLength() / timePerFrame;
-                
-                //std::cout << "AnimStack " << stackName << " len: " << length << std::endl;
-                
-                std::vector<Au::Media::FBX::SceneNode> nodes = stacks[i].GetAnimatedNodes();
-                for(unsigned j = 0; j < nodes.size(); ++j)
-                {
-                    std::string nodeName = nodes[j].Name();
-                    Au::Curve& anim = animData->GetChild(nodeName).GetAnim(stackName);
-                    float frame = 0.0f;
-                    anim.Length((float)length);
-                    
-                    //std::cout << "  CurveNode " << nodeName << std::endl;
-                    
-                    for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
-                    {
-                        Au::Math::Vec3f pos = 
-                            stacks[i].EvaluatePosition(nodes[j], (int64_t)t);
-                        anim["Position"]["x"][frame] = pos.x;
-                        anim["Position"]["y"][frame] = pos.y;
-                        anim["Position"]["z"][frame] = pos.z;
-                        
-                        Au::Math::Quat rot = 
-                            stacks[i].EvaluateRotation(nodes[j], (int64_t)t);
-                        anim["Rotation"]["x"][frame] = rot.x;
-                        anim["Rotation"]["y"][frame] = rot.y;
-                        anim["Rotation"]["z"][frame] = rot.z;
-                        anim["Rotation"]["w"][frame] = rot.w;
-                        
-                        Au::Math::Vec3f scale = 
-                            stacks[i].EvaluateScale(nodes[j], (int64_t)t);
-                        anim["Scale"]["x"][frame] = scale.x;
-                        anim["Scale"]["y"][frame] = scale.y;
-                        anim["Scale"]["z"][frame] = scale.z;
-                        
-                        frame += 1.0f;
-                    }
-                }
-            }
-        }
-        
-        file.close();
-        
-        return result;
-    }
-
-private:
-    void FillPropCurve(Au::Curve& curve, Au::Media::FBX::AnimationCurve* fbxCurve, double timePerFrame)
-    {
-        std::string elemName = fbxCurve->GetName();
-        if(elemName == "d|X")
-            elemName = "x";
-        else if(elemName == "d|Y")
-            elemName = "y";
-        else if(elemName == "d|Z")
-            elemName = "z";
-        
-        unsigned keyCount = fbxCurve->KeyframeCount();
-        for(unsigned l = 0; l < keyCount; ++l)
-        {
-            Au::Media::FBX::Keyframe* kf =
-                fbxCurve->GetKeyframe(l);
-            float frame = (float)(kf->frame / timePerFrame);
-            float value = kf->value;
-            
-            curve[elemName][frame] = value;
-        }
-    }
-};
-*/
-class AnimTrack
+class AnimNodeController
 {
 public:
-    enum ANIM_PROPS
+    AnimNodeController() {}
+    AnimNodeController(Transform* t, const AnimNode& node)
+    : transform(t), animNode(node) {}
+    Transform* transform;
+    AnimNode animNode;
+};
+
+class AnimController
+{
+public:
+    AnimController() {}
+    AnimController(Transform* root)
+    : root(root) {}
+    void AddNode(AnimNode& node)
     {
-        NONE     = 0,
-        POSITION = 1,
-        ROTATION = 2,
-        SCALE    = 4
-    };
-    
-    AnimTrack()
-    : cursor(0.0f), fps(0.0f), props(NONE)
-    {}
-    AnimTrack(Au::Curve& anim)
-    : cursor(0.0f), fps(0.0f), props(NONE)
-    {
-        this->anim = anim;
-        unsigned propCurveCount = anim.CurveCount();
-        for(unsigned i = 0; i < propCurveCount; ++i)
-        {
-            std::string propName = anim.GetCurveName(i);
-            Au::Curve* propCurve = anim.GetCurve(i);
-            
-            if(propName == "Position")
-            {
-                props = ANIM_PROPS((int)props | (int)POSITION);
-            }
-            else if(propName == "Rotation")
-            {
-                props = ANIM_PROPS((int)props | (int)ROTATION);
-            }
-            else if(propName == "Scale")
-            {
-                props = ANIM_PROPS((int)props | (int)SCALE);
-            }
-        }
-    }
-    
-    void ResetCursor() { cursor = 0.0f; }
-    
-    Au::Math::Vec3f deltaPosition;
-    Au::Math::Vec3f& GetPosition(Au::Math::Vec3f& defaultValue)
-    { 
-        if(props & POSITION)
-        {
-            Au::Curve& px = anim["Position"]["x"];
-            Au::Curve& py = anim["Position"]["y"];
-            Au::Curve& pz = anim["Position"]["z"];
-            position = Au::Math::Vec3f(px.value, py.value, pz.value);
-            deltaPosition = Au::Math::Vec3f(px.delta, py.delta, pz.delta);
-            return position;
-        }
-        else
-        {
-            return defaultValue;
-        }
-    }
-    Au::Math::Quat& GetRotation(Au::Math::Quat& defaultValue) 
-    { 
-        if(props & ROTATION)
-        {
-            Au::Curve& rx = anim["Rotation"]["x"];
-            Au::Curve& ry = anim["Rotation"]["y"];
-            Au::Curve& rz = anim["Rotation"]["z"];
-            Au::Curve& rw = anim["Rotation"]["w"];
-            rotation = Au::Math::Normalize(
-                Au::Math::Quat(
-                    rx.value,
-                    ry.value,
-                    rz.value,
-                    rw.value
-                )
-            );
-            return rotation;
-        }
-        else
-        {
-            return defaultValue;
-        }
-    }
-    Au::Math::Vec3f& GetScale(Au::Math::Vec3f& defaultValue) 
-    { 
-        if(props & SCALE)
-        {
-            Au::Curve& sx = anim["Scale"]["x"];
-            Au::Curve& sy = anim["Scale"]["y"];
-            Au::Curve& sz = anim["Scale"]["z"];
-            scale = Au::Math::Vec3f(sx.value, sy.value, sz.value);
-            return scale;
-        }
-        else
-        {
-            return defaultValue;
-        }
+        SceneObject* o = root->Object()->FindObject(node.name);
+        if(!o) return;
+        nodes.push_back(AnimNodeController(o->Get<Transform>(), node));
     }
     
     void Tick(float dt)
-    {/*
-        cursor += dt;
-        loopCount = (int)(cursor / anim.Length());
-        float overflow = loopCount * anim.Length();
-        cursor -= overflow;*/
-        cursor += dt;
-        if(cursor > (float)(anim.Length() - 1))
+    {
+        for(auto& con : nodes)
         {
-            cursor -= (float)(anim.Length() - 1);
+            std::cout << con.animNode.name << std::endl;
         }
-        anim.Evaluate(cursor);
     }
 
-    void SetCursor(float cur)
-    {
-        cursor = cur;
-        loopCount = (int)(cursor / anim.Length());
-        float overflow = loopCount * anim.Length();
-        cursor -= overflow;
-    }
+    Transform* root;
+    std::vector<AnimNodeController> nodes;
+};
 
-    float GetCursor()
-    {
-        return cursor;
-    }
+class AnimBlendController
+{
+public:
 
-    void Evaluate(float& cur)
-    {
-        int loopCount = (int)(cur / anim.Length());
-        float overflow = loopCount * anim.Length();
-        cur -= overflow;
-        anim.Evaluate(cur);
-    }
-    
+};
+
+class AnimNodePersist
+{
+public:
 private:
+    AnimNode node;
     float cursor;
-    int loopCount;
-    float fps;
-    Au::Curve anim;
-    ANIM_PROPS props;
-    
-    Au::Math::Vec3f position;
-    Au::Math::Quat rotation;
-    Au::Math::Vec3f scale;
+    float length;
+};
+
+class AnimLayer
+{
+public:
+    void Tick(float dt)
+    {
+
+    }
+    void Apply(gfxm::transform& t)
+    {
+
+    }
+private:
+    AnimNodePersist nodeFrom;
+    AnimNodePersist nodeTo;
+    float blendWeight;
+    float blendStep;
 };
 
 class Animator : public SceneObject::Component
 {
 public:
-    struct Layer
-    {
-        void SetPriority(int p) { priority = p; }
-        void SetWeight(float w) { weight = w; }
-        void SetMode(const std::string& mode) { this->mode = mode; }
-        int priority;
-        std::string name;
-        float weight;
-        std::string mode;
-        AnimTrack anim;
-    };
-
     Animator()
-    : fps(0.0f), blend(0.0f), blendStep(0.0f), rootMotionTarget(0) {}
+    {}
 
     void Set(const std::string& resource)
     {
-        Set(asset<AnimationSet>::get(resource));
+        Set(asset<Animation>::get(resource));
     }
-
-    void Set(asset<AnimationSet> data)
+    void Set(asset<Animation> data)
     {
         if(data.empty())
             return;
         //FrameRate(data->FrameRate());
-        for(auto& kv : data->GetAnimations())
+        for(auto& kv : data->GetTracks())
         {
-            for(auto& kv_node : kv.second.GetNodes())
-            {
-                SceneObject* o = Object()->FindObject(kv_node.first);
-                if(!o) continue;
-                o->Get<Animator>()->SetAnim(kv.first, kv.second[kv_node.first]);
-                // FrameRate ?
-                child_anims.insert(o->Get<Animator>());
-            }
+            SetAnim(kv.first, kv.second);
         }
-    }
-    
-    void SetAnim(const std::string& name, const AnimNode& anim)
+    }    
+    void SetAnim(const std::string& name, AnimTrack& anim)
     {
-        anims[name] = anim;
+        AnimController con(Get<Transform>());
+        for(auto& kv : anim.GetNodes())
+        {
+            con.AddNode(kv.second);
+        }
+        anims[name] = con;
         Play(name);
     }
     
-    void FrameRate(float fps) { this->fps = fps; }
+    void FrameRate(float fps) { }
     void Play(const std::string& name)
     { 
-        anim = anims[name];
-        cursorA = 0.0f;
-        cursorB = 0.0f;
-        for(auto c : child_anims)
-        {
-            c->Play(name);
-        }
     }
     void BlendOverTime(const std::string& to, float t)
     {
-        blend = 0.0f;
-        blendStep = 1.0f/t;
-        animBlendTarget = anims[to];
-        cursorB = 0.0f;
-        for(auto c : child_anims)
-        {
-            c->BlendOverTime(to, t);
-        }
     }
 
     void SetRootMotionTarget(SceneObject* root)
@@ -389,41 +131,12 @@ public:
     
     void Tick(float dt)
     {
-        blend += blendStep * dt;
-        cursorA += dt * 60.0f;
-        cursorB += dt * 60.0f;
-        if(blend >= 1.0f)
+        transform = GetBindTransform();
+        for(auto& l : layers)
         {
-            blendStep = 0.0f;
-            anim = animBlendTarget;
+            l.Tick(dt);
+            l.Apply(transform);
         }
-
-        Transform* t = transform;
-        Au::Math::Vec3f pos0 = anim.position.at(cursorA, t->Position());
-        Au::Math::Quat rot0 = anim.rotation.at(cursorA, t->Rotation());
-        Au::Math::Vec3f scl0 = anim.scale.at(cursorA, t->Scale());
-        Au::Math::Vec3f pos1 = animBlendTarget.position.at(cursorB, t->Position());
-        Au::Math::Quat rot1 = animBlendTarget.rotation.at(cursorB, t->Rotation());
-        Au::Math::Vec3f scl1 = animBlendTarget.scale.at(cursorB, t->Scale());
-        /*
-        if(!rootMotionTarget)
-        {
-            t->Position(Au::Math::Lerp(pos0, pos1, blend));
-        }
-        else
-        {
-            Au::Math::Vec3f dpos = Au::Math::Lerp(anim.deltaPosition, animBlendTarget.deltaPosition, blend);
-            t->ToWorldDirection(dpos);
-            rootMotionTarget->Translate(dpos);
-            
-            //std::cout << "Frame: " << GameState::FrameCount() << "|" << anim.GetCursor() << 
-            //"\n" <<
-            //dpos.x << ", " << dpos.y << ", " << dpos.z << std::endl;
-              
-        }*/
-        t->Position(Au::Math::Lerp(pos0, pos1, blend));
-        t->Rotation(Au::Math::Slerp(rot0, rot1, blend));
-        t->Scale(Au::Math::Lerp(scl0, scl1, blend));
     }
     
     void Update(float time)
@@ -433,6 +146,9 @@ public:
             c->Tick(time);
         }
     }
+
+    void SetLayerCount(size_t c) { layers.resize(c); }
+    AnimLayer& GetLayer(size_t i) { return layers[i]; }
     
     ~Animator()
     {
@@ -445,37 +161,7 @@ public:
         {
             return;
         }
-        anim = anims[""];
-        animBlendTarget = anims[""];
         Object()->Root()->GetComponent<Animator>()->_addChild(this);
-        transform = Get<Transform>();
-    }
-    virtual std::string Serialize() 
-    { 
-        using json = nlohmann::json;
-        json j = json::object();
-        j["Anim"] = animName;
-        j["AnimData"] = animResourceName;
-        return j.dump(); 
-    }
-    virtual void Deserialize(const std::string& data)
-    {
-        using json = nlohmann::json;
-        json j = json::parse(data);
-        if(j.is_null())
-            return;
-        if(j["Anim"].is_string())
-        {
-            animName = j["Anim"].get<std::string>();
-        }
-        if(j["AnimData"].is_string())
-        {
-            animResourceName = j["AnimData"].get<std::string>();
-        }
-        if(!animResourceName.empty())
-        {
-            Set(animResourceName);
-        }
     }
 private:
     void _addChild(Animator* anim)
@@ -488,23 +174,11 @@ private:
         children.erase(anim);
     }
     
-    Transform* transform;
+    gfxm::transform transform;
+    
+    std::vector<AnimLayer> layers;
 
-    std::string animResourceName;
-    std::string animName;
-    
-    float cursorA, cursorB;
-    float fps;
-    float blend;
-    float blendStep;
-    AnimNode animBlendTarget;
-    AnimNode anim;
-    std::map<std::string, AnimNode> anims;
-
-    std::vector<Layer*> layers;
-    
-    std::set<Animator*> child_anims;
-    
+    std::map<std::string, AnimController> anims;    
     //-- Root anim only
     std::set<Animator*> children;
 };

@@ -105,7 +105,7 @@ public:
 
         _state.Bind(&asset<MeshData>::set, "Set");
         _state.Bind(&asset<Material>::set, "Set");
-        _state.Bind(&asset<AnimationSet>::set, "Set");
+        _state.Bind(&asset<Animation>::set, "Set");
         _state.Bind(&asset<SkeletonData>::set, "Set");
         
         _state.Bind(&SceneObject::Root, "Root");

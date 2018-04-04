@@ -16,7 +16,7 @@ struct AnimNode
     curve3 scale;
 };
 
-class Animation
+class AnimTrack
 {
 public:
     void FrameRate(float fps) { this->fps = fps; }
@@ -24,7 +24,9 @@ public:
     void Length(float l) { length = l; }
     AnimNode& operator[](const std::string& node)
     {
-        return animNodes[node];
+        AnimNode& n = animNodes[node];
+        n.name = node;
+        return n;
     }
     std::map<std::string, AnimNode>& GetNodes() { return animNodes; }
 private:
@@ -33,22 +35,22 @@ private:
     std::map<std::string, AnimNode> animNodes;
 };
 
-class AnimationSet
+class Animation
 {
 public:
     size_t Count() { return anims.size(); }
-    Animation& operator[](const std::string& anim)
+    AnimTrack& operator[](const std::string& anim)
     {
         return anims[anim];
     }
-    std::map<std::string, Animation>& GetAnimations() { return anims; }
+    std::map<std::string, AnimTrack>& GetTracks() { return anims; }
 private:
-    std::map<std::string, Animation> anims;
+    std::map<std::string, AnimTrack> anims;
 };
 
-struct AnimationReaderFBX : public asset<AnimationSet>::reader
+struct AnimationReaderFBX : public asset<Animation>::reader
 {
-    bool operator()(const std::string& filename, AnimationSet* animSet)
+    bool operator()(const std::string& filename, Animation* animSet)
     {
         bool result = false;
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
@@ -84,7 +86,7 @@ struct AnimationReaderFBX : public asset<AnimationSet>::reader
                     }
                 }
                 
-                Animation& anim = animSet->operator[](animName);
+                AnimTrack& anim = animSet->operator[](animName);
                 anim.FrameRate((float)fps);
                 anim.Length((float)length);
 
