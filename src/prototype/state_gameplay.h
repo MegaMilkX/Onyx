@@ -116,7 +116,17 @@ public:
         AnimState* animState = scene.Get<AnimState>();
         animState->Set("velocity", velo);
         animState->Update();
+
+        
+        posCurve.x[0] = 0;
+        posCurve.y[0] = 0;
+        posCurve.z[0] = 0;
+        posCurve.x[10] = 3;
+        posCurve.y[10] = 2;
+        posCurve.z[10] = 2;
     }
+    float posCurveCursor = 0.0f;
+    curve3 posCurve;
     virtual void OnCleanup() 
     {
     }
@@ -130,6 +140,11 @@ public:
     TestCube* testCube;
     virtual void OnUpdate() 
     {
+        posCurveCursor += DeltaTime();
+
+        gfxm::vec3 p = posCurve.at(posCurveCursor, gfxm::vec3(0,0,0));
+        testCube->Get<Transform>()->Position(p.x, p.y, p.z);
+
         fpsDisplay->Update(DeltaTime());
 
         while(eChar* e = dispatcher_onChar.poll())    

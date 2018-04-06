@@ -1,7 +1,7 @@
 #ifndef ANIMATOR_H
 #define ANIMATOR_H
 
-#include <util/gfxm.h>
+
 
 #include <fstream>
 
@@ -17,26 +17,63 @@
 class AnimLayer
 {
 public:
+    virtual void Tick(float dt) = 0;
+    virtual AnimPose* GetPose(AnimPose* current) = 0;
+    virtual typeindex Type() = 0;
+};
+
+class AnimLayerPlain : public AnimLayer
+{
+public:
     void Tick(float dt)
     {
-        animFrom += dt * 60.0f;
+        cursor += dt;
     }
-    void Apply(gfxm::transform& t)
+    AnimPose* GetPose(AnimPose* current) { return &(*current = *cursor.GetPose()); }
+    void SetTrack(AnimTrack* t)
     {
-        AnimPose& pose = animFrom.GetPose();
-        t.position(pose.position);
-        t.rotation(pose.rotation);
-        t.scale(pose.scale);
+        if(!t) return;
+        cursor = t->GetCursor();
     }
-    void Set(AnimTrack& track)
-    {
-        animFrom = track.GetCursor();
-    }
+
+    typeindex Type() { return TypeInfo<AnimLayerPlain>::Index(); }
 private:
-    AnimTrack::Cursor animFrom;
-    AnimTrack::Cursor animTo;
-    float blendWeight;
-    float blendStep;
+    AnimTrack::Cursor cursor;
+};
+
+class AnimLayerAdd : public AnimLayer
+{
+public:
+    void Tick(float dt)
+    {
+        cursor += dt;
+    }
+    AnimPose* GetPose(AnimPose* current)
+    {
+        AnimPose* pose = cursor.GetPose();
+        for(auto& kv : pose->poses)
+        {
+            gfxm::mat4 bp = bindPose->poses[kv.first];
+            bp = gfxm::inverse(bp);
+            gfxm::mat4 deltaPose = bp * kv.second;
+            current->poses[kv.first] = deltaPose * current->poses[kv.first];
+        }
+        return current;
+    }
+    void SetBindPose(AnimPose* bind)
+    {
+        bindPose = bind;
+    }
+    void SetTrack(AnimTrack* t)
+    {
+        if(!t) return;
+        cursor = t->GetCursor();
+    }
+
+    typeindex Type() { return TypeInfo<AnimLayerAdd>::Index(); }
+private:
+    AnimTrack::Cursor cursor;
+    AnimPose* bindPose;
 };
 
 class Animator : public SceneObject::Component
@@ -55,25 +92,62 @@ public:
     {
         if(data.empty())
             return;
+
+        animation = data;
+
         //FrameRate(data->FrameRate());
         for(auto& kv : data->GetTracks())
         {
             SetAnim(kv.first, kv.second);
         }
+
+        animNodes.clear();
+        for(auto& kv : data->GetBindPose().poses)
+        {
+            SceneObject* o = Object()->FindObject(kv.first);
+            if(o)
+                animNodes[kv.first] = o->Get<Transform>();
+        }
     }    
-    void SetAnim(const std::string& name, AnimTrack& anim)
+    std::map<std::string, Transform*> animNodes;
+    void SetAnim(const std::string& name, AnimTrack* anim)
     {
         anims[name] = anim;
         Play(name);
     }
+
+    template<typename T>
+    T* GetLayer(int i)
+    {
+        AnimLayer* l = layers[i];
+        if(!l)
+        {
+            layers[i] = new T();
+            return (T*)layers[i];
+        }
+        else if (l->Type() == TypeInfo<T>::Index())
+        {
+            return (T*)l;
+        }
+        else
+        {
+            return 0;
+        }
+    }
     
     void FrameRate(float fps) { }
+    AnimTrack* currentTrack;
     void Play(const std::string& name)
     {
-        layers[0].Set(anims[name]);
+        currentTrack = anims[name];
+        SetLayerCount(2);
+        GetLayer<AnimLayerPlain>(0)->SetTrack(anims[name]);
+        GetLayer<AnimLayerAdd>(1)->SetBindPose(&animation->GetBindPose());
+        GetLayer<AnimLayerAdd>(1)->SetTrack(anims["LayerMotion01"]);
     }
     void BlendOverTime(const std::string& to, float t)
     {
+        Play(to);
     }
 
     void SetRootMotionTarget(SceneObject* root)
@@ -86,13 +160,25 @@ public:
     
     void Tick(float dt)
     {
-        transform = GetBindTransform();
-        for(auto& l : layers)
+        if(animation.empty())
+            return;
+
+        AnimPose bindPose = animation->GetBindPose();
+        AnimPose* curPose = &bindPose;
+        AnimPose* pose;
+        for(auto l : layers)
         {
-            l.Tick(dt);
-            l.Apply(transform);
+            l->Tick(dt * animation->FrameRate());
+            pose = l->GetPose(curPose);
         }
-        // TODO: Apply transform
+        for(auto& kv : pose->poses)
+        {
+            Transform* t = animNodes[kv.first];
+            if(t)
+            {
+                t->SetTransform(*(Au::Math::Mat4f*)&kv.second);
+            }
+        }
     }
     
     void Update(float time)
@@ -104,7 +190,7 @@ public:
     }
 
     void SetLayerCount(size_t c) { layers.resize(c); }
-    AnimLayer& GetLayer(size_t i) { return layers[i]; }
+    AnimLayer* GetLayer(size_t i) { return layers[i]; }
     
     ~Animator()
     {
@@ -132,9 +218,10 @@ private:
     
     gfxm::transform transform;
     
-    std::vector<AnimLayer> layers;
+    std::vector<AnimLayer*> layers;
 
-    std::map<std::string, AnimTrack> anims;    
+    asset<Animation> animation;
+    std::map<std::string, AnimTrack*> anims;    
     //-- Root anim only
     std::set<Animator*> children;
 };

@@ -1,6 +1,8 @@
 #ifndef ANIMATION_H
 #define ANIMATION_H
 
+#include <util/gfxm.h>
+
 #include <map>
 #include <asset.h>
 #include <aurora/media/fbx.h>
@@ -10,9 +12,8 @@
 
 struct AnimNodePose
 {
-    gfxm::vec3 position;
-    gfxm::quat rotation;
-    gfxm::vec3 scale;
+    std::string name;
+    gfxm::transform transform;
 };
 
 struct AnimNode
@@ -25,12 +26,7 @@ struct AnimNode
 
 struct AnimPose
 {
-    AnimNodePose& operator[](const std::string& node)
-    {
-        AnimNodePose& n = animNodePoses[node];
-        return n;
-    }
-    std::map<std::string, AnimNodePose> animNodePoses;
+    std::map<std::string, gfxm::mat4> poses;
 };
 
 class AnimTrack
@@ -40,7 +36,9 @@ public:
     {
     public:
         Cursor() : track(0) {}
-        Cursor(AnimTrack* t) : track(t), cursor(0) {}
+        Cursor(AnimTrack* t) 
+        : track(t), cursor(0) 
+        {}
         void operator+=(float t)
         {
             Advance(t);
@@ -52,17 +50,25 @@ public:
             float len = track->Length();
             if(cursor > len) cursor -= len;
         }
-        AnimPose& GetPose() 
+        void SetPose(AnimPose& p)
         {
+            p = pose;
+        }
+        AnimPose* GetPose() 
+        {
+            if(!track)
+                return &pose;
             for(auto& kv : track->GetNodes())
             {
                 AnimNodePose np;
-                np.position = kv.second.position.at(cursor, gfxm::vec3());
-                np.rotation = kv.second.rotation.at(cursor, gfxm::vec4());
-                np.scale = kv.second.scale.at(cursor, gfxm::vec3());
-                pose[kv.first] = np;
-            } 
-            return pose; 
+                np.transform.set_transform(pose.poses[kv.first]);
+                if(!kv.second.position.empty()) np.transform.position(kv.second.position.at(cursor, gfxm::vec3(0, 0, 0)));
+                gfxm::vec4 q = kv.second.rotation.at(cursor, gfxm::vec4(0, 0, 0, 1));
+                if(!kv.second.rotation.empty()) np.transform.rotation(gfxm::quat(q.x, q.y, q.z, q.w));
+                if(!kv.second.scale.empty()) np.transform.scale(kv.second.scale.at(cursor, gfxm::vec3(1, 1, 1)));
+                pose.poses[kv.first] = np.transform.matrix();
+            }
+            return &pose;
         }
     private:
         float cursor;
@@ -72,8 +78,8 @@ public:
 
     Cursor GetCursor() { return Cursor(this); }
 
-    void FrameRate(float fps) { this->fps = fps; }
-    float FrameRate() { return fps; }
+    std::string Name() { return name; }
+    void Name(const std::string& name) { this->name = name; }
     void Length(float l) { length = l; }
     float Length() { return length; }
     AnimNode& operator[](const std::string& node)
@@ -84,7 +90,7 @@ public:
     }
     std::map<std::string, AnimNode>& GetNodes() { return animNodes; }
 private:
-    float fps;
+    std::string name;
     float length;
     std::map<std::string, AnimNode> animNodes;
 };
@@ -93,13 +99,20 @@ class Animation
 {
 public:
     size_t Count() { return anims.size(); }
-    AnimTrack& operator[](const std::string& anim)
+    AnimTrack* operator[](const std::string& anim)
     {
+        if(anims.count(anim) == 0)
+            anims[anim] = new AnimTrack();
         return anims[anim];
     }
-    std::map<std::string, AnimTrack>& GetTracks() { return anims; }
+    std::map<std::string, AnimTrack*>& GetTracks() { return anims; }
+    AnimPose& GetBindPose() { return bindPose; }
+    void FrameRate(float fps) { this->fps = fps; }
+    float FrameRate() { return fps; }
 private:
-    std::map<std::string, AnimTrack> anims;
+    std::map<std::string, AnimTrack*> anims;
+    AnimPose bindPose;
+    float fps;
 };
 
 struct AnimationReaderFBX : public asset<Animation>::reader
@@ -125,7 +138,15 @@ struct AnimationReaderFBX : public asset<Animation>::reader
                 fbxReader.GetAnimationStacks();
             double fps = fbxReader.GetFrameRate();
             double timePerFrame = Au::Media::FBX::TimeSecond / fps;
-            //animSet->FrameRate((float)fps);
+            
+            animSet->FrameRate((float)fps);
+            AnimPose& pose = animSet->GetBindPose();
+            for(unsigned i = 0; i < fbxReader.ModelCount(); ++i)
+            {
+                Au::Media::FBX::Model* fbxModel = 
+                    fbxReader.GetModel(i);
+                pose.poses[fbxModel->name] = *(gfxm::mat4*)&fbxModel->transform;
+            }
 
             for(unsigned i = 0; i < stacks.size(); ++i)
             {
@@ -140,17 +161,23 @@ struct AnimationReaderFBX : public asset<Animation>::reader
                     }
                 }
                 
-                AnimTrack& anim = animSet->operator[](animName);
-                anim.FrameRate((float)fps);
-                anim.Length((float)length);
+                AnimTrack* anim = animSet->operator[](animName);
+                anim->Length((float)length);
+                anim->Name(animName);
 
                 //std::cout << "AnimStack " << animName << " len: " << length << std::endl;
                 
                 std::vector<Au::Media::FBX::SceneNode> nodes = stacks[i].GetAnimatedNodes();
                 for(unsigned j = 0; j < nodes.size(); ++j)
                 {
+                    if(!stacks[i].HasPositionCurve(nodes[i]) &&
+                        !stacks[i].HasRotationCurve(nodes[i]) &&
+                        !stacks[i].HasScaleCurve(nodes[i]))
+                    {
+                        continue;
+                    }
                     std::string nodeName = nodes[j].Name();
-                    AnimNode& animNode = anim[nodeName];
+                    AnimNode& animNode = anim->operator[](nodeName);
                     float frame = 0.0f;
                     //std::cout << "  CurveNode " << nodeName << std::endl;
                     for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
