@@ -37,9 +37,9 @@ public:
         if(k0 == 0)
             return def;
         if(k0 == k1)
-            return k0->time;
-        float a = k0->time;
-        float b = k1->time;
+            return k0->value;
+        float a = k0->value;
+        float b = k1->value;
         float t = (time - k0->time) / (k1->time - k0->time);
         return a + t * (b - a);
     }
@@ -79,6 +79,8 @@ public:
         std::sort(keyframes.begin(), keyframes.end());
         return operator[](time);
     }
+
+    bool empty() { return keyframes.empty(); }
 private:
     std::vector<keyframe> keyframes;
 };
@@ -96,6 +98,7 @@ struct curve2
             y.delta(from, to)
         );
     }
+    bool empty() { return x.empty() || y.empty(); }
     curve x, y;
 };
 
@@ -116,6 +119,7 @@ struct curve3
             z.delta(from, to)
         );
     }
+    bool empty() { return x.empty() || y.empty() || x.empty(); }
     curve x, y, z;
 };
 
@@ -138,6 +142,7 @@ struct curve4
             w.delta(from, to)
         );
     }
+    bool empty() { return x.empty() || y.empty() || x.empty() || w.empty(); }
     curve x, y, z, w;
 };
 
