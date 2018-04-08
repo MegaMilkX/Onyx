@@ -75,7 +75,7 @@ struct tquat
     T w;
 
     tquat<T>& operator=(const tvec4<T>& v) {
-        tquat<T>(v);
+        x = v.x; y = v.y; z = v.z; w = v.w;
         return *this;
     }
     
@@ -683,6 +683,7 @@ inline tquat<T> inverse(const tquat<T>& q)
     i.y = -q.y / d;
     i.z = -q.z / d;
     i.w = q.w / d;
+    i = normalize(i);
     return i;
 }
 template<typename T>
