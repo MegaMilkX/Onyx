@@ -28,6 +28,12 @@ public:
         lua.Bind(&Transform::LookDir, "LookDir");
 
         lua.Bind(&Animator::BlendOverTime, "Blend");
+        lua.Bind(&Animator::ApplyBlend, "ApplyBlend");
+        lua.Bind(&Animator::ApplyAdd, "ApplyAdd");
+        lua.Bind(&Animator::GetAnimCursor, "GetCursor");
+        lua.Bind(&Animator::Stopped, "Stopped");
+
+        lua.Bind(&AnimTrack::Cursor::Advance, "Advance");
 
         lua.Bind(&Au::Math::Vec3f::x, "x");
         lua.Bind(&Au::Math::Vec3f::y, "y");
@@ -58,7 +64,6 @@ public:
     {
         currentState = state;
         lua.CallMember(currentState, "Start");
-        std::cout << state << std::endl;
     }
     template<typename T>
     void Set(const std::string& name, const T& data)
@@ -68,7 +73,9 @@ public:
 
     void Update()
     {
+        Get<Animator>()->Tick(GameState::DeltaTime());
         lua.CallMember(currentState, "Update");
+        Get<Animator>()->Finalize();
     }
 private:
     std::string currentState;
