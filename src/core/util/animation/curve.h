@@ -48,7 +48,7 @@ public:
     {
         if(keyframes.empty())
             return 0.0f;
-        float dt = 0.0f;
+        float d = 0.0f;
         float prevValue = at(from);
         float value = at(to);
 
@@ -56,13 +56,13 @@ public:
         {
             float d0 = keyframes.back().value - prevValue;
             float d1 = value - keyframes.front().value;
-            dt = d0 + d1;
+            d = d0 + d1;
         }
         else
         {
-            dt = value - prevValue;
+            d = value - prevValue;
         }
-        return dt;
+        return d;
     }
 
     keyframe& operator[](float time)
@@ -140,6 +140,24 @@ struct curve4
             y.delta(from, to),
             z.delta(from, to),
             w.delta(from, to)
+        );
+    }
+    bool empty() { return x.empty() || y.empty() || x.empty() || w.empty(); }
+    curve x, y, z, w;
+};
+
+struct curveq
+{
+public:
+    gfxm::quat at(float t, const gfxm::quat& def)
+    {
+        return gfxm::normalize(
+            gfxm::quat(
+                x.at(t, def.x), 
+                y.at(t, def.y), 
+                z.at(t, def.z), 
+                w.at(t, def.w)
+            )
         );
     }
     bool empty() { return x.empty() || y.empty() || x.empty() || w.empty(); }
