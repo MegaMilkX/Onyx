@@ -111,22 +111,7 @@ public:
         testCube = scene.CreateObject()->Get<TestCube>();
         testCube->Get<Transform>()->Translate(1.0f, 1.0f, 0.0f);
         testCube->Object()->Name("cube");
-
-        Au::Math::Vec3f velo;
-        AnimState* animState = scene.Get<AnimState>();
-        animState->Set("velocity", velo);
-        animState->Update();
-
-        
-        posCurve.x[0] = 0;
-        posCurve.y[0] = 0;
-        posCurve.z[0] = 0;
-        posCurve.x[10] = 3;
-        posCurve.y[10] = 2;
-        posCurve.z[10] = 2;
     }
-    float posCurveCursor = 0.0f;
-    curve3 posCurve;
     virtual void OnCleanup() 
     {
     }
@@ -140,11 +125,6 @@ public:
     TestCube* testCube;
     virtual void OnUpdate() 
     {
-        posCurveCursor += DeltaTime();
-
-        gfxm::vec3 p = posCurve.at(posCurveCursor, gfxm::vec3(0,0,0));
-        testCube->Get<Transform>()->Position(p.x, p.y, p.z);
-
         fpsDisplay->Update(DeltaTime());
 
         while(eChar* e = dispatcher_onChar.poll())    
@@ -164,8 +144,10 @@ public:
         {
             script->Relay("KeyDown", (int)e->key);
 
-            if(e->key == Au::Input::KEY_Q)
+            if(e->key == Au::Input::KEY_Q){
                 character->GetComponent<Transform>()->Position(0.0f, 0.25f, 0.0f);
+                character->Get<Transform>()->Rotation(0.0f, 0.0f, 0.0f, 1.0f);
+            }
             if(e->key == Au::Input::KEY_E)
                 character->GetComponent<Transform>()->Position(0.0f, 2.25f, -15.0f);
             if(e->key == Au::Input::KEY_R)
@@ -211,7 +193,6 @@ public:
 
         scene.Get<GuiRoot>()->Update();
 
-        animation->Update(DeltaTime());
         collision->Update(DeltaTime());
         
         //scene.GetComponent<Dynamics>()->Step(DeltaTime());
