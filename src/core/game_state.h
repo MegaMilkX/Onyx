@@ -160,7 +160,7 @@ public:
         
         // Maintaining 60fps, TODO: remove hack, add fps limiting system
         /*
-        while(deltaTime < 1.0f/60.0f)
+        while(deltaTime < 1.0f/30.0f)
         {
             deltaTime = timer.End() / 1000000.0f;
         }
@@ -177,7 +177,7 @@ public:
         Au::Window::Destroy(window);
     }
     
-    float DeltaTime() { return deltaTime; }
+    static float DeltaTime() { return deltaTime; }
     static uint64_t FrameCount() { return frameCount; }
     
     static Au::GFX::Device* GFXDevice() { return &gfxDevice; }
