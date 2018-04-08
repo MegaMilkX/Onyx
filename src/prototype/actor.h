@@ -35,6 +35,27 @@ public:
 	{
 		animState->Set("dt", dt);
 		animState->Set("direction", velocity);
+		float dot = Au::Math::Dot(
+			Au::Math::Normalize(velocity), 
+			Au::Math::Normalize(Get<Transform>()->Back())
+		);
+		Au::Math::Vec3f rotAxis = Au::Math::Normalize(
+			Au::Math::Cross(
+				Au::Math::Normalize(Get<Transform>()->Back()), 
+				Au::Math::Normalize(velocity)
+			)
+		);
+		#undef max
+		#undef min
+		const float eps = 0.01f;
+    	if(fabs(dot + 1.0f) <= eps)
+		{
+			
+		}
+        float rotAngle = acosf(std::max(-1.0f, std::min(dot, 1.0f)));
+		if(rotAxis.y > 0.0f) rotAngle *= -1.0f;
+		animState->Set("angle", rotAngle);
+		animState->Set("angleAbs", fabs(rotAngle));
 		_checkForGround();
 		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), Au::Math::Vec3f(0.0f, 1.0f, 0.0f), 10.0f * dt);
 		animState->Update();

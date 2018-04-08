@@ -18,50 +18,6 @@ public:
     int count = 0;
 };
 
-/*
-bool ActorState::_checkForGround()
-{
-	Transform* trans = GetComponent<Transform>();
-	Actor* actor = GetComponent<Actor>();
-	
-	Au::Math::Vec3f pos = trans->Position() + Au::Math::Vec3f(0.0f, 1.0f, 0.0f);
-    Collision::RayHit hit;
-	if(collision->RayTest(Au::Math::Ray(pos, Au::Math::Vec3f(0.0f, -1.1f, 0.0f)), hit))
-	{
-		Au::Math::Vec3f pos = trans->Position();
-		pos.y = hit.position.y;
-		trans->Position(pos);
-		return true;
-	}
-	else
-	{
-		actor->Switch(GetComponent<ActorFall>());
-		return false;
-	}
-}
-
-void ActorFall::Update(float dt)
-{
-	Transform* trans = GetComponent<Transform>();
-	Actor* actor = GetComponent<Actor>();
-	
-	velocityFall = -9.8f * dt;
-	
-	Au::Math::Vec3f pos = trans->Position();
-	Collision::RayHit hit;
-	if(collision->RayTest(Au::Math::Ray(pos, Au::Math::Vec3f(0.0f, velocityFall - 0.1f, 0.0f)), hit))
-	{
-		Au::Math::Vec3f pos = trans->Position();
-		pos.y = hit.position.y;
-		trans->Position(pos);
-		actor->Switch(GetComponent<ActorIdle>());
-		return;
-	}
-	
-	trans->Translate(0.0f, velocityFall, 0.0f);
-}
-*/
-
 void Actor::OnCreate()
 {
     KinematicObject::OnCreate();
@@ -76,38 +32,37 @@ void Actor::OnCreate()
 	
 	GetObject()->Name("character");
 
+    asset<Animation>::get("character")->SetRootMotionSource("Root");
+    asset<Animation>::get("character")->operator[]("Turn180")->Looping(false);
     Get<Animator>()->Set("character");
-    SceneObject* animRoot = Get<Animator>()->Object()->FindObject("Root");
-    if(animRoot)
-    {
-        animRoot->Get<Animator>()->SetRootMotionTarget(Object());
-    }
-
-    //Get<Animation>()->Layer(1, "TurnLeft", "Override", 1.0f);
 	
     animState = Get<AnimState>();
     animState->AppendScript(R"(
-        Idle = {}
-        Idle.Start = function()
-            State:Blend("Idle", 0.1)
-        end
-        Idle.Update = function()
-            if not grounded then
-                State:Switch("Fall")
-                return
+        Idle = {
+            Start = function()
+                State:Blend("Idle", 0.1)
+            end,
+            Update = function()
+                if not grounded then
+                    State:Switch("Fall")
+                    return
+                end
+                if velocity > 0.0 then
+                    State:Switch("Walk")
+                    return
+                end
+                vec = Transform:GetPosition()
+                Transform:SetPosition(vec.x, groundHit.y, vec.z)
             end
-            if velocity > 0.0 then
-                State:Switch("Walk")
-                return
-            end
-            vec = Transform:GetPosition()
-            Transform:SetPosition(vec.x, groundHit.y, vec.z)
-        end
+        }
     )");
     animState->AppendScript(R"(
         Walk = {}
         Walk.Start = function()
             State:Blend("Run", 0.1)
+            LayerTurnLCur = Animator:GetCursor("LayerTurnL")
+            LayerTurnRCur = Animator:GetCursor("LayerTurnR")
+            LayerMotion01 = Animator:GetCursor("LayerMotion01")
         end
         Walk.Update = function()
             if not grounded then
@@ -118,10 +73,35 @@ void Actor::OnCreate()
                 State:Switch("Idle")
                 return
             end
-            Transform:LookDir(direction, Transform:Front(), Transform:Up(), 10.0 * dt)
+            if angleAbs > 3.0 then
+                State:Switch("Turn180")
+                return
+            end
             vec = Transform:GetPosition()
             Transform:SetPosition(vec.x, groundHit.y, vec.z)
+            LayerTurnLCur:Advance(dt * 60.0)
+            LayerTurnRCur:Advance(dt * 60.0)
+            LayerMotion01:Advance(dt * 60.0)
+            if angle > 0.0 then
+                Animator:ApplyAdd(LayerTurnRCur, angle / 3.0)
+            end
+            if angle < 0.0 then
+                Animator:ApplyAdd(LayerTurnLCur, -angle / 3.0)
+            end
+            --Animator:ApplyAdd(LayerMotion01, 1.0)
         end
+    )");
+    animState->AppendScript(R"(
+        Turn180 = {
+            Start = function()
+                State:Blend("Turn180", 0.1)
+            end,
+            Update = function()
+                if Animator:Stopped(0.11) == 1 then
+                    State:Switch("Walk")
+                end
+            end
+        }
     )");
     animState->AppendScript(R"(
         grav_velo = 0.0
