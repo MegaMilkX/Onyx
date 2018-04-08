@@ -248,6 +248,14 @@ Au::Math::Vec3f Transform::WorldPosition()
 }
 Au::Math::Vec3f Transform::Position()
 { return _position; }
+Au::Math::Quat Transform::WorldRotation()
+{
+    Au::Math::Mat3f m3 = Au::Math::ToMat3(GetTransform());
+    m3[0] /= m3[0].length();
+    m3[1] /= m3[1].length();
+    m3[2] /= m3[2].length();
+    return Au::Math::ToQuat(m3);
+}
 Au::Math::Quat Transform::Rotation()
 { return _rotation; }
 Au::Math::Vec3f Transform::Scale()
@@ -265,6 +273,14 @@ Au::Math::Vec3f Transform::Down()
 { return -Up(); }
 Au::Math::Vec3f Transform::Forward()
 { return -Back(); }
+
+Au::Math::Quat Transform::GetParentRotation()
+{
+    if(_parent)
+        return Au::Math::Normalize(_parent->GetParentRotation() * _parent->Rotation());
+    else
+        return Au::Math::Quat(0.0f, 0.0f, 0.0f, 1.0f);
+}
 
 void Transform::SetTransform(Au::Math::Mat4f& t)
 {

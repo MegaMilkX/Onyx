@@ -56,6 +56,7 @@ public:
     
     Au::Math::Vec3f WorldPosition();
     Au::Math::Vec3f Position();
+    Au::Math::Quat WorldRotation();
     Au::Math::Quat Rotation();
     Au::Math::Vec3f Scale();
     
@@ -66,6 +67,8 @@ public:
     Au::Math::Vec3f Down();
     Au::Math::Vec3f Forward();
     
+    Au::Math::Quat GetParentRotation();
+
     void SetTransform(Au::Math::Mat4f& t);
     Au::Math::Mat4f GetLocalTransform();
     Au::Math::Mat4f GetParentTransform();
@@ -82,10 +85,15 @@ public:
     void ToWorldDirection(Au::Math::Vec3f& dir)
     {
         Au::Math::Mat3f m3 = Au::Math::ToMat3(GetParentTransform());
-        //m3[0] = m3[0] / m3[0].length();
-        //m3[1] = m3[1] / m3[1].length();
-        //m3[2] = m3[2] / m3[2].length();
         dir = m3 * dir;
+    }
+
+    void ToWorldRotation(Au::Math::Quat& q)
+    {
+        if(_parent)
+        {
+            q = Au::Math::Normalize(Au::Math::Inverse(WorldRotation()) * q);
+        }
     }
 
     void ToWorldScale(Au::Math::Vec3f& vec)
