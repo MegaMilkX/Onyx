@@ -10,23 +10,17 @@
 #include <fstream>
 #include <util/animation/curve.h>
 
-struct AnimNodePose
-{
-    std::string name;
-    gfxm::transform transform;
-};
-
 struct AnimNode
 {
     std::string name;
     curve3 position;
-    curve4 rotation;
+    curveq rotation;
     curve3 scale;
 };
 
 struct AnimPose
 {
-    std::map<std::string, gfxm::mat4> poses;
+    std::map<std::string, gfxm::transform> poses;
 };
 
 class AnimTrack
@@ -37,8 +31,16 @@ public:
     public:
         Cursor() : track(0) {}
         Cursor(AnimTrack* t) 
-        : track(t), cursor(0) 
+        : track(t), cursor(0), prevCursor(0) 
         {}
+        float GetCursor() { return cursor; }
+        int Valid() { return track == 0 ? 0 : 1; }
+        int EndReached(float secondsBeforeEnd = 0.0f)
+        {
+            if(!track) return 0;
+            if(track->Looping()) return 0;
+            return cursor + secondsBeforeEnd >= track->Length() ? 1 : 0;
+        }
         void operator+=(float t)
         {
             Advance(t);
@@ -46,37 +48,98 @@ public:
         void Advance(float t)
         {
             if(!track) return;
+            prevCursor = cursor;
             cursor += t;
-            float len = track->Length();
-            if(cursor > len) cursor -= len;
+            float len = track->Length() - 1.0f;
+            if(track->Looping())
+            {
+                if(cursor > len)
+                {
+                    if(len == 0.0f) cursor = 0.0f;
+                    else cursor -= len;
+                }
+            }
         }
-        void SetPose(AnimPose& p)
-        {
-            p = pose;
-        }
-        AnimPose* GetPose() 
+        AnimPose* GetPose(AnimPose* bind) 
         {
             if(!track)
                 return &pose;
             for(auto& kv : track->GetNodes())
             {
-                AnimNodePose np;
-                np.transform.set_transform(pose.poses[kv.first]);
-                if(!kv.second.position.empty()) np.transform.position(kv.second.position.at(cursor, gfxm::vec3(0, 0, 0)));
-                gfxm::vec4 q = kv.second.rotation.at(cursor, gfxm::vec4(0, 0, 0, 1));
-                if(!kv.second.rotation.empty()) np.transform.rotation(gfxm::quat(q.x, q.y, q.z, q.w));
-                if(!kv.second.scale.empty()) np.transform.scale(kv.second.scale.at(cursor, gfxm::vec3(1, 1, 1)));
-                pose.poses[kv.first] = np.transform.matrix();
+                gfxm::transform& bp = bind->poses[kv.first];
+                gfxm::transform t;
+                //np.transform.set_transform(pose.poses[kv.first].matrix());
+                if(!kv.second.position.empty()) 
+                    t.position(
+                        kv.second.position.at(
+                            cursor, 
+                            bp.position()
+                        )
+                    );
+                gfxm::quat brot = bp.rotation();
+                if(!kv.second.rotation.empty()) 
+                    t.rotation(
+                        kv.second.rotation.at(
+                            cursor, 
+                            gfxm::vec4(brot.x, brot.y, brot.z, brot.w)
+                        )
+                    );
+                if(!kv.second.scale.empty()) 
+                    t.scale(
+                        kv.second.scale.at(
+                            cursor, 
+                            bp.scale()
+                        )
+                    );
+                pose.poses[kv.first] = t;
             }
+            AnimNode& rmn = track->GetRootMotionNode();
+            posDeltaRootMotion = rmn.position.delta(prevCursor, cursor);
+            gfxm::quat q0 = rmn.rotation.at(prevCursor, gfxm::vec4(0, 0, 0, 1));
+            gfxm::quat q1 = rmn.rotation.at(cursor, gfxm::vec4(0, 0, 0, 1));
+
+            if(cursor < prevCursor)
+            {
+                gfxm::quat d0 = gfxm::quat(rmn.rotation.at(track->Length() - 1.0f, gfxm::vec4(0, 0, 0, 1))) * gfxm::inverse(q0);
+                gfxm::quat d1 = q1 * gfxm::inverse(gfxm::quat(rmn.rotation.at(0.0f, gfxm::vec4(0,0,0,1))));
+                rotDeltaRootMotion = d1 * d0;
+            }
+            else
+            {
+                rotDeltaRootMotion = q1 * gfxm::inverse(q0);
+            }
+
             return &pose;
         }
+        gfxm::vec3& GetRootMotionDeltaPosition() { return posDeltaRootMotion; }
+        gfxm::quat& GetRootMotionDeltaRotation() { return rotDeltaRootMotion; }
     private:
         float cursor;
+        float prevCursor;
         AnimTrack* track;
         AnimPose pose;
+        gfxm::vec3 posDeltaRootMotion;
+        gfxm::quat rotDeltaRootMotion;
     };
 
     Cursor GetCursor() { return Cursor(this); }
+
+    void Looping(bool val) { looping = val; }
+    bool Looping() { return looping; }
+    
+    void SetRootMotionSource(const std::string& nodeName)
+    {
+        std::map<std::string, AnimNode>::iterator it =
+            animNodes.find(nodeName);
+        if(it == animNodes.end())
+        {
+            std::cout << "SetRootMotionSource: Node '" << nodeName << "' not found" << std::endl;
+            return;
+        }
+        animNodes[rootMotionNode.name] = rootMotionNode;
+        rootMotionNode = animNodes[nodeName];
+        animNodes.erase(nodeName);
+    }
 
     std::string Name() { return name; }
     void Name(const std::string& name) { this->name = name; }
@@ -89,10 +152,13 @@ public:
         return n;
     }
     std::map<std::string, AnimNode>& GetNodes() { return animNodes; }
+    AnimNode& GetRootMotionNode() { return rootMotionNode; }
 private:
     std::string name;
     float length;
+    bool looping = true;
     std::map<std::string, AnimNode> animNodes;
+    AnimNode rootMotionNode;
 };
 
 class Animation
@@ -109,6 +175,11 @@ public:
     AnimPose& GetBindPose() { return bindPose; }
     void FrameRate(float fps) { this->fps = fps; }
     float FrameRate() { return fps; }
+    void SetRootMotionSource(const std::string& name)
+    {
+        for(auto& kv : anims)
+            kv.second->SetRootMotionSource(name);
+    }
 private:
     std::map<std::string, AnimTrack*> anims;
     AnimPose bindPose;
@@ -145,7 +216,7 @@ struct AnimationReaderFBX : public asset<Animation>::reader
             {
                 Au::Media::FBX::Model* fbxModel = 
                     fbxReader.GetModel(i);
-                pose.poses[fbxModel->name] = *(gfxm::mat4*)&fbxModel->transform;
+                pose.poses[fbxModel->name].set_transform(*(gfxm::mat4*)&fbxModel->transform);
             }
 
             for(unsigned i = 0; i < stacks.size(); ++i)

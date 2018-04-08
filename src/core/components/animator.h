@@ -14,75 +14,28 @@
 
 #include <animation.h>
 
-class AnimLayer
+class AnimJoint : public SceneObject::Component
 {
 public:
-    virtual void Tick(float dt) = 0;
-    virtual AnimPose* GetPose(AnimPose* current) = 0;
-    virtual typeindex Type() = 0;
-};
-
-class AnimLayerPlain : public AnimLayer
-{
-public:
-    void Tick(float dt)
+    void SetAnim(const std::string& name, AnimNode& anim)
     {
-        cursor += dt;
-    }
-    AnimPose* GetPose(AnimPose* current) { return &(*current = *cursor.GetPose()); }
-    void SetTrack(AnimTrack* t)
-    {
-        if(!t) return;
-        cursor = t->GetCursor();
+        anims[name] = anim;
     }
 
-    typeindex Type() { return TypeInfo<AnimLayerPlain>::Index(); }
+    void OnCreate()
+    {
+        t = Get<Transform>();
+    }
 private:
-    AnimTrack::Cursor cursor;
-};
-
-class AnimLayerAdd : public AnimLayer
-{
-public:
-    void Tick(float dt)
-    {
-        cursor += dt;
-    }
-    AnimPose* GetPose(AnimPose* current)
-    {
-        AnimPose* pose = cursor.GetPose();
-        for(auto& kv : pose->poses)
-        {
-            gfxm::mat4 bp = bindPose->poses[kv.first];
-            bp = gfxm::inverse(bp);
-            gfxm::mat4 deltaPose = bp * kv.second;
-            current->poses[kv.first] = deltaPose * current->poses[kv.first];
-        }
-        return current;
-    }
-    void SetBindPose(AnimPose* bind)
-    {
-        bindPose = bind;
-    }
-    void SetTrack(AnimTrack* t)
-    {
-        if(!t) return;
-        cursor = t->GetCursor();
-    }
-
-    typeindex Type() { return TypeInfo<AnimLayerAdd>::Index(); }
-private:
-    AnimTrack::Cursor cursor;
-    AnimPose* bindPose;
+    Transform* t;
+    std::map<std::string, AnimNode> anims;
 };
 
 class Animator : public SceneObject::Component
 {
 public:
     Animator()
-    {
-        SetLayerCount(1);
-    }
+    {}
 
     void Set(const std::string& resource)
     {
@@ -94,7 +47,16 @@ public:
             return;
 
         animation = data;
-
+        for(auto& track_kv : data->GetTracks())
+        {
+            for(auto& node_kv : track_kv.second->GetNodes())
+            {
+                AnimJoint* j = GetJoint(node_kv.first);
+                if(!j) continue;
+                j->SetAnim(track_kv.first, node_kv.second);
+            }
+        }
+        
         //FrameRate(data->FrameRate());
         for(auto& kv : data->GetTracks())
         {
@@ -110,74 +72,195 @@ public:
         }
     }    
     std::map<std::string, Transform*> animNodes;
+    Transform* rootMotionSource = 0;
     void SetAnim(const std::string& name, AnimTrack* anim)
     {
         anims[name] = anim;
+        rootMotionSource = 0;
+        if(!anim->GetRootMotionNode().name.empty())
+        {
+            SceneObject* o = Object()->FindObject(anim->GetRootMotionNode().name);
+            if(o) rootMotionSource = o->Get<Transform>();
+        }
         Play(name);
     }
 
-    template<typename T>
-    T* GetLayer(int i)
+    std::map<std::string, AnimJoint*> joints;
+    AnimJoint* GetJoint(const std::string& name)
     {
-        AnimLayer* l = layers[i];
-        if(!l)
-        {
-            layers[i] = new T();
-            return (T*)layers[i];
-        }
-        else if (l->Type() == TypeInfo<T>::Index())
-        {
-            return (T*)l;
-        }
-        else
-        {
-            return 0;
-        }
+        SceneObject* o = Object()->FindObject(name);
+        if(!o) return 0;
+        return o->Get<AnimJoint>();
     }
     
     void FrameRate(float fps) { }
-    AnimTrack* currentTrack;
+    AnimTrack::Cursor currentCursor;
+    AnimTrack::Cursor targetCursor;
+    float blend;
+    float blendStep;
     void Play(const std::string& name)
     {
-        currentTrack = anims[name];
-        SetLayerCount(2);
-        GetLayer<AnimLayerPlain>(0)->SetTrack(anims[name]);
-        GetLayer<AnimLayerAdd>(1)->SetBindPose(&animation->GetBindPose());
-        GetLayer<AnimLayerAdd>(1)->SetTrack(anims["LayerMotion01"]);
+        currentCursor = anims[name]->GetCursor();
     }
     void BlendOverTime(const std::string& to, float t)
     {
-        Play(to);
+        if(blend != 0.0f) currentCursor = targetCursor;
+        targetCursor = anims[to]->GetCursor();
+        blend = 0.0f;
+        blendStep = 1.0f/t;
+    }
+    int Stopped(float secondsBeforeEnd = 0.0f) 
+    {
+        return currentCursor.EndReached(secondsBeforeEnd);
     }
 
-    void SetRootMotionTarget(SceneObject* root)
+    void ApplyAdd(AnimTrack::Cursor cur, float weight)
     {
-        if(!root)
-            return;
-        rootMotionTarget = root->Get<Transform>();
+        AnimPose& bindPose = animation->GetBindPose();
+        AnimPose* pose = cur.GetPose(&animation->GetBindPose());
+        for(auto& kv : pose->poses)
+        {
+            gfxm::transform bp = bindPose.poses[kv.first];
+            gfxm::vec3 basePos = bp.position();
+            gfxm::quat baseRot = bp.rotation();
+            gfxm::vec3 baseScl = bp.scale();
+            
+            gfxm::transform& p = currentPose.poses[kv.first];
+            gfxm::vec3 pos = kv.second.position();
+            gfxm::quat rot = kv.second.rotation();
+            gfxm::vec3 scl = kv.second.scale();
+            pos = pos - basePos;
+            rot = rot * gfxm::inverse(baseRot);
+            scl = scl - baseScl;
+            p.translate(gfxm::lerp(gfxm::vec3(0,0,0), pos, weight));
+            p.rotate(gfxm::slerp(gfxm::quat(0,0,0,1), rot, weight));
+            p.scale(p.scale() + gfxm::lerp(gfxm::vec3(0,0,0), scl, weight));
+        }
+        rootMotionPosDelta += *(Au::Math::Vec3f*)&gfxm::lerp(
+            gfxm::vec3(0,0,0), 
+            cur.GetRootMotionDeltaPosition(),
+            weight
+        );
+        rootMotionRotDelta = *(Au::Math::Quat*)&gfxm::slerp(
+            *(gfxm::quat*)&rootMotionRotDelta, 
+            cur.GetRootMotionDeltaRotation(),
+            weight
+        );
     }
-    Transform* rootMotionTarget;
+    void ApplyBlend(AnimTrack::Cursor cur, float weight)
+    {
+        AnimPose* pose = cur.GetPose(&animation->GetBindPose());
+
+        for(auto& kv : pose->poses)
+        {
+            gfxm::transform& p = currentPose.poses[kv.first];
+
+            gfxm::vec3 pos = kv.second.position();
+            gfxm::quat rot = kv.second.rotation();
+            gfxm::vec3 scl = kv.second.scale();
+            p.position(gfxm::lerp(p.position(), pos, weight));
+            p.rotation(gfxm::slerp(p.rotation(), rot, weight));
+            p.scale(gfxm::lerp(p.scale(), scl, weight));
+        }
+        rootMotionPosDelta = 
+            Au::Math::Lerp(
+                Au::Math::Vec3f(0,0,0), 
+                *(Au::Math::Vec3f*)&cur.GetRootMotionDeltaPosition(),
+                weight
+            );
+        rootMotionRotDelta = 
+            Au::Math::Slerp(
+                Au::Math::Quat(0,0,0,1),
+                 *(Au::Math::Quat*)&cur.GetRootMotionDeltaRotation(),
+                 weight
+            ); 
+    }
+    void ApplyPlain(AnimTrack::Cursor cur)
+    {
+        AnimPose* pose = cur.GetPose(&animation->GetBindPose());
+        for(auto& kv : pose->poses)
+        {
+            gfxm::transform& p = currentPose.poses[kv.first];
+            
+            gfxm::vec3 pos = kv.second.position();
+            gfxm::quat rot = kv.second.rotation();
+            gfxm::vec3 scl = kv.second.scale();
+            p.position(pos);
+            p.rotation(rot);
+            p.scale(scl);   
+        }
+        rootMotionPosDelta = *(Au::Math::Vec3f*)&cur.GetRootMotionDeltaPosition();
+        rootMotionRotDelta = *(Au::Math::Quat*)&cur.GetRootMotionDeltaRotation();
+    }
+    Au::Math::Vec3f rootMotionPosDelta;
+    Au::Math::Quat rootMotionRotDelta;
+
+    AnimTrack::Cursor GetAnimCursor(const std::string& anim)
+    {
+        return anims[anim]->GetCursor();
+    }
     
     void Tick(float dt)
     {
+        this->dt = dt;
         if(animation.empty())
             return;
+        currentPose = animation->GetBindPose();
 
-        AnimPose bindPose = animation->GetBindPose();
-        AnimPose* curPose = &bindPose;
-        AnimPose* pose;
-        for(auto l : layers)
+        currentCursor += dt * animation->FrameRate();
+        targetCursor += dt * animation->FrameRate();
+        
+        blend += blendStep * dt;
+        if(blend >= 1.0f)
         {
-            l->Tick(dt * animation->FrameRate());
-            pose = l->GetPose(curPose);
+            currentCursor = targetCursor;
+            blend = 0.0f;
+            blendStep = 0.0f;
         }
-        for(auto& kv : pose->poses)
+
+        ApplyPlain(currentCursor);
+        if(blend > 0.0f && blend < 1.0f && targetCursor.Valid())
+        {
+            std::cout << blend << std::endl;
+            ApplyBlend(targetCursor, blend);
+        }
+    }
+    float dt;
+    AnimPose currentPose;
+    void Finalize()
+    {
+        
+
+        for(auto& kv : currentPose.poses)
         {
             Transform* t = animNodes[kv.first];
             if(t)
             {
-                t->SetTransform(*(Au::Math::Mat4f*)&kv.second);
+                gfxm::vec3 pos = kv.second.position();
+                gfxm::quat rot = kv.second.rotation();
+                gfxm::vec3 scl = kv.second.scale();
+                t->Position(
+                    *(Au::Math::Vec3f*)&pos
+                );
+                t->Rotation(
+                    *(Au::Math::Quat*)&rot
+                );
+                t->Scale(
+                    *(Au::Math::Vec3f*)&scl
+                );
             }
+        }
+
+        if(rootMotionSource)
+        {
+            rootMotionSource->ToWorldDirection(rootMotionPosDelta);
+            Get<Transform>()->Translate(rootMotionPosDelta);
+
+            using quat = Au::Math::Quat;
+            quat rp_world = rootMotionSource->GetParentRotation();
+            quat rm = rootMotionRotDelta;
+            quat q = rp_world * rm * Au::Math::Inverse(rp_world);
+            Get<Transform>()->Rotate(q);
         }
     }
     
@@ -188,9 +271,6 @@ public:
             c->Tick(time);
         }
     }
-
-    void SetLayerCount(size_t c) { layers.resize(c); }
-    AnimLayer* GetLayer(size_t i) { return layers[i]; }
     
     ~Animator()
     {
@@ -215,10 +295,6 @@ private:
     {
         children.erase(anim);
     }
-    
-    gfxm::transform transform;
-    
-    std::vector<AnimLayer*> layers;
 
     asset<Animation> animation;
     std::map<std::string, AnimTrack*> anims;    
