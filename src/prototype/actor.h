@@ -33,6 +33,8 @@ public:
 
 	void Update(float dt)
 	{
+		
+
 		animState->Set("dt", dt);
 		animState->Set("direction", velocity);
 		float dot = Au::Math::Dot(
@@ -59,6 +61,7 @@ public:
 		_checkForGround();
 		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), Au::Math::Vec3f(0.0f, 1.0f, 0.0f), 10.0f * dt);
 		animState->Update();
+		
 	}
 	
 	virtual void OnCreate();
@@ -81,6 +84,8 @@ private:
 		animState->Set("grounded", grounded);
 		animState->Set("groundHit", groundHit);
 	}
+
+	
 
 	AnimState* animState;
 	Au::Math::Vec3f velocity;

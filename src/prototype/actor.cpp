@@ -35,6 +35,8 @@ void Actor::OnCreate()
     asset<Animation>::get("character")->SetRootMotionSource("Root");
     asset<Animation>::get("character")->operator[]("Turn180")->Looping(false);
     Get<Animator>()->Set("character");
+
+    
 	
     animState = Get<AnimState>();
     animState->AppendScript(R"(
@@ -73,7 +75,7 @@ void Actor::OnCreate()
                 State:Switch("Idle")
                 return
             end
-            if angleAbs > 3.0 then
+            if angleAbs > 2.0 then
                 State:Switch("Turn180")
                 return
             end
@@ -81,14 +83,12 @@ void Actor::OnCreate()
             Transform:SetPosition(vec.x, groundHit.y, vec.z)
             LayerTurnLCur:Advance(dt * 60.0)
             LayerTurnRCur:Advance(dt * 60.0)
-            LayerMotion01:Advance(dt * 60.0)
             if angle > 0.0 then
                 Animator:ApplyAdd(LayerTurnRCur, angle / 3.0)
             end
             if angle < 0.0 then
                 Animator:ApplyAdd(LayerTurnLCur, -angle / 3.0)
             end
-            --Animator:ApplyAdd(LayerMotion01, 1.0)
         end
     )");
     animState->AppendScript(R"(

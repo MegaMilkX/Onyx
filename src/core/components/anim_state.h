@@ -50,6 +50,7 @@ public:
     {
         lua.SetGlobal("Animator", Get<Animator>());
         lua.SetGlobal("Transform", Get<Transform>());
+        layerMotion1 = asset<Animation>::get("character")->operator[]("LayerMotion01")->GetCursor();
     }
 
     void AppendScript(const std::string& source)
@@ -75,9 +76,15 @@ public:
     {
         Get<Animator>()->Tick(GameState::DeltaTime());
         lua.CallMember(currentState, "Update");
+
+        layerMotion1 += GameState::DeltaTime() * 60.0f;
+        Get<Animator>()->ApplyAdd(layerMotion1, 1.0f);
+        
         Get<Animator>()->Finalize();
     }
 private:
+    AnimTrack::Cursor layerMotion1;
+
     std::string currentState;
     Au::Lua lua;
 };

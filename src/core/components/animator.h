@@ -116,7 +116,7 @@ public:
 
     void ApplyAdd(AnimTrack::Cursor cur, float weight)
     {
-        AnimPose& bindPose = animation->GetBindPose();
+        AnimPose bindPose = *cur.GetPoseAt(0, &animation->GetBindPose());
         AnimPose* pose = cur.GetPose(&animation->GetBindPose());
         for(auto& kv : pose->poses)
         {
@@ -136,16 +136,19 @@ public:
             p.rotate(gfxm::slerp(gfxm::quat(0,0,0,1), rot, weight));
             p.scale(p.scale() + gfxm::lerp(gfxm::vec3(0,0,0), scl, weight));
         }
-        rootMotionPosDelta += *(Au::Math::Vec3f*)&gfxm::lerp(
+        gfxm::vec3 posDelta = gfxm::lerp(
             gfxm::vec3(0,0,0), 
             cur.GetRootMotionDeltaPosition(),
             weight
         );
-        rootMotionRotDelta = *(Au::Math::Quat*)&gfxm::slerp(
-            *(gfxm::quat*)&rootMotionRotDelta, 
+        gfxm::quat rotDelta = gfxm::slerp(
+            gfxm::quat(0,0,0,1), 
             cur.GetRootMotionDeltaRotation(),
             weight
         );
+        
+        rootMotionPosDelta += *(Au::Math::Vec3f*)&posDelta;
+        rootMotionRotDelta = *(Au::Math::Quat*)&rotDelta * rootMotionRotDelta;
     }
     void ApplyBlend(AnimTrack::Cursor cur, float weight)
     {

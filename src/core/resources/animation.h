@@ -60,7 +60,11 @@ public:
                 }
             }
         }
-        AnimPose* GetPose(AnimPose* bind) 
+        AnimPose* GetPose(AnimPose* bind)
+        {
+            return GetPoseAt(cursor, bind);
+        }
+        AnimPose* GetPoseAt(float frame, AnimPose* bind) 
         {
             if(!track)
                 return &pose;
@@ -72,7 +76,7 @@ public:
                 if(!kv.second.position.empty()) 
                     t.position(
                         kv.second.position.at(
-                            cursor, 
+                            frame, 
                             bp.position()
                         )
                     );
@@ -80,25 +84,25 @@ public:
                 if(!kv.second.rotation.empty()) 
                     t.rotation(
                         kv.second.rotation.at(
-                            cursor, 
+                            frame, 
                             gfxm::vec4(brot.x, brot.y, brot.z, brot.w)
                         )
                     );
                 if(!kv.second.scale.empty()) 
                     t.scale(
                         kv.second.scale.at(
-                            cursor, 
+                            frame, 
                             bp.scale()
                         )
                     );
                 pose.poses[kv.first] = t;
             }
             AnimNode& rmn = track->GetRootMotionNode();
-            posDeltaRootMotion = rmn.position.delta(prevCursor, cursor);
+            posDeltaRootMotion = rmn.position.delta(prevCursor, frame);
             gfxm::quat q0 = rmn.rotation.at(prevCursor, gfxm::vec4(0, 0, 0, 1));
-            gfxm::quat q1 = rmn.rotation.at(cursor, gfxm::vec4(0, 0, 0, 1));
+            gfxm::quat q1 = rmn.rotation.at(frame, gfxm::vec4(0, 0, 0, 1));
 
-            if(cursor < prevCursor)
+            if(frame < prevCursor)
             {
                 gfxm::quat d0 = gfxm::quat(rmn.rotation.at(track->Length() - 1.0f, gfxm::vec4(0, 0, 0, 1))) * gfxm::inverse(q0);
                 gfxm::quat d1 = q1 * gfxm::inverse(gfxm::quat(rmn.rotation.at(0.0f, gfxm::vec4(0,0,0,1))));
