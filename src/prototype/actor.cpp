@@ -97,7 +97,7 @@ void Actor::OnCreate()
                 State:Blend("Turn180", 0.1)
             end,
             Update = function()
-                if Animator:Stopped(0.11) == 1 then
+                if Animator:Stopped(0.15) == 1 then
                     State:Switch("Walk")
                 end
             end
