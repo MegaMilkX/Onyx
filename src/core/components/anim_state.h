@@ -34,6 +34,7 @@ public:
         lua.Bind(&Animator::Stopped, "Stopped");
 
         lua.Bind(&AnimTrack::Cursor::Advance, "Advance");
+        lua.Bind(&AnimTrack::Cursor::SetFrame, "SetFrame");
 
         lua.Bind(&Au::Math::Vec3f::x, "x");
         lua.Bind(&Au::Math::Vec3f::y, "y");

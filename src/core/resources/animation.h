@@ -45,6 +45,11 @@ public:
         {
             Advance(t);
         }
+        void SetFrame(float f)
+        {
+            if(!track) return;
+            cursor = f;
+        }
         void Advance(float t)
         {
             if(!track) return;
@@ -72,7 +77,6 @@ public:
             {
                 gfxm::transform& bp = bind->poses[kv.first];
                 gfxm::transform t;
-                //np.transform.set_transform(pose.poses[kv.first].matrix());
                 if(!kv.second.position.empty()) 
                     t.position(
                         kv.second.position.at(
