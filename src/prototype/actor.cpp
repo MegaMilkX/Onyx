@@ -81,8 +81,8 @@ void Actor::OnCreate()
             end
             vec = Transform:GetPosition()
             Transform:SetPosition(vec.x, groundHit.y, vec.z)
-            LayerTurnLCur:Advance(dt * 60.0)
-            LayerTurnRCur:Advance(dt * 60.0)
+            LayerTurnLCur:Advance(dt)
+            LayerTurnRCur:Advance(dt)
             if angle > 0.0 then
                 Animator:ApplyAdd(LayerTurnRCur, angle / 3.0)
             end

@@ -77,7 +77,7 @@ public:
         Get<Animator>()->Tick(GameState::DeltaTime());
         lua.CallMember(currentState, "Update");
 
-        layerMotion1 += GameState::DeltaTime() * 60.0f;
+        layerMotion1 += GameState::DeltaTime();
         Get<Animator>()->ApplyAdd(layerMotion1, 1.0f);
         
         Get<Animator>()->Finalize();

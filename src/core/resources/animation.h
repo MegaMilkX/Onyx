@@ -49,7 +49,7 @@ public:
         {
             if(!track) return;
             prevCursor = cursor;
-            cursor += t;
+            cursor += t * track->FrameRate();
             float len = track->Length() - 1.0f;
             if(track->Looping())
             {
@@ -126,6 +126,10 @@ public:
         gfxm::quat rotDeltaRootMotion;
     };
 
+    AnimTrack(float frameRate)
+    : fps(frameRate)
+    {}
+
     Cursor GetCursor() { return Cursor(this); }
 
     void Looping(bool val) { looping = val; }
@@ -149,6 +153,8 @@ public:
     void Name(const std::string& name) { this->name = name; }
     void Length(float l) { length = l; }
     float Length() { return length; }
+    void FrameRate(float fps) { this->fps = fps; }
+    float FrameRate() { return fps; }
     AnimNode& operator[](const std::string& node)
     {
         AnimNode& n = animNodes[node];
@@ -160,6 +166,7 @@ public:
 private:
     std::string name;
     float length;
+    float fps;
     bool looping = true;
     std::map<std::string, AnimNode> animNodes;
     AnimNode rootMotionNode;
@@ -172,12 +179,17 @@ public:
     AnimTrack* operator[](const std::string& anim)
     {
         if(anims.count(anim) == 0)
-            anims[anim] = new AnimTrack();
+            anims[anim] = new AnimTrack(fps);
         return anims[anim];
     }
     std::map<std::string, AnimTrack*>& GetTracks() { return anims; }
     AnimPose& GetBindPose() { return bindPose; }
-    void FrameRate(float fps) { this->fps = fps; }
+    void FrameRate(float fps) 
+    { 
+        this->fps = fps;
+        for(auto& kv : anims)
+            kv.second->FrameRate(fps);
+    }
     float FrameRate() { return fps; }
     void SetRootMotionSource(const std::string& name)
     {

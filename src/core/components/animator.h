@@ -210,8 +210,8 @@ public:
             return;
         currentPose = animation->GetBindPose();
 
-        currentCursor += dt * animation->FrameRate();
-        targetCursor += dt * animation->FrameRate();
+        currentCursor += dt;
+        targetCursor += dt;
         
         blend += blendStep * dt;
         if(blend >= 1.0f)
