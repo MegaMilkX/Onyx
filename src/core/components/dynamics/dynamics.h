@@ -2,7 +2,7 @@
 #define COM_PHYSICS_H
 
 #include <vector>
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include "../../scene_object.h"
 
 #include <btBulletDynamicsCommon.h>

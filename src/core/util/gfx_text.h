@@ -39,7 +39,7 @@ public:
         fontData = asset<FontData>::get(name);
     }
 
-    void Draw(int modelUniform, const Au::Math::Mat4f model, int glyphPageCountUniform)
+    void Draw(int modelUniform, const gfxm::mat4 model, int glyphPageCountUniform)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_3D, fontData->GetGlyphAtlas(size)->texture->GetGlName());

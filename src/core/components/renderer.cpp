@@ -28,13 +28,13 @@ void Renderer::Render()
     _currentCamera->Render(_gfxDevice);
 }
 
-void Renderer::Render(const Au::Math::Mat4f& projection,
-        const Au::Math::Mat4f& transform)
+void Renderer::Render(const gfxm::mat4& projection,
+        const gfxm::mat4& transform)
 {
     frameGraph.set_data(
         FrameCommon{
             projection,
-            Au::Math::Inverse(transform),
+            gfxm::inverse(transform),
             transform[3],
             1920, 1080,
             GetObject() 

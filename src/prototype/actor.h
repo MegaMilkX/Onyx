@@ -12,7 +12,7 @@
 class Actor : public KinematicObject
 {
 public:	
-	void Velocity(const Au::Math::Vec3f& v)
+	void Velocity(const gfxm::vec3& v)
 	{
 		if(v.length() > FLT_EPSILON)
 		{
@@ -21,12 +21,12 @@ public:
 		}
 		else if(v.length() <= FLT_EPSILON)
 		{
-			velocity = Au::Math::Vec3f(0.0f, 0.0f, 0.0f);
+			velocity = gfxm::vec3(0.0f, 0.0f, 0.0f);
 			animState->Set("velocity", 0.0);
 		}
 	}
 	
-	Au::Math::Vec3f Velocity()
+	gfxm::vec3 Velocity()
 	{
 		return velocity;
 	}
@@ -37,14 +37,14 @@ public:
 
 		animState->Set("dt", dt);
 		animState->Set("direction", velocity);
-		float dot = Au::Math::Dot(
-			Au::Math::Normalize(velocity), 
-			Au::Math::Normalize(Get<Transform>()->Back())
+		float dot = gfxm::dot(
+			gfxm::normalize(velocity), 
+			gfxm::normalize(Get<Transform>()->Back())
 		);
-		Au::Math::Vec3f rotAxis = Au::Math::Normalize(
-			Au::Math::Cross(
-				Au::Math::Normalize(Get<Transform>()->Back()), 
-				Au::Math::Normalize(velocity)
+		gfxm::vec3 rotAxis = gfxm::normalize(
+			gfxm::cross(
+				gfxm::normalize(Get<Transform>()->Back()), 
+				gfxm::normalize(velocity)
 			)
 		);
 		#undef max
@@ -59,7 +59,7 @@ public:
 		animState->Set("angle", rotAngle);
 		animState->Set("angleAbs", fabs(rotAngle));
 		_checkForGround();
-		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), Au::Math::Vec3f(0.0f, 1.0f, 0.0f), 10.0f * dt);
+		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), gfxm::vec3(0.0f, 1.0f, 0.0f), 10.0f * dt);
 		animState->Update();
 		
 	}
@@ -70,9 +70,9 @@ private:
 	{
 		Transform* trans = GetComponent<Transform>();
 		
-		Au::Math::Vec3f pos = trans->Position() + Au::Math::Vec3f(0.0f, 1.0f, 0.0f);
+		gfxm::vec3 pos = trans->Position() + gfxm::vec3(0.0f, 1.0f, 0.0f);
 		Collision::RayHit hit;
-		if(collision->RayTest(Au::Math::Ray(pos, Au::Math::Vec3f(0.0f, -1.1f, 0.0f)), hit))
+		if(collision->RayTest(gfxm::ray(pos, gfxm::vec3(0.0f, -1.1f, 0.0f)), hit))
 		{
 			groundHit = hit.position;
 			grounded = true;
@@ -88,8 +88,8 @@ private:
 	
 
 	AnimState* animState;
-	Au::Math::Vec3f velocity;
-	Au::Math::Vec3f groundHit;
+	gfxm::vec3 velocity;
+	gfxm::vec3 groundHit;
 	bool grounded;
 };
 

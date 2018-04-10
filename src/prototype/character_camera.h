@@ -26,13 +26,13 @@ public:
         while(eMouseMove* e = disp_onMouseMove.poll())
             MouseMove(e->dx, e->dy);
         
-        Au::Math::Vec3f tgt = target->Position();
+        gfxm::vec3 tgt = target->Position();
         tgt.y += 1.5f;
         tgt = (tgt - transform->Position()) * (dt * 7.0f);
         transform->Translate(tgt);
         
         Collision::RayHit hit;
-        if(GetObject()->Root()->GetComponent<Collision>()->RayTest(Au::Math::Ray(transform->Position(), transform->Back() * 1.2f), hit))
+        if(GetObject()->Root()->GetComponent<Collision>()->RayTest(gfxm::ray(transform->Position(), transform->Back() * 1.2f), hit))
         {
             cam->GetComponent<Transform>()->Position(0.0f, 0.0f, (hit.position - transform->Position()).length() - 0.1f);
         }

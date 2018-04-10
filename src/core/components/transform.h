@@ -1,7 +1,7 @@
 #ifndef COMPONENT_TRANSFORM_H
 #define COMPONENT_TRANSFORM_H
 
-#include <aurora/math.h>
+#include <util/gfxm.h>
 
 #include "../scene_object.h"
 
@@ -29,76 +29,76 @@ public:
     void Dirty();
     
     void Translate(float x, float y, float z);
-    void Translate(const Au::Math::Vec3f& vec);
+    void Translate(const gfxm::vec3& vec);
     void Rotate(float angle, float axisX, float axisY, float axisZ);
-    void Rotate(float angle, const Au::Math::Vec3f& axis);
-    void Rotate(const Au::Math::Quat& q);
+    void Rotate(float angle, const gfxm::vec3& axis);
+    void Rotate(const gfxm::quat& q);
     
-    void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f), float f = 1.0f);
-    void LookDir(const Au::Math::Vec3f& dir, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up = Au::Math::Vec3f(0.0f, 1.0f, 0.0f), float f = 1.0f);
-    void LookAtChain(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, const Au::Math::Vec3f& up, float f = 1.0f, int chain = 2);
+    void LookAt(const gfxm::vec3& target, const gfxm::vec3& forward, const gfxm::vec3& up = gfxm::vec3(0.0f, 1.0f, 0.0f), float f = 1.0f);
+    void LookDir(const gfxm::vec3& dir, const gfxm::vec3& forward, const gfxm::vec3& up = gfxm::vec3(0.0f, 1.0f, 0.0f), float f = 1.0f);
+    void LookAtChain(const gfxm::vec3& target, const gfxm::vec3& forward, const gfxm::vec3& up, float f = 1.0f, int chain = 2);
     
-    void Track(const Au::Math::Vec3f& target, float f = 1.0f);
-    void Track(const Au::Math::Vec3f& target, const Au::Math::Vec3f& forward, float f = 1.0f);
+    void Track(const gfxm::vec3& target, float f = 1.0f);
+    void Track(const gfxm::vec3& target, const gfxm::vec3& forward, float f = 1.0f);
     
-    void IKChain(const Au::Math::Vec3f& target, int chain);
+    void IKChain(const gfxm::vec3& target, int chain);
     
-    void FABRIK(const Au::Math::Vec3f& target, int chainLength);
+    void FABRIK(const gfxm::vec3& target, int chainLength);
     
     void Position(float x, float y, float z);
-    void Position(const Au::Math::Vec3f& position);
+    void Position(const gfxm::vec3& position);
     void Rotation(float x, float y, float z);
-    void Rotation(const Au::Math::Quat& rotation);
+    void Rotation(const gfxm::quat& rotation);
     void Rotation(float x, float y, float z, float w);
     void Scale(float scale);
     void Scale(float x, float y, float z);
-    void Scale(const Au::Math::Vec3f& scale);
+    void Scale(const gfxm::vec3& scale);
     
-    Au::Math::Vec3f WorldPosition();
-    Au::Math::Vec3f Position();
-    Au::Math::Quat WorldRotation();
-    Au::Math::Quat Rotation();
-    Au::Math::Vec3f Scale();
+    gfxm::vec3 WorldPosition();
+    gfxm::vec3 Position();
+    gfxm::quat WorldRotation();
+    gfxm::quat Rotation();
+    gfxm::vec3 Scale();
     
-    Au::Math::Vec3f Right();
-    Au::Math::Vec3f Up();
-    Au::Math::Vec3f Back();
-    Au::Math::Vec3f Left();
-    Au::Math::Vec3f Down();
-    Au::Math::Vec3f Forward();
+    gfxm::vec3 Right();
+    gfxm::vec3 Up();
+    gfxm::vec3 Back();
+    gfxm::vec3 Left();
+    gfxm::vec3 Down();
+    gfxm::vec3 Forward();
     
-    Au::Math::Quat GetParentRotation();
+    gfxm::quat GetParentRotation();
 
-    void SetTransform(Au::Math::Mat4f& t);
-    Au::Math::Mat4f GetLocalTransform();
-    Au::Math::Mat4f GetParentTransform();
-    Au::Math::Mat4f GetTransform();
+    void SetTransform(gfxm::mat4& t);
+    gfxm::mat4 GetLocalTransform();
+    gfxm::mat4 GetParentTransform();
+    gfxm::mat4 GetTransform();
 
-    void ToWorldPosition(Au::Math::Vec3f& pos)
+    void ToWorldPosition(gfxm::vec3& pos)
     {
-        Au::Math::Vec4f posw(pos.x, pos.y, pos.z, 1.0f);
+        gfxm::vec4 posw(pos.x, pos.y, pos.z, 1.0f);
         posw = (GetTransform()) * posw;
-        pos = Au::Math::Vec3f(posw.x, posw.y, posw.z);
-        //pos = Au::Math::Inverse(GetTransform()) * pos;
+        pos = gfxm::vec3(posw.x, posw.y, posw.z);
+        //pos = gfxm::inverse(GetTransform()) * pos;
     }
 
-    void ToWorldDirection(Au::Math::Vec3f& dir)
+    void ToWorldDirection(gfxm::vec3& dir)
     {
-        Au::Math::Mat3f m3 = Au::Math::ToMat3(GetParentTransform());
+        gfxm::mat3 m3 = gfxm::to_mat3(GetParentTransform());
         dir = m3 * dir;
     }
 
-    void ToWorldRotation(Au::Math::Quat& q)
+    void ToWorldRotation(gfxm::quat& q)
     {
         if(_parent)
         {
-            q = Au::Math::Normalize(Au::Math::Inverse(WorldRotation()) * q);
+            q = gfxm::normalize(gfxm::inverse(WorldRotation()) * q);
         }
     }
 
-    void ToWorldScale(Au::Math::Vec3f& vec)
+    void ToWorldScale(gfxm::vec3& vec)
     {
-        vec = Au::Math::Inverse(GetTransform()) * vec;
+        vec = gfxm::inverse(GetTransform()) * vec;
     }
     
     void AttachTo(Transform* parent)
@@ -181,10 +181,10 @@ public:
     }
 private:
     bool dirty;
-    Au::Math::Vec3f _position;
-    Au::Math::Quat _rotation;
-    Au::Math::Vec3f _scale;
-    Au::Math::Mat4f _transform;
+    gfxm::vec3 _position;
+    gfxm::quat _rotation;
+    gfxm::vec3 _scale;
+    gfxm::mat4 _transform;
     
     Transform* _parent;
     std::vector<Transform*> _children;

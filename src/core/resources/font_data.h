@@ -32,7 +32,7 @@ public:
         }
 
         FontRasterizer::GlobalMetrics metrics;
-        Au::Math::Vec3i slot;
+        gfxm::ivec3 slot;
         int lastRowHeight = 0;
         Texture3D* texture;
         unsigned char* data;

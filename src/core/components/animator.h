@@ -147,8 +147,8 @@ public:
             weight
         );
         
-        rootMotionPosDelta += *(Au::Math::Vec3f*)&posDelta;
-        rootMotionRotDelta = *(Au::Math::Quat*)&rotDelta * rootMotionRotDelta;
+        rootMotionPosDelta += *(gfxm::vec3*)&posDelta;
+        rootMotionRotDelta = *(gfxm::quat*)&rotDelta * rootMotionRotDelta;
     }
     void ApplyBlend(AnimTrack::Cursor cur, float weight)
     {
@@ -166,15 +166,15 @@ public:
             p.scale(gfxm::lerp(p.scale(), scl, weight));
         }
         rootMotionPosDelta = 
-            Au::Math::Lerp(
-                Au::Math::Vec3f(0,0,0), 
-                *(Au::Math::Vec3f*)&cur.GetRootMotionDeltaPosition(),
+            gfxm::lerp(
+                gfxm::vec3(0,0,0), 
+                *(gfxm::vec3*)&cur.GetRootMotionDeltaPosition(),
                 weight
             );
         rootMotionRotDelta = 
-            Au::Math::Slerp(
-                Au::Math::Quat(0,0,0,1),
-                 *(Au::Math::Quat*)&cur.GetRootMotionDeltaRotation(),
+            gfxm::slerp(
+                gfxm::quat(0,0,0,1),
+                 *(gfxm::quat*)&cur.GetRootMotionDeltaRotation(),
                  weight
             ); 
     }
@@ -192,11 +192,11 @@ public:
             p.rotation(rot);
             p.scale(scl);   
         }
-        rootMotionPosDelta = *(Au::Math::Vec3f*)&cur.GetRootMotionDeltaPosition();
-        rootMotionRotDelta = *(Au::Math::Quat*)&cur.GetRootMotionDeltaRotation();
+        rootMotionPosDelta = *(gfxm::vec3*)&cur.GetRootMotionDeltaPosition();
+        rootMotionRotDelta = *(gfxm::quat*)&cur.GetRootMotionDeltaRotation();
     }
-    Au::Math::Vec3f rootMotionPosDelta;
-    Au::Math::Quat rootMotionRotDelta;
+    gfxm::vec3 rootMotionPosDelta;
+    gfxm::quat rootMotionRotDelta;
 
     AnimTrack::Cursor GetAnimCursor(const std::string& anim)
     {
@@ -243,13 +243,13 @@ public:
                 gfxm::quat rot = kv.second.rotation();
                 gfxm::vec3 scl = kv.second.scale();
                 t->Position(
-                    *(Au::Math::Vec3f*)&pos
+                    *(gfxm::vec3*)&pos
                 );
                 t->Rotation(
-                    *(Au::Math::Quat*)&rot
+                    *(gfxm::quat*)&rot
                 );
                 t->Scale(
-                    *(Au::Math::Vec3f*)&scl
+                    *(gfxm::vec3*)&scl
                 );
             }
         }
@@ -259,10 +259,10 @@ public:
             rootMotionSource->ToWorldDirection(rootMotionPosDelta);
             Get<Transform>()->Translate(rootMotionPosDelta);
 
-            using quat = Au::Math::Quat;
+            using quat = gfxm::quat;
             quat rp_world = rootMotionSource->GetParentRotation();
             quat rm = rootMotionRotDelta;
-            quat q = rp_world * rm * Au::Math::Inverse(rp_world);
+            quat q = rp_world * rm * gfxm::inverse(rp_world);
             Get<Transform>()->Rotate(q);
         }
     }

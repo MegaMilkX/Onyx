@@ -13,8 +13,8 @@ const double d_pi = 3.14159265359;
 template<typename T>
 struct tvec2
 {
-    T x;
-    T y;
+    union { T x, r; };
+    union { T y, g; };
     
     tvec2() : x(0), y(0) {}
     tvec2(T x, T y) : x(x), y(y) {}
@@ -25,14 +25,16 @@ struct tvec2
     T& operator[](const int &i) {
         return *((&x) + i);
     }
+
+    T length() const { return sqrt(x*x + y*y); }
 };
 
 template<typename T>
 struct tvec3
 {
-    T x;
-    T y;
-    T z;
+    union { T x, r; };
+    union { T y, g; };
+    union { T z, b; };
     
     tvec3() : x(0), y(0), z(0) {}
     tvec3(T x, T y, T z) : x(x), y(y), z(z) {}
@@ -43,15 +45,17 @@ struct tvec3
     T& operator[](const int &i) {
         return *((&x) + i);
     }
+
+    T length() const { return sqrt(x*x + y*y + z*z); }
 };
 
 template<typename T>
 struct tvec4
 {
-    T x;
-    T y;
-    T z;
-    T w;
+    union { T x, r; };
+    union { T y, g; };
+    union { T z, b; };
+    union { T w, a; };
     
     tvec4() : x(0), y(0), z(0), w(0) {}
     tvec4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
@@ -64,6 +68,8 @@ struct tvec4
     T& operator[](const int &i) {
         return *((&x) + i);
     }
+
+    T length() const { return sqrt(x*x + y*y + z*z + w*w); }
 };
 
 template<typename T>
@@ -135,6 +141,22 @@ private:
     tvec4<T> col[4];
 };
 
+template<typename T>
+struct tray
+{
+	tray()
+	{}
+	tray(float x, float y, float z, float dx, float dy, float dz)
+	: origin(tvec3<T>(x, y, z)), direction(dx, dy, dz)
+	{}
+	tray(tvec3<T>& origin, tvec3<T>& direction)
+	: origin(origin), direction(direction)
+	{}
+	
+	tvec3<T> origin;
+	tvec3<T> direction;
+};
+
 typedef tvec2<float> vec2;
 typedef tvec2<int> ivec2;
 typedef tvec2<double> dvec2;
@@ -155,6 +177,9 @@ typedef tmat3<double> dmat3;
 
 typedef tmat4<float> mat4;
 typedef tmat4<double> dmat4;
+
+typedef tray<float> ray;
+typedef tray<double> dray;
 
 // ====== Functions ======
 
@@ -353,11 +378,11 @@ inline float sqrt(const float &n)
 }
 
 template<typename T>
-inline T length(const tvec2<T>& v) { return sqrt(v.x*v.x + v.y*v.y); }
+inline T length(const tvec2<T>& v) { return v.length(); }
 template<typename T>
-inline T length(const tvec3<T>& v) { return sqrt(v.x*v.x + v.y*v.y + v.z*v.z); }
+inline T length(const tvec3<T>& v) { return v.length(); }
 template<typename T>
-inline T length(const tvec4<T>& v) { return sqrt(v.x*v.x + v.y*v.y + v.z*v.z + v.w*v.w); }
+inline T length(const tvec4<T>& v) { return v.length(); }
 template<typename T>
 inline T length(const tquat<T>& q) { return sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w); }
 
@@ -795,9 +820,35 @@ inline tmat4<T>& perspective(tmat4<T>& m, float fov, float aspect, float znear, 
 }
 
 template<typename T>
-inline tmat4<T>& Ortho(tmat4<T>& m, float left, float right, float bottom, float top, float znear, float zfar)
+inline tmat4<T> perspective(T fov, T aspect, T znear, T zfar)
+{
+    float tanHalfFovy = tanf(fov / 2.0f);
+    tmat4<T> m = tmat4<T>(0);
+    m[0][0] = 1.0f / (aspect * tanHalfFovy);
+    m[1][1] = 1.0f / (tanHalfFovy);
+    m[2][2] = -(zfar + znear) / (zfar - znear);
+    m[2][3] = -1.0f;
+    m[3][2] = -(2.0f * zfar * znear) / (zfar - znear);
+    return m;
+}
+
+template<typename T>
+inline tmat4<T>& ortho(tmat4<T>& m, float left, float right, float bottom, float top, float znear, float zfar)
 {
     m = tmat4<T>(1.0f);
+    m[0][0] = 2.0f / (right - left);
+    m[1][1] = 2.0f / (top - bottom);
+    m[2][2] = -2.0f / (zfar - znear);
+    m[3][0] = -(right + left) / (right - left);
+    m[3][1] = -(top + bottom) / (top - bottom);
+    m[3][2] = -(zfar + znear) / (zfar - znear);
+    return m;
+}
+
+template<typename T>
+inline tmat4<T> ortho(T left, T right, T bottom, T top, T znear, T zfar)
+{
+    tmat4<T> m = tmat4<T>(1.0f);
     m[0][0] = 2.0f / (right - left);
     m[1][1] = 2.0f / (top - bottom);
     m[2][2] = -2.0f / (zfar - znear);
@@ -993,7 +1044,7 @@ public:
         }/*
          else if(fabs(d - 1.0f) <= eps)
          {
-         q = Au::Math::Quat(0.0f, 0.0f, 0.0f, 1.0f);
+         q = gfxm::quat(0.0f, 0.0f, 0.0f, 1.0f);
          }*/
         else
         {

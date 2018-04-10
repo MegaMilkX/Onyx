@@ -4,7 +4,7 @@
 #include "../scene_object.h"
 #include "renderer.h"
 
-#include <aurora/math.h>
+#include <util/gfxm.h>
 
 class LightDirect : public SceneObject::Component
 {
@@ -14,14 +14,14 @@ public:
     }
     
     void Color(float r, float g, float b)
-    { color = Au::Math::Vec3f(r, g, b); }
+    { color = gfxm::vec3(r, g, b); }
     
-    Au::Math::Vec3f Color()
+    gfxm::vec3 Color()
     { return color; }
     
     void Direction(float x, float y, float z)
-    { direction = Au::Math::Vec3f(x, y, z); }
-    Au::Math::Vec3f Direction()
+    { direction = gfxm::vec3(x, y, z); }
+    gfxm::vec3 Direction()
     { return direction; }
     
     void OnCreate()
@@ -59,8 +59,8 @@ public:
         }
     }
 private:
-    Au::Math::Vec3f color;
-    Au::Math::Vec3f direction;
+    gfxm::vec3 color;
+    gfxm::vec3 direction;
 };
 
 class LightOmni : public SceneObject::Component
@@ -72,14 +72,14 @@ public:
 
     void Color(float r, float g, float b)
     {
-        color = Au::Math::Vec3f(r, g, b);
+        color = gfxm::vec3(r, g, b);
     }
     void Intensity(float i)
     {
         intensity = i;
     }
     
-    Au::Math::Vec3f Color()
+    gfxm::vec3 Color()
     { return color; }
 
     void OnCreate()
@@ -114,7 +114,7 @@ public:
         }
     }
 private:
-    Au::Math::Vec3f color;
+    gfxm::vec3 color;
     float intensity;
 };
 

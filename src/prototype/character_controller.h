@@ -22,17 +22,17 @@ public:
         if(!chara)
             return;
         Transform* camTrans = renderer->CurrentCamera()->GetComponent<Transform>();
-        Au::Math::Vec3f t(0.0f, 0.0f, 0.0f);
+        gfxm::vec3 t(0.0f, 0.0f, 0.0f);
         if(dirFlags & 1)
-            t += Au::Math::Normalize(Au::Math::Vec3f(-camTrans->Back().x, 0.0f, -camTrans->Back().z));
+            t += gfxm::normalize(gfxm::vec3(-camTrans->Back().x, 0.0f, -camTrans->Back().z));
         if(dirFlags & 2)
-            t += Au::Math::Normalize(Au::Math::Vec3f(-camTrans->Right().x, 0.0f, -camTrans->Right().z));
+            t += gfxm::normalize(gfxm::vec3(-camTrans->Right().x, 0.0f, -camTrans->Right().z));
         if(dirFlags & 4)
-            t += Au::Math::Normalize(Au::Math::Vec3f(camTrans->Back().x, 0.0f, camTrans->Back().z));
+            t += gfxm::normalize(gfxm::vec3(camTrans->Back().x, 0.0f, camTrans->Back().z));
         if(dirFlags & 8)
-            t += Au::Math::Normalize(Au::Math::Vec3f(camTrans->Right().x, 0.0f, camTrans->Right().z));
+            t += gfxm::normalize(gfxm::vec3(camTrans->Right().x, 0.0f, camTrans->Right().z));
         
-        t = Au::Math::Normalize(t);
+        t = gfxm::normalize(t);
         t = t * 3;
         
         chara->Velocity(t);

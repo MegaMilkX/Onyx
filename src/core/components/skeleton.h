@@ -12,7 +12,7 @@
 
 struct BoneData
 {
-    BoneData(const std::string& name, Au::Math::Mat4f transform, const std::string& parentName, bool isBone)
+    BoneData(const std::string& name, gfxm::mat4 transform, const std::string& parentName, bool isBone)
     : name(name), transform(transform), parentName(parentName), isBone(isBone)
     {}
     ~BoneData()
@@ -21,7 +21,7 @@ struct BoneData
     std::string name;
     std::string parentName;
     bool isBone;
-    Au::Math::Mat4f transform;
+    gfxm::mat4 transform;
     std::vector<BoneData*> children;
 };
 
@@ -32,7 +32,7 @@ struct SkeletonData
     {}
     ~SkeletonData()
     { for(unsigned i = 0; i < rootBones.size(); ++i) delete rootBones[i]; }
-    void AddNode(const std::string& name, Au::Math::Mat4f transform, const std::string& parentName, bool isBone)
+    void AddNode(const std::string& name, gfxm::mat4 transform, const std::string& parentName, bool isBone)
     {
         BoneData* bd = new BoneData(name, transform, parentName, isBone);
         rootBones.push_back(bd);
@@ -99,7 +99,7 @@ struct SkeletonDataReaderFBX : public asset<SkeletonData>::reader
                 Au::Media::FBX::Model* fbxParentModel = 
                     fbxReader.GetModelByUID(fbxModel->parentUID);
                 std::string parentName = fbxParentModel ? fbxParentModel->name : "";
-                skel->AddNode(fbxModel->name, fbxModel->transform, parentName, fbxModel->IsBone());
+                skel->AddNode(fbxModel->name, *(gfxm::mat4*)&fbxModel->transform, parentName, fbxModel->IsBone());
             }
             
             skel->Finalize();
@@ -203,9 +203,6 @@ public:
                 out vec3 NormalModel;
                 NormalModel = normalize((MatrixModel * MatrixSkin * vec4(Normal, 0.0)).xyz);
             )";
-            
-        uniformBoneInverseBinds = Au::GFX::GetUniform<Au::Math::Mat4f>("BoneInverseBindTransforms");
-        uniformBoneTransforms = Au::GFX::GetUniform<Au::Math::Mat4f>("BoneTransforms");
     }
     
     ~Skeleton()
@@ -265,7 +262,7 @@ public:
     {
         for(unsigned i = 0; i < bones.size(); ++i)
             boneTransforms[i] = 
-                Au::Math::Inverse(transform->GetTransform()) *
+                gfxm::inverse(transform->GetTransform()) *
                 bones[i]->GetTransform();
     }
 
@@ -391,18 +388,13 @@ private:
         for(unsigned i = 0; i < bones.size(); ++i)
         {
             boneInverseBindTransforms[i] = 
-                Au::Math::Inverse(
-                    Au::Math::Inverse(GetObject()->GetComponent<Transform>()->GetTransform()) *
+                gfxm::inverse(
+                    gfxm::inverse(GetObject()->GetComponent<Transform>()->GetTransform()) *
                     bones[i]->GetTransform()
                 );
         }
         
         Update();
-        
-        uniformBoneInverseBinds = 
-            Au::GFX::GetUniform<Au::Math::Mat4f>("BoneInverseBindTransforms", bones.size());
-        uniformBoneTransforms = 
-            Au::GFX::GetUniform<Au::Math::Mat4f>("BoneTransforms", bones.size());
     }
 
     asset<SkeletonData> skelData;
@@ -412,11 +404,8 @@ private:
     Renderer* renderer;
     
     std::vector<Transform*> bones;
-    std::vector<Au::Math::Mat4f> boneInverseBindTransforms;
-    std::vector<Au::Math::Mat4f> boneTransforms;
-    
-    Au::GFX::Uniform uniformBoneInverseBinds;
-    Au::GFX::Uniform uniformBoneTransforms;
+    std::vector<gfxm::mat4> boneInverseBindTransforms;
+    std::vector<gfxm::mat4> boneTransforms;
     
     std::string skinShaderSource;
 };

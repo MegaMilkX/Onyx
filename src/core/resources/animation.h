@@ -273,21 +273,21 @@ struct AnimationReaderFBX : public asset<Animation>::reader
                     //std::cout << "  CurveNode " << nodeName << std::endl;
                     for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
                     {
-                        Au::Math::Vec3f pos = 
-                            stacks[i].EvaluatePosition(nodes[j], (int64_t)t);
+                        gfxm::vec3 pos = 
+                            *(gfxm::vec3*)&stacks[i].EvaluatePosition(nodes[j], (int64_t)t);
                         animNode.position.x[frame] = pos.x;
                         animNode.position.y[frame] = pos.y;
                         animNode.position.z[frame] = pos.z;
 
-                        Au::Math::Quat rot = 
-                            stacks[i].EvaluateRotation(nodes[j], (int64_t)t);
+                        gfxm::quat rot = 
+                            *(gfxm::quat*)&stacks[i].EvaluateRotation(nodes[j], (int64_t)t);
                         animNode.rotation.x[frame] = rot.x;
                         animNode.rotation.y[frame] = rot.y;
                         animNode.rotation.z[frame] = rot.z;
                         animNode.rotation.w[frame] = rot.w;
                         
-                        Au::Math::Vec3f scale = 
-                            stacks[i].EvaluateScale(nodes[j], (int64_t)t);
+                        gfxm::vec3 scale = 
+                            *(gfxm::vec3*)&stacks[i].EvaluateScale(nodes[j], (int64_t)t);
                         animNode.scale.x[frame] = scale.x;
                         animNode.scale.y[frame] = scale.y;
                         animNode.scale.z[frame] = scale.z;

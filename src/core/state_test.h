@@ -20,21 +20,21 @@ public:
         mesh = LoadMesh(GFXDevice(), "data\\miku.fbx");
         renderState = CreateRenderState(GFXDevice());
         
-        projection = Au::Math::Perspective(fov, 16.0f/9.0f, 0.1f, zfar);
-        view.Translate(Au::Math::Vec3f(0.0f, 1.5f, 7.0f));
+        projection = gfxm::perspective(fov, 16.0f/9.0f, 0.1f, zfar);
+        view.translate(gfxm::vec3(0.0f, 1.5f, 7.0f));
         
-        uniModelMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixModel");
-        uniViewMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixView");
-        uniProjMat4f = Au::GFX::GetUniform<Au::Math::Mat4f>("MatrixProjection");
+        uniModelMat4f = Au::GFX::GetUniform<gfxm::mat4>("MatrixModel");
+        uniViewMat4f = Au::GFX::GetUniform<gfxm::mat4>("MatrixView");
+        uniProjMat4f = Au::GFX::GetUniform<gfxm::mat4>("MatrixProjection");
         
-        uniLightOmniPos = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniPos", 3);
-        uniLightOmniRGB = Au::GFX::GetUniform<Au::Math::Vec3f>("LightOmniRGB", 3);
-        uniLightOmniPos.Set(Au::Math::Vec3f(0.0f, 1.5f, 2.5f), 0);
-        uniLightOmniRGB.Set(Au::Math::Vec3f(0.8f, 0.6f, 0.2f), 0);
-        uniLightOmniPos.Set(Au::Math::Vec3f(4.0f, 0.0f, 0.0f), 1);
-        uniLightOmniRGB.Set(Au::Math::Vec3f(0.6f, 0.8f, 0.2f), 1);
-        uniLightOmniPos.Set(Au::Math::Vec3f(-4.0f, 0.0f, 0.0f), 2);
-        uniLightOmniRGB.Set(Au::Math::Vec3f(0.8f, 0.6f, 0.8f), 2);
+        uniLightOmniPos = Au::GFX::GetUniform<gfxm::vec3>("LightOmniPos", 3);
+        uniLightOmniRGB = Au::GFX::GetUniform<gfxm::vec3>("LightOmniRGB", 3);
+        uniLightOmniPos.Set(gfxm::vec3(0.0f, 1.5f, 2.5f), 0);
+        uniLightOmniRGB.Set(gfxm::vec3(0.8f, 0.6f, 0.2f), 0);
+        uniLightOmniPos.Set(gfxm::vec3(4.0f, 0.0f, 0.0f), 1);
+        uniLightOmniRGB.Set(gfxm::vec3(0.6f, 0.8f, 0.2f), 1);
+        uniLightOmniPos.Set(gfxm::vec3(-4.0f, 0.0f, 0.0f), 2);
+        uniLightOmniRGB.Set(gfxm::vec3(0.8f, 0.6f, 0.8f), 2);
         
         lx = 0.0f; ly = 0.0f;
         
@@ -55,8 +55,8 @@ public:
     virtual void OnRender(Au::GFX::Device* device)
     {
         device->Bind(renderState);
-        device->Set(uniModelMat4f, model.GetTransform());
-        device->Set(uniViewMat4f, Au::Math::Inverse(view.GetTransform()));
+        device->Set(uniModelMat4f, model.matrix());
+        device->Set(uniViewMat4f, gfxm::inverse(view.matrix()));
         device->Set(uniProjMat4f, projection);
         device->Bind(mesh);
         device->Render();
@@ -64,9 +64,9 @@ public:
     
     virtual void MouseMove(int x, int y)
     {
-        uniLightOmniPos.Set(Au::Math::Vec3f(lx += x * 0.01f, ly -= y * 0.01f, 2.5f), 0);
-        model.Rotate(x * 0.01f, Au::Math::Vec3f(0, 1, 0));
-        model.Rotate(y * 0.01f, model.GetTransform() * Au::Math::Vec3f(1, 0, 0));
+        uniLightOmniPos.Set(gfxm::vec3(lx += x * 0.01f, ly -= y * 0.01f, 2.5f), 0);
+        model.rotate(x * 0.01f, gfxm::vec3(0, 1, 0));
+        model.rotate(y * 0.01f, model.matrix() * gfxm::vec3(1, 0, 0));
     }
     
     virtual void KeyDown(Au::Input::KEYCODE key)
@@ -82,9 +82,9 @@ private:
 
     Au::GFX::RenderState* renderState;
     Au::GFX::Mesh* mesh;
-    Au::Math::Transform model;
-    Au::Math::Transform view;
-    Au::Math::Mat4f projection;
+    gfxm::transform model;
+    gfxm::transform view;
+    gfxm::mat4 projection;
     
     Au::GFX::Uniform uniModelMat4f;
     Au::GFX::Uniform uniViewMat4f;

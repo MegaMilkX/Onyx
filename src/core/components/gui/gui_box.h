@@ -10,7 +10,7 @@ class GuiBox : public SceneObject::Component
 public:
     void OnResize(const GuiLayout* layout)
     {
-        Au::Math::Vec4i bbox = layout->bbox;
+        gfxm::ivec4 bbox = layout->bbox;
 
         Get<Quad>()->quad.color = { 0.2f, 0.2f, 0.2f, 1.0f };
         Get<Quad>()->quad.width = (float)(bbox.z - bbox.x);

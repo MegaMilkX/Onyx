@@ -121,12 +121,12 @@ Au::GFX::RenderState* CreateRenderState(Au::GFX::Device* gfxDevice)
     renderState->AttribFormat(Au::Position() << Au::Normal() << Au::ColorRGB());
     renderState->SetShader(shaderVertex);
     renderState->SetShader(shaderPixel);
-    renderState->AddUniform<Au::Math::Mat4f>("MatrixModel");
-    renderState->AddUniform<Au::Math::Mat4f>("MatrixView");
-    renderState->AddUniform<Au::Math::Mat4f>("MatrixProjection");
-    renderState->AddUniform<Au::Math::Vec3f>("LightOmniPos", 3);
-    renderState->AddUniform<Au::Math::Vec3f>("LightOmniRGB", 3);
-    renderState->AddUniform<Au::Math::Mat4f>("Bones", 32);
+    renderState->AddUniform<gfxm::mat4>("MatrixModel");
+    renderState->AddUniform<gfxm::mat4>("MatrixView");
+    renderState->AddUniform<gfxm::mat4>("MatrixProjection");
+    renderState->AddUniform<gfxm::vec3>("LightOmniPos", 3);
+    renderState->AddUniform<gfxm::vec3>("LightOmniRGB", 3);
+    renderState->AddUniform<gfxm::mat4>("Bones", 32);
     
     std::cout << renderState->StatusString() << std::endl;
     

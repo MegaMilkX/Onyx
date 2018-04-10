@@ -3,7 +3,7 @@
 
 #include <string>
 #include <aurora/lua.h>
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include <scene_object.h>
 #include <animator.h>
 
@@ -23,7 +23,7 @@ public:
         lua.Bind(&Transform::Forward, "Front");
         lua.Bind(&Transform::Up, "Up");
         lua.Bind<Transform, void, float, float, float>(&Transform::Translate, "Translate");
-        lua.Bind<Transform, Au::Math::Vec3f>(&Transform::Position, "GetPosition");
+        lua.Bind<Transform, gfxm::vec3>(&Transform::Position, "GetPosition");
         lua.Bind<Transform, void, float, float, float>(&Transform::Position, "SetPosition");
         lua.Bind(&Transform::LookDir, "LookDir");
 
@@ -36,9 +36,9 @@ public:
         lua.Bind(&AnimTrack::Cursor::Advance, "Advance");
         lua.Bind(&AnimTrack::Cursor::SetFrame, "SetFrame");
 
-        lua.Bind(&Au::Math::Vec3f::x, "x");
-        lua.Bind(&Au::Math::Vec3f::y, "y");
-        lua.Bind(&Au::Math::Vec3f::z, "z");
+        lua.Bind(&gfxm::vec3::x, "x");
+        lua.Bind(&gfxm::vec3::y, "y");
+        lua.Bind(&gfxm::vec3::z, "z");
 
         lua.Bind(&PrintTest, "Print");
         lua.Bind(&AnimState::Blend, "Blend");

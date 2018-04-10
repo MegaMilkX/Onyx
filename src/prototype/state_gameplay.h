@@ -162,7 +162,7 @@ public:
             script->Relay("MouseMove", e->dx, e->dy);
         }
         SceneObject* o = scene.Get<Collision>()->RayTest(
-            Au::Math::Ray(
+            gfxm::ray(
                 camera->Get<Transform>()->WorldPosition() + camera->Get<Transform>()->Forward() * 0.3f,
                 camera->Get<Transform>()->Forward() * 0.7f
             )
@@ -170,7 +170,7 @@ public:
         if(o)
         {
             title->SetText(o->Name());
-            Au::Math::Vec2f p = renderer->CurrentCamera()->WorldToScreen(o->Get<Transform>()->WorldPosition());
+            gfxm::vec2 p = renderer->CurrentCamera()->WorldToScreen(o->Get<Transform>()->WorldPosition());
             title->Get<Transform>()->Position(
                 (p.x * 0.5f + 0.5f) * 1920, 
                 (1080 - (p.y * 0.5f + 0.5f) * 1080), 

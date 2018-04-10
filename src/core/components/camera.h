@@ -29,18 +29,18 @@ public:
         this->aspect = aspect;
         this->zNear = zNear;
         this->zFar = zFar;
-        projection = Au::Math::Perspective(fov, aspect, zNear, zFar);
+        projection = gfxm::perspective(fov, aspect, zNear, zFar);
     }
 
-    Au::Math::Vec2f WorldToScreen(const Au::Math::Vec3f& w)
+    gfxm::vec2 WorldToScreen(const gfxm::vec3& w)
     {
-        Au::Math::Vec4f world4(w.x, w.y, w.z, 1.0f);
+        gfxm::vec4 world4(w.x, w.y, w.z, 1.0f);
         world4 = Projection() * InverseTransform() * world4;
-        return Au::Math::Vec2f(world4.x / world4.w, world4.y / world4.w);
+        return gfxm::vec2(world4.x / world4.w, world4.y / world4.w);
     }
     
-    Au::Math::Mat4f Projection() { return projection; }
-    Au::Math::Mat4f InverseTransform() { return Au::Math::Inverse(transform->GetTransform()); }
+    gfxm::mat4 Projection() { return projection; }
+    gfxm::mat4 InverseTransform() { return gfxm::inverse(transform->GetTransform()); }
 
     void Render(Au::GFX::Device* device)
     {
@@ -88,7 +88,7 @@ private:
     float aspect;
     float zNear;
     float zFar;
-    Au::Math::Mat4f projection;
+    gfxm::mat4 projection;
 
     Transform* transform;
     Renderer* renderer;
