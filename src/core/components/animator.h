@@ -232,7 +232,6 @@ public:
         ApplyPlain(currentCursor);
         if(blend > 0.0f && blend < 1.0f && targetCursor.Valid())
         {
-            std::cout << blend << std::endl;
             ApplyBlend(targetCursor, blend);
         }
     }

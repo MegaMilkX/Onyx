@@ -9,6 +9,7 @@
 #include <anim_state.h>
 #include <skeleton.h>
 
+
 class Actor : public KinematicObject
 {
 public:	
@@ -33,8 +34,6 @@ public:
 
 	void Update(float dt)
 	{
-		
-
 		animState->Set("dt", dt);
 		animState->Set("direction", velocity);
 		float dot = gfxm::dot(
@@ -61,7 +60,8 @@ public:
 		_checkForGround();
 		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), gfxm::vec3(0.0f, 1.0f, 0.0f), 10.0f * dt);
 		animState->Update();
-		
+		layerMotion1 += dt;
+		Get<Animator>()->ApplyAdd(layerMotion1, 1.0f);
 	}
 	
 	virtual void OnCreate();
@@ -85,7 +85,7 @@ private:
 		animState->Set("groundHit", groundHit);
 	}
 
-	
+	AnimTrack::Cursor layerMotion1;
 
 	AnimState* animState;
 	gfxm::vec3 velocity;

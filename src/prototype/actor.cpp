@@ -36,7 +36,7 @@ void Actor::OnCreate()
     asset<Animation>::get("character")->operator[]("Turn180")->Looping(false);
     Get<Animator>()->Set("character");
 
-    
+    layerMotion1 = asset<Animation>::get("character")->operator[]("LayerMotion01")->GetCursor();
 	
     animState = Get<AnimState>();
     animState->AppendScript(R"(
@@ -84,7 +84,7 @@ void Actor::OnCreate()
             LayerTurnLCur:Advance(dt)
             LayerTurnRCur:Advance(dt)
             if angle > 0.0 then
-                Animator:ApplyAdd(LayerTurnRCur, angle / 3.0)
+                Animator:ApplyAdd(LayerTurnRCur, angle / 3.0)    
             end
             if angle < 0.0 then
                 Animator:ApplyAdd(LayerTurnLCur, -angle / 3.0)
