@@ -120,21 +120,24 @@ public:
         AnimPose* pose = cur.GetPose(&animation->GetBindPose());
         for(auto& kv : pose->poses)
         {
-            gfxm::transform bp = bindPose.poses[kv.first];
-            gfxm::vec3 basePos = bp.position();
-            gfxm::quat baseRot = bp.rotation();
-            gfxm::vec3 baseScl = bp.scale();
-            
-            gfxm::transform& p = currentPose.poses[kv.first];
-            gfxm::vec3 pos = kv.second.position();
-            gfxm::quat rot = kv.second.rotation();
-            gfxm::vec3 scl = kv.second.scale();
-            pos = pos - basePos;
-            rot = rot * gfxm::inverse(baseRot);
-            scl = scl - baseScl;
-            p.translate(gfxm::lerp(gfxm::vec3(0,0,0), pos, weight));
-            p.rotate(gfxm::slerp(gfxm::quat(0,0,0,1), rot, weight));
-            p.scale(p.scale() + gfxm::lerp(gfxm::vec3(0,0,0), scl, weight));
+            Transform* t = animNodes[kv.first];
+            if(t)
+            {
+                gfxm::transform bp = bindPose.poses[kv.first];
+                gfxm::vec3 basePos = bp.position();
+                gfxm::quat baseRot = bp.rotation();
+                gfxm::vec3 baseScl = bp.scale();
+
+                gfxm::vec3 pos = kv.second.position();
+                gfxm::quat rot = kv.second.rotation();
+                gfxm::vec3 scl = kv.second.scale();
+                pos = pos - basePos;
+                rot = rot * gfxm::inverse(baseRot);
+                scl = scl - baseScl;
+                t->Translate(gfxm::lerp(gfxm::vec3(0,0,0), pos, weight));
+                t->Rotate(gfxm::slerp(gfxm::quat(0,0,0,1), rot, weight));
+                t->Scale(t->Scale() + gfxm::lerp(gfxm::vec3(0,0,0), scl, weight));
+            }            
         }
         gfxm::vec3 posDelta = gfxm::lerp(
             gfxm::vec3(0,0,0), 
@@ -156,14 +159,17 @@ public:
 
         for(auto& kv : pose->poses)
         {
-            gfxm::transform& p = currentPose.poses[kv.first];
+            Transform* t = animNodes[kv.first];
+            if(t)
+            {
+                gfxm::vec3 pos = kv.second.position();
+                gfxm::quat rot = kv.second.rotation();
+                gfxm::vec3 scl = kv.second.scale();
 
-            gfxm::vec3 pos = kv.second.position();
-            gfxm::quat rot = kv.second.rotation();
-            gfxm::vec3 scl = kv.second.scale();
-            p.position(gfxm::lerp(p.position(), pos, weight));
-            p.rotation(gfxm::slerp(p.rotation(), rot, weight));
-            p.scale(gfxm::lerp(p.scale(), scl, weight));
+                t->Position(gfxm::lerp(t->Position(), pos, weight));
+                t->Rotation(gfxm::slerp(t->Rotation(), rot, weight));
+                t->Scale(gfxm::lerp(t->Scale(), scl, weight));
+            }
         }
         rootMotionPosDelta = 
             gfxm::lerp(
@@ -183,14 +189,16 @@ public:
         AnimPose* pose = cur.GetPose(&animation->GetBindPose());
         for(auto& kv : pose->poses)
         {
-            gfxm::transform& p = currentPose.poses[kv.first];
-            
-            gfxm::vec3 pos = kv.second.position();
-            gfxm::quat rot = kv.second.rotation();
-            gfxm::vec3 scl = kv.second.scale();
-            p.position(pos);
-            p.rotation(rot);
-            p.scale(scl);   
+            Transform* t = animNodes[kv.first];
+            if(t)
+            {
+                gfxm::vec3 pos = kv.second.position();
+                gfxm::quat rot = kv.second.rotation();
+                gfxm::vec3 scl = kv.second.scale();
+                t->Position(pos);
+                t->Rotation(rot);
+                t->Scale(scl);
+            }   
         }
         rootMotionPosDelta = *(gfxm::vec3*)&cur.GetRootMotionDeltaPosition();
         rootMotionRotDelta = *(gfxm::quat*)&cur.GetRootMotionDeltaRotation();
@@ -232,28 +240,6 @@ public:
     AnimPose currentPose;
     void Finalize()
     {
-        
-
-        for(auto& kv : currentPose.poses)
-        {
-            Transform* t = animNodes[kv.first];
-            if(t)
-            {
-                gfxm::vec3 pos = kv.second.position();
-                gfxm::quat rot = kv.second.rotation();
-                gfxm::vec3 scl = kv.second.scale();
-                t->Position(
-                    *(gfxm::vec3*)&pos
-                );
-                t->Rotation(
-                    *(gfxm::quat*)&rot
-                );
-                t->Scale(
-                    *(gfxm::vec3*)&scl
-                );
-            }
-        }
-
         if(rootMotionSource)
         {
             rootMotionSource->ToWorldDirection(rootMotionPosDelta);
