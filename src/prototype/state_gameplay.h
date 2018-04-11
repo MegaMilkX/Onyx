@@ -28,7 +28,7 @@
 
 #include "fps_display.h"
 #include "test_cube.h"
-#include "actor.h"
+#include "character.h"
 #include "character_controller.h"
 #include "character_camera.h"
 
@@ -50,7 +50,8 @@ public:
         renderer->AmbientColor(0.1f, 0.1f, 0.1f);
         renderer->RimColor(0.4f, 0.4f, 0.8f);
         
-        character = scene.CreateObject()->GetComponent<Actor>();
+        character = scene.CreateObject()->GetComponent<Character>();
+
         SceneObject* pelvis = character->GetObject()->FindObject("Pelvis");
         if(pelvis)
         {
@@ -202,6 +203,8 @@ public:
         camera->Update(DeltaTime());
         charController->Update();
         
+        character->Update(DeltaTime());
+
         soundRoot->Update();
         //scene.FindObject("MIKU")->GetComponent<Transform>()->Track(character->GetComponent<Transform>()->WorldPosition());
         
@@ -226,7 +229,7 @@ private:
 
     Quad* quad;
     
-    Actor* character;
+    Character* character;
     CharacterCamera* camera;
     CharacterController* charController;
     

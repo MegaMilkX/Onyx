@@ -25,6 +25,8 @@ public:
         { return GetObject()->GetComponent<T>(); }
         template<typename T>
         T* Get() { return GetObject()->GetComponent<T>(); }
+        template<typename T>
+        T* RootGet() { return Object()->Root()->GetComponent<T>(); }
         
         virtual void OnCreate() {}
         virtual std::string Serialize() { return "{}"; }
@@ -66,6 +68,8 @@ public:
         objects.push_back(o);
         return o;
     }
+    template<typename T>
+    T* RootGet() { return Root()->GetComponent<T>(); }
     template<typename T>
     T* Get() { return GetComponent<T>(); }
     template<typename T>

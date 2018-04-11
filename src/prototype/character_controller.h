@@ -1,7 +1,7 @@
 #ifndef CHARACTER_CONTROLLER_H
 #define CHARACTER_CONTROLLER_H
 
-#include "actor.h"
+#include "character.h"
 #include <transform.h>
 #include <camera.h>
 #include <game_state.h>
@@ -12,7 +12,7 @@ public:
     CharacterController()
     : chara(0), dirFlags(0) {}
     
-    void SetTarget(Actor* chara)
+    void SetTarget(Character* chara)
     {
         this->chara = chara;
     }
@@ -67,7 +67,7 @@ public:
     }
 private:
     Renderer* renderer;
-    Actor* chara;
+    Character* chara;
     char dirFlags;
 };
 

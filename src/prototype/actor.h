@@ -9,88 +9,47 @@
 #include <anim_state.h>
 #include <skeleton.h>
 
-
-class Actor : public KinematicObject
+struct ActorState
 {
-public:	
-	void Velocity(const gfxm::vec3& v)
+	typedef std::function<void(void)> fun_start_t;
+	typedef std::function<void(void)> fun_update_t;
+
+	ActorState()
+	: start(_start_stub), update(_update_stub)
+	{}
+	ActorState(const fun_start_t& start, const fun_update_t& update)
+	: start(start), update(update) 
+	{}
+	fun_start_t start;
+	fun_update_t update;
+private:
+	static void _start_stub() {}
+	static void _update_stub() {}
+};
+
+class Actor : public SceneObject::Component
+{
+public:
+	void AddState(const std::string& name, const ActorState& state)
 	{
-		if(v.length() > FLT_EPSILON)
-		{
-			velocity = v;
-			animState->Set("velocity", 10.0);
-		}
-		else if(v.length() <= FLT_EPSILON)
-		{
-			velocity = gfxm::vec3(0.0f, 0.0f, 0.0f);
-			animState->Set("velocity", 0.0);
-		}
+		states[name] = state;
 	}
-	
-	gfxm::vec3 Velocity()
+
+	void SwitchState(const std::string& name)
 	{
-		return velocity;
+		currentState = states[name];
+		currentState.start();
 	}
 
 	void Update(float dt)
 	{
-		animState->Set("dt", dt);
-		animState->Set("direction", velocity);
-		float dot = gfxm::dot(
-			gfxm::normalize(velocity), 
-			gfxm::normalize(Get<Transform>()->Back())
-		);
-		gfxm::vec3 rotAxis = gfxm::normalize(
-			gfxm::cross(
-				gfxm::normalize(Get<Transform>()->Back()), 
-				gfxm::normalize(velocity)
-			)
-		);
-		#undef max
-		#undef min
-		const float eps = 0.01f;
-    	if(fabs(dot + 1.0f) <= eps)
-		{
-			
-		}
-        float rotAngle = acosf(std::max(-1.0f, std::min(dot, 1.0f)));
-		if(rotAxis.y > 0.0f) rotAngle *= -1.0f;
-		animState->Set("angle", rotAngle);
-		animState->Set("angleAbs", fabs(rotAngle));
-		_checkForGround();
-		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), gfxm::vec3(0.0f, 1.0f, 0.0f), 10.0f * dt);
-		animState->Update();
-		layerMotion1 += dt;
-		Get<Animator>()->ApplyAdd(layerMotion1, 1.0f);
+		currentState.update();	
 	}
 	
 	virtual void OnCreate();
 private:
-	void _checkForGround()
-	{
-		Transform* trans = GetComponent<Transform>();
-		
-		gfxm::vec3 pos = trans->Position() + gfxm::vec3(0.0f, 1.0f, 0.0f);
-		Collision::RayHit hit;
-		if(collision->RayTest(gfxm::ray(pos, gfxm::vec3(0.0f, -1.1f, 0.0f)), hit))
-		{
-			groundHit = hit.position;
-			grounded = true;
-		}
-		else
-		{
-			grounded = false;
-		}
-		animState->Set("grounded", grounded);
-		animState->Set("groundHit", groundHit);
-	}
-
-	AnimTrack::Cursor layerMotion1;
-
-	AnimState* animState;
-	gfxm::vec3 velocity;
-	gfxm::vec3 groundHit;
-	bool grounded;
+	ActorState currentState;
+	std::map<std::string, ActorState> states;
 };
 
 #endif

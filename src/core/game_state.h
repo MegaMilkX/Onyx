@@ -129,6 +129,7 @@ public:
         HANDLE thread = CreateThread(NULL, 0, AudioThread, (void*)&audioMixer, 0, &threadId);
         mouseHandler.Init(window);
         keyboardHandler.Init(window);
+        deltaTime = 0.0f;
     }
     
     static DWORD WINAPI AudioThread(LPVOID lpParam)
