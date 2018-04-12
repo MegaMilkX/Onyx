@@ -11,12 +11,12 @@ public:
 		if(v.length() > FLT_EPSILON)
 		{
 			velocity = v;
-			animState->Set("velocity", 10.0);
+			motion->Set("velocity", 10.0);
 		}
 		else if(v.length() <= FLT_EPSILON)
 		{
 			velocity = gfxm::vec3(0.0f, 0.0f, 0.0f);
-			animState->Set("velocity", 0.0);
+			motion->Set("velocity", 0.0);
 		}
 	}
 	
@@ -29,8 +29,8 @@ public:
     {
         actor->Update(dt);
 
-        animState->Set("dt", dt);
-		animState->Set("direction", velocity);
+        motion->Set("dt", dt);
+		motion->Set("direction", velocity);
 		float dot = gfxm::dot(
 			gfxm::normalize(velocity), 
 			gfxm::normalize(Get<Transform>()->Back())
@@ -50,11 +50,11 @@ public:
 		}
         float rotAngle = acosf(std::max(-1.0f, std::min(dot, 1.0f)));
 		if(rotAxis.y > 0.0f) rotAngle *= -1.0f;
-		animState->Set("angle", rotAngle);
-		animState->Set("angleAbs", fabs(rotAngle));
+		motion->Set("angle", rotAngle);
+		motion->Set("angleAbs", fabs(rotAngle));
 		
 		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), gfxm::vec3(0.0f, 1.0f, 0.0f), 10.0f * dt);
-		animState->Update();
+		motion->Update();
 		layerMotion1 += dt;
 		Get<Animator>()->ApplyAdd(layerMotion1, 1.0f);
     }
@@ -80,9 +80,10 @@ public:
 
         layerMotion1 = asset<Animation>::get("character")->operator[]("LayerMotion01")->GetCursor();
         
-        animState = Get<AnimState>();
-        animState->AppendScript(R"(
+        motion = Get<MotionScript>();
+        motion->AppendScript(R"(
             Idle = {
+                endMargin = 0.1,
                 Start = function()
                     State:Blend("Idle", 0.1)
                 end,
@@ -91,7 +92,7 @@ public:
                 end
             }
         )");
-        animState->AppendScript(R"(
+        motion->AppendScript(R"(
             Walk = {}
             Walk.Start = function()
                 State:Blend("Run", 0.1)
@@ -114,7 +115,7 @@ public:
                 end
             end
         )");
-        animState->AppendScript(R"(
+        motion->AppendScript(R"(
             Turn180 = {
                 Start = function()
                     State:Blend("Turn180", 0.1)
@@ -123,10 +124,13 @@ public:
                     if Animator:Stopped(0.15) == 1 then
                         State:Switch("Walk")
                     end
+                end,
+                End = function()
+                    State:Switch("Walk")
                 end
             }
         )");
-        animState->AppendScript(R"(
+        motion->AppendScript(R"(
             Fall = {}
             Fall.Start = function()
                 State:Blend("Bind", 0.1)
@@ -135,15 +139,15 @@ public:
                 
             end
         )");
-        animState->Set("velocity", 0.0f);
-        animState->Set("gravity", 9.8f);
+        motion->Set("velocity", 0.0f);
+        motion->Set("gravity", 9.8f);
 
         actor = Get<Actor>();
         actor->AddState(
             "Idle",
             {
                 [this](){
-                    animState->Switch("Idle");
+                    motion->Switch("Idle");
                 },
                 [this](){
                     _checkForGround();
@@ -164,7 +168,7 @@ public:
             "Walk",
             {
                 [this](){
-                    animState->Switch("Walk");
+                    motion->Switch("Walk");
                 },
                 [this](){
                     _checkForGround();
@@ -186,7 +190,7 @@ public:
             "Fall",
             {
                 [this](){
-                    animState->Switch("Fall");
+                    motion->Switch("Fall");
                 },
                 [this](){
                     _checkForGround();
@@ -221,8 +225,8 @@ private:
 		{
 			grounded = false;
 		}
-		animState->Set("grounded", grounded);
-		animState->Set("groundHit", groundHit);
+		motion->Set("grounded", grounded);
+		motion->Set("groundHit", groundHit);
 	}
 
     AnimTrack::Cursor layerMotion1;
@@ -230,7 +234,7 @@ private:
     Actor* actor;
     KinematicObject* kinematicObject;
     Collision* collision;
-    AnimState* animState;
+    MotionScript* motion;
 
 	gfxm::vec3 velocity;
 	gfxm::vec3 groundHit;

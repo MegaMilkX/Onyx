@@ -6,7 +6,7 @@
 #include <collision/kinematic_object.h>
 #include <skin_mesh.h>
 #include <animator.h>
-#include <anim_state.h>
+#include <motion_script.h>
 #include <skeleton.h>
 
 struct ActorState

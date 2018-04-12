@@ -23,7 +23,7 @@
 #include <gui/gui_window.h>
 #include <gui/gui_layout.h>
 
-#include <anim_state.h>
+#include <motion_script.h>
 
 
 #include "fps_display.h"

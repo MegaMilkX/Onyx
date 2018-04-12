@@ -12,10 +12,10 @@ inline void PrintTest(const std::string& v)
     std::cout << v << std::endl;
 }
 
-class AnimState : public SceneObject::Component
+class MotionScript : public SceneObject::Component
 {
 public:
-    AnimState()
+    MotionScript()
     {
         lua.Init();
 
@@ -41,8 +41,8 @@ public:
         lua.Bind(&gfxm::vec3::z, "z");
 
         lua.Bind(&PrintTest, "Print");
-        lua.Bind(&AnimState::Blend, "Blend");
-        lua.Bind(&AnimState::Switch, "Switch");
+        lua.Bind(&MotionScript::Blend, "Blend");
+        lua.Bind(&MotionScript::Switch, "Switch");
         lua.SetGlobal("State", this);        
         
     }
