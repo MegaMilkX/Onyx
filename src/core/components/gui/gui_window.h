@@ -29,7 +29,7 @@ public:
     {
         if(e->key == Au::Input::KEY_LBUTTON)
         {
-            Au::Math::Vec3f pos = Get<Transform>()->WorldPosition();
+            gfxm::vec3 pos = Get<Transform>()->WorldPosition();
             dragPoint = { e->x - (int)pos.x, e->y - (int)pos.y };
             drag = true;
         }
@@ -43,7 +43,7 @@ public:
     }
     void OnResize(const GuiLayout* layout)
     {
-        Au::Math::Vec4i bbox = layout->bbox;
+        gfxm::ivec4 bbox = layout->bbox;
 
         titleBar->Get<Quad>()->quad.height = 25;
         titleBar->Get<Quad>()->quad.width = (float)(bbox.z - bbox.x);
@@ -51,7 +51,7 @@ public:
         clientArea->Get<Quad>()->quad.width = (float)(bbox.z - bbox.x);
     }
 
-    Au::Math::Vec2i dragPoint;
+    gfxm::ivec2 dragPoint;
     bool drag = false;
 
     void OnCreate()

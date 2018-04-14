@@ -7,7 +7,7 @@ void SoundRoot::Update()
 {
     if(!listener)
         return;
-    Au::Math::Mat4f mat = listener->GetComponent<Transform>()->GetTransform();
+    gfxm::mat4 mat = listener->GetComponent<Transform>()->GetTransform();
     GameState::GetAudioMixer()->SetListenerTransform((float*)&mat);
 }
 

@@ -1,7 +1,7 @@
 #ifndef COM_COLLISION_H
 #define COM_COLLISION_H
 
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include <aurora/gfx.h>
 #include "../../scene_object.h"
 
@@ -57,17 +57,17 @@ public:
     struct RayHit
     {
         SceneObject* object;
-        Au::Math::Vec3f position;
-        Au::Math::Vec3f normal;
+        gfxm::vec3 position;
+        gfxm::vec3 normal;
     };
     
-	SceneObject* RayTest(Au::Math::Ray& ray)
+	SceneObject* RayTest(gfxm::ray& ray)
 	{
 		RayHit hit;
 		return RayTest(ray, hit);
 	}
     
-	SceneObject* RayTest(Au::Math::Ray& ray, RayHit& hit)
+	SceneObject* RayTest(gfxm::ray& ray, RayHit& hit)
 	{
         hit.object = 0;
         
@@ -87,9 +87,9 @@ public:
 		{
 			hitPoint = rayCb.m_hitPointWorld;
 			hitPoint.setInterpolate3(origin, origin + direction, rayCb.m_closestHitFraction);
-			hit.position = Au::Math::Vec3f(hitPoint.x(), hitPoint.y(), hitPoint.z());
+			hit.position = gfxm::vec3(hitPoint.x(), hitPoint.y(), hitPoint.z());
 			btHitNormal = rayCb.m_hitNormalWorld;
-            hit.normal = Au::Math::Vec3f(btHitNormal.x(), btHitNormal.y(), btHitNormal.z());
+            hit.normal = gfxm::vec3(btHitNormal.x(), btHitNormal.y(), btHitNormal.z());
 			const btCollisionObject* co = rayCb.m_collisionObject;
 			SceneObject* c = (SceneObject*)co->getUserPointer();
             hit.object = c;
@@ -99,7 +99,7 @@ public:
 		return 0;
 	}
     
-    //Au::Math::Vec3f SweepTest(ConvexGhostCollider* collider, Au::Math::Mat4f& from, Au::Math::Mat4f& to);
+    //gfxm::vec3 SweepTest(ConvexGhostCollider* collider, gfxm::mat4& from, gfxm::mat4& to);
 	
 	void AddCollider(Collider* col);
     void RemoveCollider(Collider* col);

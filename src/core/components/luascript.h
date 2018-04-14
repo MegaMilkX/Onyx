@@ -10,7 +10,7 @@
 #include "light_omni.h"
 #include "model.h"
 
-#include "animation.h"
+#include "animator.h"
 #include "skeleton.h"
 
 #include "dynamics/rigid_body.h"
@@ -57,9 +57,9 @@ inline void LuaPrint(const std::string& msg)
     std::cout << msg << std::endl;
 }
 
-inline Au::Math::Vec3f Vec3Create(float x, float y, float z) { return Au::Math::Vec3f(x, y, z); }
-inline Au::Math::Vec3f Vec3Add(const Au::Math::Vec3f& a, const Au::Math::Vec3f& b) { return a + b; }
-inline Au::Math::Vec3f Vec3MultScalar(const Au::Math::Vec3f& v, float s) { return v * s; }
+inline gfxm::vec3 Vec3Create(float x, float y, float z) { return gfxm::vec3(x, y, z); }
+inline gfxm::vec3 Vec3Add(const gfxm::vec3& a, const gfxm::vec3& b) { return a + b; }
+inline gfxm::vec3 Vec3MultScalar(const gfxm::vec3& v, float s) { return v * s; }
 
 class LuaScript : public SceneObject::Component
 {
@@ -98,14 +98,14 @@ public:
         _state.Bind(&Vec3Create, "Vec3");
         _state.Bind(&Vec3Add, "Vec3Add");
         _state.Bind(&Vec3MultScalar, "Vec3MultScalar");
-        _state.Bind<Au::Math::Vec3f, const Au::Math::Vec3f&>(&Au::Math::Normalize, "Vec3Normalize");
-        _state.Bind(&Au::Math::Vec3f::x, "x");
-        _state.Bind(&Au::Math::Vec3f::y, "y");
-        _state.Bind(&Au::Math::Vec3f::z, "z");
+        _state.Bind<gfxm::vec3, const gfxm::vec3&>(&gfxm::normalize, "Vec3Normalize");
+        _state.Bind(&gfxm::vec3::x, "x");
+        _state.Bind(&gfxm::vec3::y, "y");
+        _state.Bind(&gfxm::vec3::z, "z");
 
         _state.Bind(&asset<MeshData>::set, "Set");
         _state.Bind(&asset<Material>::set, "Set");
-        _state.Bind(&asset<AnimData>::set, "Set");
+        _state.Bind(&asset<Animation>::set, "Set");
         _state.Bind(&asset<SkeletonData>::set, "Set");
         
         _state.Bind(&SceneObject::Root, "Root");
@@ -120,7 +120,7 @@ public:
         _state.Bind(&SceneObject::GetComponent<LightDirect>, "LightDirect");
         _state.Bind(&SceneObject::GetComponent<Renderer>, "Renderer");
         _state.Bind(&SceneObject::GetComponent<Model>, "Model");
-        _state.Bind(&SceneObject::GetComponent<Animation>, "Animation");
+        _state.Bind(&SceneObject::GetComponent<Animator>, "Animation");
         _state.Bind(&SceneObject::GetComponent<Skeleton>, "Skeleton");
 		_state.Bind(&SceneObject::GetComponent<PlaneCollider>, "PlaneCollider");
 		_state.Bind(&SceneObject::GetComponent<SphereCollider>, "SphereCollider");
@@ -132,10 +132,10 @@ public:
         
         _state.Bind<Transform, void, float, float, float>(&Transform::Translate, "Translate");
         _state.Bind<Transform, void, float, float, float, float>(&Transform::Rotate, "Rotate");
-        _state.Bind<Transform, void, float, const Au::Math::Vec3f&>(&Transform::Rotate, "RotateVec");
+        _state.Bind<Transform, void, float, const gfxm::vec3&>(&Transform::Rotate, "RotateVec");
         _state.Bind<Transform, void, float, float, float>(&Transform::Position, "Position");
-        _state.Bind<Transform, void, const Au::Math::Vec3f&>(&Transform::Position, "PositionVec");
-        _state.Bind<Transform, Au::Math::Vec3f>(&Transform::Position, "GetPosition");
+        _state.Bind<Transform, void, const gfxm::vec3&>(&Transform::Position, "PositionVec");
+        _state.Bind<Transform, gfxm::vec3>(&Transform::Position, "GetPosition");
         _state.Bind<Transform, void, float, float, float>(&Transform::Rotation, "Rotation");
         _state.Bind<Transform, void, float>(&Transform::Scale, "Scale");
         _state.Bind<Transform, SceneObject*>(&Transform::GetObject, "GetObject");
@@ -168,16 +168,16 @@ public:
         _state.Bind(&Model::material, "material");
         _state.Bind<Model, SceneObject*>(&Model::GetObject, "GetObject");
         
-        _state.Bind<Animation, void, const std::string&>(&Animation::Set, "SetAnim");
-        _state.Bind(&Animation::Play, "Play");
-        _state.Bind<Animation, SceneObject*>(&Animation::GetObject, "GetObject");
+        _state.Bind<Animator, void, const std::string&>(&Animator::Set, "SetAnim");
+        _state.Bind(&Animator::Play, "Play");
+        _state.Bind<Animator, SceneObject*>(&Animator::GetObject, "GetObject");
         
         _state.Bind<Skeleton, void, const std::string&>(&Skeleton::SetData, "SetData");
         _state.Bind<Skeleton, SceneObject*>(&Skeleton::GetObject, "GetObject");
 		
 		_state.Bind<MeshCollider, void, const std::string&>(&MeshCollider::SetMesh, "SetMesh");
         
-        _state.Bind<RigidBody, void, const Au::Math::Vec3f&>(&RigidBody::SetLinearVelocity, "SetLinearVelocity");
+        _state.Bind<RigidBody, void, const gfxm::vec3&>(&RigidBody::SetLinearVelocity, "SetLinearVelocity");
         _state.Bind(&RigidBody::SetLinearFactor, "SetLinearFactor");
         _state.Bind(&RigidBody::SetAngularFactor, "SetAngularFactor");
         _state.Bind(&RigidBody::LookAt, "LookAt");

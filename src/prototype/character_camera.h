@@ -26,19 +26,19 @@ public:
         while(eMouseMove* e = disp_onMouseMove.poll())
             MouseMove(e->dx, e->dy);
         
-        Au::Math::Vec3f tgt = target->Position();
+        gfxm::vec3 tgt = target->Position();
         tgt.y += 1.5f;
         tgt = (tgt - transform->Position()) * (dt * 7.0f);
         transform->Translate(tgt);
         
         Collision::RayHit hit;
-        if(GetObject()->Root()->GetComponent<Collision>()->RayTest(Au::Math::Ray(transform->Position(), transform->Back() * 1.5f), hit))
+        if(GetObject()->Root()->GetComponent<Collision>()->RayTest(gfxm::ray(transform->Position(), transform->Back() * 1.2f), hit))
         {
             cam->GetComponent<Transform>()->Position(0.0f, 0.0f, (hit.position - transform->Position()).length() - 0.1f);
         }
         else
         {
-            cam->GetComponent<Transform>()->Position(0.0f, 0.0f, 1.5f);
+            cam->GetComponent<Transform>()->Position(0.0f, 0.0f, 1.2f);
         }
     }
     
@@ -49,7 +49,7 @@ public:
         
         cam = GetObject()->CreateObject()->GetComponent<Camera>();
         cam->Perspective(1.4f, 16.0f/9.0f, 0.01f, 1000.0f);
-        cam->GetComponent<Transform>()->Translate(0.0, 0.0, 1.5);
+        cam->GetComponent<Transform>()->Translate(0.0, 0.0, 1.2f);
         cam->GetComponent<Transform>()->AttachTo(transform);
         
         cam->GetComponent<SoundListener>();

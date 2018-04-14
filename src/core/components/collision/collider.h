@@ -13,7 +13,7 @@ friend Collision;
 public:
     Collider()
     {
-        offset = Au::Math::Vec3f(0.0f, 0.0f, 0.0f);
+        offset = gfxm::vec3(0.0f, 0.0f, 0.0f);
     }
     
 	virtual ~Collider()
@@ -23,15 +23,15 @@ public:
     
     void SetOffset(float x, float y, float z) 
     { 
-        offset = Au::Math::Vec3f(x, y, z);
+        offset = gfxm::vec3(x, y, z);
         UpdateTransform();
     }
-    Au::Math::Vec3f GetOffset() { return offset; }
+    gfxm::vec3 GetOffset() { return offset; }
     
     void UpdateTransform()
     {
-        Au::Math::Mat4f mat4f = transform->GetTransform();
-        mat4f = Au::Math::Translate(mat4f, offset);
+        gfxm::mat4 mat4f = transform->GetTransform();
+        mat4f = gfxm::translate(mat4f, offset);
 		btTransform trans;
         trans.setFromOpenGLMatrix((btScalar*)&mat4f);
 		collisionObject->setWorldTransform(trans);
@@ -56,7 +56,7 @@ protected:
     Transform* transform;
 	Collision* collision;
     
-    Au::Math::Vec3f offset;
+    gfxm::vec3 offset;
 };
 
 class ConvexCollider : public Collider

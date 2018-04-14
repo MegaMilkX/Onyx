@@ -11,7 +11,7 @@
 #include <model.h>
 #include <light_omni.h>
 #include <luascript.h>
-#include <animation.h>
+#include <animator.h>
 #include <skeleton.h>
 #include <dynamics/rigid_body.h>
 #include <collision/collider.h>
@@ -23,12 +23,12 @@
 #include <gui/gui_window.h>
 #include <gui/gui_layout.h>
 
-#include <anim_state.h>
+#include <motion_script.h>
 
 
 #include "fps_display.h"
 #include "test_cube.h"
-#include "actor.h"
+#include "character.h"
 #include "character_controller.h"
 #include "character_camera.h"
 
@@ -50,7 +50,8 @@ public:
         renderer->AmbientColor(0.1f, 0.1f, 0.1f);
         renderer->RimColor(0.4f, 0.4f, 0.8f);
         
-        character = scene.CreateObject()->GetComponent<Actor>();
+        character = scene.CreateObject()->GetComponent<Character>();
+
         SceneObject* pelvis = character->GetObject()->FindObject("Pelvis");
         if(pelvis)
         {
@@ -76,7 +77,7 @@ public:
         file << std::setw(4) << scene.Serialize();
         file.close();
         
-        animation = scene.GetComponent<Animation>();
+        animation = scene.GetComponent<Animator>();
         collision = scene.GetComponent<Collision>();
         soundRoot = scene.GetComponent<SoundRoot>();
         
@@ -111,11 +112,6 @@ public:
         testCube = scene.CreateObject()->Get<TestCube>();
         testCube->Get<Transform>()->Translate(1.0f, 1.0f, 0.0f);
         testCube->Object()->Name("cube");
-
-        Au::Math::Vec3f velo;
-        AnimState* animState = scene.Get<AnimState>();
-        animState->Set("velocity", velo);
-        animState->Update();
     }
     virtual void OnCleanup() 
     {
@@ -149,8 +145,10 @@ public:
         {
             script->Relay("KeyDown", (int)e->key);
 
-            if(e->key == Au::Input::KEY_Q)
+            if(e->key == Au::Input::KEY_Q){
                 character->GetComponent<Transform>()->Position(0.0f, 0.25f, 0.0f);
+                character->Get<Transform>()->Rotation(0.0f, 0.0f, 0.0f, 1.0f);
+            }
             if(e->key == Au::Input::KEY_E)
                 character->GetComponent<Transform>()->Position(0.0f, 2.25f, -15.0f);
             if(e->key == Au::Input::KEY_R)
@@ -165,7 +163,7 @@ public:
             script->Relay("MouseMove", e->dx, e->dy);
         }
         SceneObject* o = scene.Get<Collision>()->RayTest(
-            Au::Math::Ray(
+            gfxm::ray(
                 camera->Get<Transform>()->WorldPosition() + camera->Get<Transform>()->Forward() * 0.3f,
                 camera->Get<Transform>()->Forward() * 0.7f
             )
@@ -173,7 +171,7 @@ public:
         if(o)
         {
             title->SetText(o->Name());
-            Au::Math::Vec2f p = renderer->CurrentCamera()->WorldToScreen(o->Get<Transform>()->WorldPosition());
+            gfxm::vec2 p = renderer->CurrentCamera()->WorldToScreen(o->Get<Transform>()->WorldPosition());
             title->Get<Transform>()->Position(
                 (p.x * 0.5f + 0.5f) * 1920, 
                 (1080 - (p.y * 0.5f + 0.5f) * 1080), 
@@ -196,7 +194,6 @@ public:
 
         scene.Get<GuiRoot>()->Update();
 
-        animation->Update(DeltaTime());
         collision->Update(DeltaTime());
         
         //scene.GetComponent<Dynamics>()->Step(DeltaTime());
@@ -206,6 +203,8 @@ public:
         camera->Update(DeltaTime());
         charController->Update();
         
+        character->Update(DeltaTime());
+
         soundRoot->Update();
         //scene.FindObject("MIKU")->GetComponent<Transform>()->Track(character->GetComponent<Transform>()->WorldPosition());
         
@@ -224,13 +223,13 @@ private:
     SceneObject scene;
     Renderer* renderer;
     LuaScript* script;
-    Animation* animation;
+    Animator* animation;
     Collision* collision;
     SoundRoot* soundRoot;
 
     Quad* quad;
     
-    Actor* character;
+    Character* character;
     CharacterCamera* camera;
     CharacterController* charController;
     

@@ -10,9 +10,9 @@ int main()
     asset<ScriptData>::add_reader<ScriptReaderLUA>("lua");
     asset<Material>::add_search_path("data\\material");
     asset<Material>::add_reader<MaterialReaderJSON>("json");
-    asset<AnimData>::add_search_path("data\\anim");
-    asset<AnimData>::add_search_path("data\\model");
-    asset<AnimData>::add_reader<AnimDataReaderFBX>("fbx");
+    asset<Animation>::add_search_path("data\\anim");
+    asset<Animation>::add_search_path("data\\model");
+    asset<Animation>::add_reader<AnimationReaderFBX>("fbx");
     asset<SkeletonData>::add_search_path("data\\model");
     asset<SkeletonData>::add_reader<SkeletonDataReaderFBX>("fbx");
     asset<Texture2D>::add_search_path("data\\texture");
@@ -31,7 +31,7 @@ int main()
     REG_COMP(LuaScript);
     REG_COMP(LightOmni);
     REG_COMP(Camera);
-    REG_COMP(Animation);
+    REG_COMP(Animator);
     REG_COMP(SoundEmitter);
 
     GameState::Init();

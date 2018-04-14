@@ -10,7 +10,7 @@
 #include <xaudio2.h>
 #pragma comment(lib, "xaudio2.lib")
 
-#include "gfxm.h"
+#include <util/gfxm.h>
 
 inline size_t FixIndexOverflow(size_t index, size_t size)
 {

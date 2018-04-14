@@ -7,8 +7,8 @@
 
 #undef GetObject
 
-typedef Au::Math::Vec3f vec3;
-typedef Au::Math::Mat4f mat4;
+typedef gfxm::vec3 vec3;
+typedef gfxm::mat4 mat4;
 
 class KinematicObject : public SceneObject::Component
 {
@@ -55,7 +55,7 @@ public:
             }
         }
         
-        //backNormal = Au::Math::Normalize(backNormal);
+        //backNormal = gfxm::normalize(backNormal);
         //backNormal = backNormal * actor->Velocity().length() * dt;
         //backNormal.y = 0.0f;
         trans->Translate(backNormal);

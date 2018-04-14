@@ -1,16 +1,16 @@
 #ifndef GUI_ELEMENT_H
 #define GUI_ELEMENT_H
 
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include <scene_object.h>
 
 class GuiElement : public SceneObject::Component
 {
 public:
-    Au::Math::Vec2f dimensions;
-    Au::Math::Vec2f center;
-    Au::Math::Vec4f margin;
-    Au::Math::Vec4f padding;
+    gfxm::vec2 dimensions;
+    gfxm::vec2 center;
+    gfxm::vec4 margin;
+    gfxm::vec4 padding;
     int layer;
 };
 

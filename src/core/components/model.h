@@ -270,9 +270,9 @@ protected:
         renderState->AttribFormat(Au::Position() << Au::ColorRGB());
         renderState->SetShader(shaderVertex);
         renderState->SetShader(shaderPixel);
-        renderState->AddUniform<Au::Math::Mat4f>("MatrixModel");
-        renderState->AddUniform<Au::Math::Mat4f>("MatrixView");
-        renderState->AddUniform<Au::Math::Mat4f>("MatrixProjection");
+        renderState->AddUniform<gfxm::mat4>("MatrixModel");
+        renderState->AddUniform<gfxm::mat4>("MatrixView");
+        renderState->AddUniform<gfxm::mat4>("MatrixProjection");
         //renderState->DepthTest(false);
         
         return renderState;

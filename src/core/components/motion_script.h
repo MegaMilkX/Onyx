@@ -3,19 +3,19 @@
 
 #include <string>
 #include <aurora/lua.h>
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include <scene_object.h>
-#include <animation.h>
+#include <animator.h>
 
 inline void PrintTest(const std::string& v)
 {
     std::cout << v << std::endl;
 }
 
-class AnimState : public SceneObject::Component
+class MotionScript : public SceneObject::Component
 {
 public:
-    AnimState()
+    MotionScript()
     {
         lua.Init();
 
@@ -23,23 +23,33 @@ public:
         lua.Bind(&Transform::Forward, "Front");
         lua.Bind(&Transform::Up, "Up");
         lua.Bind<Transform, void, float, float, float>(&Transform::Translate, "Translate");
-        lua.Bind<Transform, Au::Math::Vec3f>(&Transform::Position, "GetPosition");
+        lua.Bind<Transform, gfxm::vec3>(&Transform::Position, "GetPosition");
         lua.Bind<Transform, void, float, float, float>(&Transform::Position, "SetPosition");
         lua.Bind(&Transform::LookDir, "LookDir");
 
-        lua.Bind(&Au::Math::Vec3f::x, "x");
-        lua.Bind(&Au::Math::Vec3f::y, "y");
-        lua.Bind(&Au::Math::Vec3f::z, "z");
+        lua.Bind(&Animator::BlendOverTime, "Blend");
+        lua.Bind(&Animator::ApplyBlend, "ApplyBlend");
+        lua.Bind(&Animator::ApplyAdd, "ApplyAdd");
+        lua.Bind(&Animator::GetAnimCursor, "GetCursor");
+        lua.Bind(&Animator::Stopped, "Stopped");
+
+        lua.Bind(&AnimTrack::Cursor::Advance, "Advance");
+        lua.Bind(&AnimTrack::Cursor::SetFrame, "SetFrame");
+
+        lua.Bind(&gfxm::vec3::x, "x");
+        lua.Bind(&gfxm::vec3::y, "y");
+        lua.Bind(&gfxm::vec3::z, "z");
 
         lua.Bind(&PrintTest, "Print");
-        lua.Bind(&AnimState::Blend, "Blend");
-        lua.Bind(&AnimState::Switch, "Switch");
+        lua.Bind(&MotionScript::Blend, "Blend");
+        lua.Bind(&MotionScript::Switch, "Switch");
         lua.SetGlobal("State", this);        
         
     }
 
     void OnCreate()
     {
+        lua.SetGlobal("Animator", Get<Animator>());
         lua.SetGlobal("Transform", Get<Transform>());
     }
 
@@ -49,13 +59,12 @@ public:
     }
     void Blend(const std::string& anim, float blendSpeed = 0.0f)
     {
-        Get<Animation>()->BlendOverTime(anim, blendSpeed);
+        Get<Animator>()->BlendOverTime(anim, blendSpeed);
     }
     void Switch(const std::string& state)
     {
         currentState = state;
         lua.CallMember(currentState, "Start");
-        std::cout << state << std::endl;
     }
     template<typename T>
     void Set(const std::string& name, const T& data)
@@ -65,7 +74,10 @@ public:
 
     void Update()
     {
+        Get<Animator>()->Tick(GameState::DeltaTime());
         lua.CallMember(currentState, "Update");
+        
+        Get<Animator>()->Finalize();
     }
 private:
     std::string currentState;

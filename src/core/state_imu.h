@@ -163,12 +163,12 @@ public:
             
             
             
-            Au::Math::Vec3f angle = Au::Math::Vec3f(1.0f, 0.0f, 0.0f);
-            Au::Math::Quat qx = Au::Math::AngleAxis(gyro.x, angle);
-            angle = qx * Au::Math::Vec4f(0.0f, 1.0f, 0.0f, 0.0f);
-            Au::Math::Quat qy = Au::Math::AngleAxis(gyro.y, angle);
-            angle = qy * qx * Au::Math::Vec4f(0.0f, 0.0f, 1.0f, 0.0f);
-            Au::Math::Quat qz = Au::Math::AngleAxis(gyro.z, angle);
+            gfxm::vec3 angle = gfxm::vec3(1.0f, 0.0f, 0.0f);
+            gfxm::quat qx = gfxm::angle_axis(gyro.x, angle);
+            angle = qx * gfxm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+            gfxm::quat qy = gfxm::angle_axis(gyro.y, angle);
+            angle = qy * qx * gfxm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+            gfxm::quat qz = gfxm::angle_axis(gyro.z, angle);
             quat_gyro = qz * qy * qx;
             
             quat.x = q1;
@@ -190,73 +190,73 @@ public:
         }
     }
     
-    Au::Math::Vec3f GetGyro()
+    gfxm::vec3 GetGyro()
     {
         sync_quat.lock();
-        Au::Math::Vec3f g = gyro;
+        gfxm::vec3 g = gyro;
         sync_quat.unlock();
         return g;
     }
     
-    Au::Math::Vec3f GetAccel()
+    gfxm::vec3 GetAccel()
     {
         sync_quat.lock();
-        Au::Math::Vec3f a = accel;
+        gfxm::vec3 a = accel;
         sync_quat.unlock();
         return a;
     }
     
-    Au::Math::Vec3f GetMagnet()
+    gfxm::vec3 GetMagnet()
     {
         sync_quat.lock();
-        Au::Math::Vec3f m = magnet;
+        gfxm::vec3 m = magnet;
         sync_quat.unlock();
         return m;
     }
     
-    Au::Math::Quat GetQuat()
+    gfxm::quat GetQuat()
     {
         sync_quat.lock();
-        Au::Math::Quat q = quat;
+        gfxm::quat q = quat;
         sync_quat.unlock();
         return q;
     }
     
-    Au::Math::Quat GetQuatAM()
+    gfxm::quat GetQuatAM()
     {
         sync_quat.lock();
-        Au::Math::Quat q = quat_am;
+        gfxm::quat q = quat_am;
         sync_quat.unlock();
         return q;
     }
     
-    Au::Math::Quat GetQuatGyro()
+    gfxm::quat GetQuatGyro()
     {
         sync_quat.lock();
-        Au::Math::Quat q = quat_gyro;
+        gfxm::quat q = quat_gyro;
         sync_quat.unlock();
         return q;
     }
     
 private:
-    Au::Math::Quat _AccelMagnetFuse(Au::Math::Vec3f& accel, Au::Math::Vec3f& magnet)
+    gfxm::quat _AccelMagnetFuse(gfxm::vec3& accel, gfxm::vec3& magnet)
     {
-        Au::Math::Quat q;
+        gfxm::quat q;
         
-        Au::Math::Vec3f a = Au::Math::Normalize(Au::Math::Vec3f(accel.x, accel.z, -accel.y));
-        Au::Math::Vec3f m = Au::Math::Normalize(Au::Math::Vec3f(-magnet.x, magnet.z, magnet.y));
+        gfxm::vec3 a = gfxm::normalize(gfxm::vec3(accel.x, accel.z, -accel.y));
+        gfxm::vec3 m = gfxm::normalize(gfxm::vec3(-magnet.x, magnet.z, magnet.y));
         
-        Au::Math::Vec3f ew = Au::Math::Cross(a, -m);
-        Au::Math::Vec3f ns = Au::Math::Cross(ew, a);
+        gfxm::vec3 ew = gfxm::cross(a, -m);
+        gfxm::vec3 ns = gfxm::cross(ew, a);
         
-        Au::Math::Mat3f mat;
-        mat[0] = Au::Math::Normalize(ew);
-        mat[1] = Au::Math::Normalize(a);
-        mat[2] = Au::Math::Normalize(ns);
+        gfxm::mat3 mat;
+        mat[0] = gfxm::normalize(ew);
+        mat[1] = gfxm::normalize(a);
+        mat[2] = gfxm::normalize(ns);
         
-        //Au::Math::Quat orientation = Au::Math::AngleAxis(3.14f, Au::Math::Vec3f(0.0f, 1.0f, 0.0f));
+        //gfxm::quat orientation = gfxm::angle_axis(3.14f, gfxm::vec3(0.0f, 1.0f, 0.0f));
         
-        q = Au::Math::ToQuat(mat);// * orientation;
+        q = gfxm::to_quat(mat);// * orientation;
         
         return q;
     }
@@ -264,21 +264,21 @@ private:
     HANDLE hThread;
     serial::Serial* port;
     
-    Au::Math::Vec3f magnet_max;
-    Au::Math::Vec3f magnet_max_prev;
-    Au::Math::Vec3f magnet_min;
-    Au::Math::Vec3f magnet_min_prev;
-    Au::Math::Vec3f magnet_mid;
+    gfxm::vec3 magnet_max;
+    gfxm::vec3 magnet_max_prev;
+    gfxm::vec3 magnet_min;
+    gfxm::vec3 magnet_min_prev;
+    gfxm::vec3 magnet_mid;
     
-    Au::Math::Vec3f gyro;
+    gfxm::vec3 gyro;
     std::mutex sync_gyro;
     
     std::mutex sync_quat;
-    Au::Math::Quat quat;
-    Au::Math::Quat quat_am;
-    Au::Math::Quat quat_gyro;
-    Au::Math::Vec3f accel;
-    Au::Math::Vec3f magnet;
+    gfxm::quat quat;
+    gfxm::quat quat_am;
+    gfxm::quat quat_gyro;
+    gfxm::vec3 accel;
+    gfxm::vec3 magnet;
 };
 
 inline DWORD WINAPI ReadThread(LPVOID lpParam)
@@ -323,9 +323,9 @@ public:
         magnet->Translate(4.5, 0.0, 0.0);
     }
     
-    Au::Math::Vec3f AccelMagnetToAngle(Au::Math::Vec3f& accel, Au::Math::Vec3f& magnet)
+    gfxm::vec3 AccelMagnetToAngle(gfxm::vec3& accel, gfxm::vec3& magnet)
     {
-        Au::Math::Vec3f angles;
+        gfxm::vec3 angles;
         
         float pitch = asin(-accel.y / accel.length());
         float roll = asin(accel.x / accel.length());
@@ -333,80 +333,80 @@ public:
         float x = magnet.x * sin(pitch) * sin(roll) + magnet.y * cos(pitch) + magnet.z * sin(pitch) * cos(roll);
         float azimuth = atan2(y, x);
         
-        angles = Au::Math::Vec3f(azimuth, pitch, roll);
+        angles = gfxm::vec3(azimuth, pitch, roll);
         
         return angles;
     }
     
-    Au::Math::Quat AccelToQuat(Au::Math::Vec3f& accel, Au::Math::Vec3f& back)
+    gfxm::quat AccelToQuat(gfxm::vec3& accel, gfxm::vec3& back)
     {
-        Au::Math::Vec3f a;
+        gfxm::vec3 a;
         a.x = -accel.x;
         a.y = accel.z;
         a.z = accel.y;
         
-        Au::Math::Quat q;
+        gfxm::quat q;
         
-        Au::Math::Vec3f right = Au::Math::Cross(a, back);
-        Au::Math::Vec3f ns = Au::Math::Cross(right, a);
+        gfxm::vec3 right = gfxm::cross(a, back);
+        gfxm::vec3 ns = gfxm::cross(right, a);
         
-        Au::Math::Mat3f mat;
-        mat[0] = Au::Math::Normalize(right);
-        mat[1] = Au::Math::Normalize(a);
-        mat[2] = Au::Math::Normalize(ns);
+        gfxm::mat3 mat;
+        mat[0] = gfxm::normalize(right);
+        mat[1] = gfxm::normalize(a);
+        mat[2] = gfxm::normalize(ns);
         
-        //Au::Math::Quat orientation = Au::Math::AngleAxis(3.14f, Au::Math::Vec3f(0.0f, 1.0f, 0.0f));
+        //gfxm::quat orientation = gfxm::angle_axis(3.14f, gfxm::vec3(0.0f, 1.0f, 0.0f));
         
-        q = Au::Math::ToQuat(mat);// * orientation;
+        q = gfxm::to_quat(mat);// * orientation;
         
         return q;
     }
     
     virtual void OnUpdate()
     {
-        Au::Math::Vec3f g = imu.GetGyro();
+        gfxm::vec3 g = imu.GetGyro();
         g.x = (int)(g.x * 10) * 0.1f;
         g.y = (int)(g.y * 10) * 0.1f;
         g.z = (int)(g.z * 10) * 0.1f;
         std::cout << g.x << " " << g.y << " " << g.z << std::endl;
         g = g * DeltaTime();
             
-        Au::Math::Quat qx = Au::Math::AngleAxis(g.x, object->Left());
+        gfxm::quat qx = gfxm::angle_axis(g.x, object->Left());
         object->Rotate(qx);
         
-        Au::Math::Quat qy = Au::Math::AngleAxis(g.y, object->Back());
+        gfxm::quat qy = gfxm::angle_axis(g.y, object->Back());
         object->Rotate(qy);
         
-        Au::Math::Quat qz = Au::Math::AngleAxis(g.z, object->Up());
+        gfxm::quat qz = gfxm::angle_axis(g.z, object->Up());
         object->Rotate(qz);
         
-        Au::Math::Vec3f projected_gravity(0.0f, 1.0f, 0.0f);
-        projected_gravity = Au::Math::Inverse(object->GetTransform()) * Au::Math::Vec4f(0.0f, 1.0f, 0.0f, 0.0f);
-        Au::Math::Vec3f actual_gravity = imu.GetAccel();
-        actual_gravity = Au::Math::Vec3f(-actual_gravity.x, actual_gravity.z, actual_gravity.y);
-        Au::Math::Vec3f mag = imu.GetMagnet();
-        mag = Au::Math::Normalize(mag);
-        projected_gravity = Au::Math::Normalize(projected_gravity);
-        actual_gravity = Au::Math::Normalize(actual_gravity);
+        gfxm::vec3 projected_gravity(0.0f, 1.0f, 0.0f);
+        projected_gravity = gfxm::inverse(object->GetTransform()) * gfxm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+        gfxm::vec3 actual_gravity = imu.GetAccel();
+        actual_gravity = gfxm::vec3(-actual_gravity.x, actual_gravity.z, actual_gravity.y);
+        gfxm::vec3 mag = imu.GetMagnet();
+        mag = gfxm::normalize(mag);
+        projected_gravity = gfxm::normalize(projected_gravity);
+        actual_gravity = gfxm::normalize(actual_gravity);
         
-        Au::Math::Vec3f rotationAxis = Au::Math::Cross(actual_gravity, projected_gravity);
-        float dot = Au::Math::Dot(projected_gravity, actual_gravity);
+        gfxm::vec3 rotationAxis = gfxm::cross(actual_gravity, projected_gravity);
+        float dot = gfxm::dot(projected_gravity, actual_gravity);
 
         float angle = (float)acos(fmax(-1.0f, fmin(dot, 1.0f)));
-        Au::Math::Quat grav_correction = Au::Math::AngleAxis(angle, rotationAxis);
+        gfxm::quat grav_correction = gfxm::angle_axis(angle, rotationAxis);
         
         //object->Rotation(imu.GetQuatAM());
         
         //object->Translate(velo * DeltaTime());
         
         //if(dot < .9f) object->Rotate(angle * DeltaTime(), rotationAxis);
-        //object->LookAt(object->Position() + Au::Math::Vec3f(0.0f, 0.0f, 1.0f), object->Back(), object->Up(), DeltaTime());
+        //object->LookAt(object->Position() + gfxm::vec3(0.0f, 0.0f, 1.0f), object->Back(), object->Up(), DeltaTime());
 
         accel->LookAt(accel->Position() + actual_gravity, accel->Up());
         magnet->LookAt(magnet->Position() + mag, magnet->Up());
         
         //object->LookAt(object->Position() + actual_gravity, object->Up(), object->Back(), 5.0f * DeltaTime());
-        //object->LookAt(object->Position() + Au::Math::Vec3f(0.0f, 0.0f, -1.0f), object->Forward(), object->Up(), DeltaTime());
+        //object->LookAt(object->Position() + gfxm::vec3(0.0f, 0.0f, -1.0f), object->Forward(), object->Up(), DeltaTime());
         
         //object->Rotation(imu.GetQuat());
     }
@@ -416,7 +416,7 @@ public:
         if(key == Au::Input::KEY_Q)
         {
             object->Position(0.0f, 0.0f, 0.0f);
-            velo = Au::Math::Vec3f(0.0f, 0.0f, 0.0f);
+            velo = gfxm::vec3(0.0f, 0.0f, 0.0f);
         }
     }
     
@@ -429,7 +429,7 @@ private:
     Renderer* renderer;
     Camera* camera;
     Transform* object;
-    Au::Math::Vec3f velo;
+    gfxm::vec3 velo;
     Transform* accel;
     Transform* magnet;
     

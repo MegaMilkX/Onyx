@@ -5,66 +5,64 @@
 #include <collision/collider.h>
 #include <collision/kinematic_object.h>
 #include <skin_mesh.h>
-#include <animation.h>
-#include <anim_state.h>
+#include <animator.h>
+#include <motion_script.h>
 #include <skeleton.h>
 
-class Actor : public KinematicObject
+struct ActorState
 {
-public:	
-	void Velocity(const Au::Math::Vec3f& v)
+	typedef std::function<bool(void)> fun_condition_t;
+	typedef std::function<void(void)> fun_start_t;
+	typedef std::function<void(void)> fun_update_t;
+
+	ActorState()
+	: condition(_con_stub), start(_start_stub), update(_update_stub)
+	{}
+	ActorState(
+		const fun_condition_t& con, 
+		const fun_start_t& start, 
+		const fun_update_t& update,
+		const std::vector<std::string>& connected)
+	: condition(con), start(start), update(update), connected_states(connected) 
+	{}
+	fun_condition_t condition;
+	fun_start_t start;
+	fun_update_t update;
+	std::vector<std::string> connected_states;
+private:
+	static bool _con_stub() { return false; }
+	static void _start_stub() {}
+	static void _update_stub() {}
+};
+
+class Actor : public SceneObject::Component
+{
+public:
+	void AddState(const std::string& name, const ActorState& state)
 	{
-		if(v.length() > FLT_EPSILON)
-		{
-			velocity = v;
-			animState->Set("velocity", 10.0);
-		}
-		else if(v.length() <= FLT_EPSILON)
-		{
-			velocity = Au::Math::Vec3f(0.0f, 0.0f, 0.0f);
-			animState->Set("velocity", 0.0);
-		}
+		states[name] = state;
 	}
-	
-	Au::Math::Vec3f Velocity()
+
+	void SwitchState(const std::string& name)
 	{
-		return velocity;
+		currentState = states[name];
+		currentState.start();
 	}
 
 	void Update(float dt)
 	{
-		animState->Set("dt", dt);
-		animState->Set("direction", velocity);
-		_checkForGround();
-		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), Au::Math::Vec3f(0.0f, 1.0f, 0.0f), 10.0f * dt);
-		animState->Update();
+		for(auto& s : currentState.connected_states)
+		{
+			if(states[s].condition())
+				SwitchState(s);
+		}
+		currentState.update();	
 	}
 	
 	virtual void OnCreate();
 private:
-	void _checkForGround()
-	{
-		Transform* trans = GetComponent<Transform>();
-		
-		Au::Math::Vec3f pos = trans->Position() + Au::Math::Vec3f(0.0f, 1.0f, 0.0f);
-		Collision::RayHit hit;
-		if(collision->RayTest(Au::Math::Ray(pos, Au::Math::Vec3f(0.0f, -1.1f, 0.0f)), hit))
-		{
-			groundHit = hit.position;
-			grounded = true;
-		}
-		else
-		{
-			grounded = false;
-		}
-		animState->Set("grounded", grounded);
-		animState->Set("groundHit", groundHit);
-	}
-
-	AnimState* animState;
-	Au::Math::Vec3f velocity;
-	Au::Math::Vec3f groundHit;
-	bool grounded;
+	ActorState currentState;
+	std::map<std::string, ActorState> states;
 };
 
 #endif

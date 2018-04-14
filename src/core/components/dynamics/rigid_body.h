@@ -1,7 +1,7 @@
 #ifndef COM_RIGID_BODY_H
 #define COM_RIGID_BODY_H
 
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include "../../scene_object.h"
 
 #include "dynamics.h"
@@ -15,7 +15,7 @@ public:
     RigidBody(){}
     ~RigidBody(){}
     
-    void SetLinearVelocity(const Au::Math::Vec3f& velo)
+    void SetLinearVelocity(const gfxm::vec3& velo)
     {
         SetLinearVelocity(velo.x, velo.y, velo.z);
     }
@@ -26,17 +26,17 @@ public:
         rigidBody->setLinearVelocity(btVector3(x, y, z));
     }
     
-    void SetAngularFactor(const Au::Math::Vec3f& vec)
+    void SetAngularFactor(const gfxm::vec3& vec)
     {
         rigidBody->setAngularFactor(btVector3(vec.x, vec.y, vec.z));
     }
     
-    void SetLinearFactor(const Au::Math::Vec3f& vec)
+    void SetLinearFactor(const gfxm::vec3& vec)
     {
         rigidBody->setLinearFactor(btVector3(vec.x, vec.y, vec.z));
     }
     
-    void LookAt(const Au::Math::Vec3f& target, const Au::Math::Vec3f& up)
+    void LookAt(const gfxm::vec3& target, const gfxm::vec3& up)
     {        
         Transform* trans = GetObject()->GetComponent<Transform>();
         trans->LookAt(target, up);
@@ -56,7 +56,7 @@ public:
         rigidBody->getMotionState()->getWorldTransform(trans);
         Transform* t = GetObject()->GetComponent<Transform>();
         
-        Au::Math::Mat4f mat4f(1.0f);
+        gfxm::mat4 mat4f(1.0f);
         trans.getOpenGLMatrix((btScalar*)&mat4f);
         
         t->SetTransform(mat4f);
@@ -66,7 +66,7 @@ public:
     {
         dynamics = GetObject()->Root()->GetComponent<Dynamics>();
         
-        Au::Math::Mat4f mat4f(1.0f);
+        gfxm::mat4 mat4f(1.0f);
         btTransform trans;
         trans.setFromOpenGLMatrix((btScalar*)&mat4f);
         

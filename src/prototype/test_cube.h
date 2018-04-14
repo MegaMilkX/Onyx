@@ -14,7 +14,7 @@ public:
         if(trig->IsTriggered())
         {
             trig->Reset();
-            Get<Transform>()->Rotate(0.5f, Au::Math::Vec3f(0.0f, 1.0f, 0.0f));
+            Get<Transform>()->Rotate(0.5f, gfxm::vec3(0.0f, 1.0f, 0.0f));
         }
     }
 

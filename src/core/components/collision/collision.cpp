@@ -3,7 +3,7 @@
 #include "collider.h"
 #include "kinematic_object.h"
 /*
-Au::Math::Vec3f Collision::SweepTest(ConvexGhostCollider* collider, Au::Math::Mat4f& from, Au::Math::Mat4f& to)
+gfxm::vec3 Collision::SweepTest(ConvexGhostCollider* collider, gfxm::mat4& from, gfxm::mat4& to)
 {
     btConvexShape* shape = collider->convexShape;
     btTransform f;
@@ -19,10 +19,10 @@ Au::Math::Vec3f Collision::SweepTest(ConvexGhostCollider* collider, Au::Math::Ma
     
     if(callback.hasHit())
     {
-        return Au::Math::Vec3f(callback.m_hitNormalWorld.x(), callback.m_hitNormalWorld.y(), callback.m_hitNormalWorld.z());
+        return gfxm::vec3(callback.m_hitNormalWorld.x(), callback.m_hitNormalWorld.y(), callback.m_hitNormalWorld.z());
     }
     
-    return Au::Math::Vec3f();
+    return gfxm::vec3();
 }
 */
 void Collision::AddCollider(Collider* col)

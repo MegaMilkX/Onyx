@@ -15,7 +15,7 @@ public:
     GuiListenerBase()
     : bbox(0, 0, 100, 100), 
     mouseOver(false) {}
-    Au::Math::Vec4i bbox;
+    gfxm::ivec4 bbox;
     bool mouseOver;
     Transform* transform;
     GuiLayout* layout;
@@ -30,8 +30,8 @@ public:
     void ProcMouseMove(const eMouseMove* e)
     {
         OnMouseMove(e);
-        Au::Math::Vec3f pos = transform->WorldPosition();
-        Au::Math::Vec4i b = layout->bbox;
+        gfxm::vec3 pos = transform->WorldPosition();
+        gfxm::ivec4 b = layout->bbox;
         if(e->x > b.x && 
             e->x < b.z &&
             e->y > b.y &&

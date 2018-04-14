@@ -214,8 +214,8 @@ public:
             std::vector<float> normals;
             std::vector<float> uv;
             std::vector<unsigned short> indices;
-            std::vector<Au::Math::Vec4f> boneIndices;
-            std::vector<Au::Math::Vec4f> boneWeights;
+            std::vector<gfxm::vec4> boneIndices;
+            std::vector<gfxm::vec4> boneWeights;
             unsigned int indexOffset = 0;
             for(int i = 0; i < meshCount; ++i)
             {
@@ -242,11 +242,11 @@ public:
                 meshData->subDataArray.push_back(subData);
                 
                 Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
-                std::vector<Au::Math::Vec4f> tmpBoneIndices;
-                std::vector<Au::Math::Vec4f> tmpBoneWeights;
+                std::vector<gfxm::vec4> tmpBoneIndices;
+                std::vector<gfxm::vec4> tmpBoneWeights;
                 std::vector<int> boneDataCount;
-                tmpBoneIndices.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
-                tmpBoneWeights.resize(vertexCount, Au::Math::Vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+                tmpBoneIndices.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                tmpBoneWeights.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                 boneDataCount.resize(vertexCount, 0);
                 for(unsigned j = 0; j < skin.BoneCount(); ++j)
                 {
@@ -274,7 +274,7 @@ public:
                 }
                 
                 //for(int j = 0; j < vertexCount; ++j)
-                //    Au::Math::Normalize(tmpBoneWeights[j]);
+                //    gfxm::normalize(tmpBoneWeights[j]);
                 
                 boneIndices.insert(boneIndices.end(), tmpBoneIndices.begin(), tmpBoneIndices.end());
                 boneWeights.insert(boneWeights.end(), tmpBoneWeights.begin(), tmpBoneWeights.end());

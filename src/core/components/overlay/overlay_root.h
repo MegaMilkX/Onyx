@@ -40,7 +40,7 @@ inline void fg_GuiDraw(const FrameCommon& frame, const GuiDrawData& in)
     in.program->Use();    
     glUniformMatrix4fv(
         in.program->GetUniform("MatrixProjection"), 1, GL_FALSE,
-        (float*)&Au::Math::Ortho(0, frame.width, frame.height, 0, -1.0f, 1.0f)
+        (float*)&gfxm::ortho(0.0f, frame.width, frame.height, 0.0f, -1.0f, 1.0f)
     );    
     glUniformMatrix4fv(
         in.program->GetUniform("MatrixView"), 1, GL_FALSE,
@@ -60,7 +60,7 @@ inline void fg_GuiDraw(const FrameCommon& frame, const GuiDrawData& in)
     in.program_text->Use();
     glUniformMatrix4fv(
         in.program_text->GetUniform("MatrixProjection"), 1, GL_FALSE,
-        (float*)&Au::Math::Ortho(0, frame.width, frame.height, 0, -1.0f, 1.0f)
+        (float*)&gfxm::ortho(0.0f, frame.width, frame.height, 0.0f, -1.0f, 1.0f)
     );
     glUniformMatrix4fv(
         in.program_text->GetUniform("MatrixView"), 1, GL_FALSE,

@@ -28,15 +28,15 @@ public:
     std::function<void(const GuiLayout*)> onChange;
 
     DOCKING docking;
-    Au::Math::Vec2i size;
-    Au::Math::Vec4i margin;
-    Au::Math::Vec4i padding;
-    Au::Math::Vec4i bbox;
+    gfxm::ivec2 size;
+    gfxm::ivec4 margin;
+    gfxm::ivec4 padding;
+    gfxm::ivec4 bbox;
 
-    Au::Math::Vec4i Rebuild(const Au::Math::Vec4i& box)
+    gfxm::ivec4 Rebuild(const gfxm::ivec4& box)
     {
-        Au::Math::Vec4i b = box;
-        Au::Math::Vec4i bCut;
+        gfxm::ivec4 b = box;
+        gfxm::ivec4 bCut;
         switch(docking)
         {
         case FILL:
@@ -62,7 +62,7 @@ public:
         }
         Get<Transform>()->Position((float)bbox.x, (float)bbox.y, 0.0f);
         
-        Au::Math::Vec4i b2 = bbox;
+        gfxm::ivec4 b2 = bbox;
         for(GuiLayout* l : children)
         {
             b2 = l->Rebuild(b2);

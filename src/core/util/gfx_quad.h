@@ -8,14 +8,14 @@ class GfxQuad
 {
 public:
     float width = 100, height = 100;
-    Au::Math::Vec4f color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    gfxm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
     asset<Texture2D> image;
 
     void Draw(
         int modelUniform, 
         int quadSizeUniform, 
         int colorUniform,
-        const Au::Math::Mat4f& model)
+        const gfxm::mat4& model)
     {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, image->GetGlName());

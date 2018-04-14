@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <aurora/gfx.h>
-#include <aurora/math.h>
+#include <util/gfxm.h>
 #include <aurora/transform.h>
 #include "../scene_object.h"
 
@@ -14,9 +14,9 @@
 
 struct FrameCommon
 {
-    Au::Math::Mat4f projection;
-    Au::Math::Mat4f view;
-    Au::Math::Vec3f viewPos;
+    gfxm::mat4 projection;
+    gfxm::mat4 view;
+    gfxm::vec3 viewPos;
     float width, height;
     SceneObject* scene;
 };
@@ -34,19 +34,19 @@ public:
     Au::GFX::Device* GetDevice() { return _gfxDevice; }
     
     void Render();
-    void Render(const Au::Math::Mat4f& projection,
-        const Au::Math::Mat4f& transform);
+    void Render(const gfxm::mat4& projection,
+        const gfxm::mat4& transform);
     
     void CurrentCamera(Camera* cam) { _currentCamera = cam; }
     Camera* CurrentCamera() { return _currentCamera; }
     
     void AmbientColor(float r, float g, float b)
     { 
-        ambientColor = Au::Math::Vec3f(r, g, b);
+        ambientColor = gfxm::vec3(r, g, b);
         glClearColor (r, g, b, 1.0f);        
     }
     void RimColor(float r, float g, float b)
-    { rimColor = Au::Math::Vec3f(r, g, b); }
+    { rimColor = gfxm::vec3(r, g, b); }
         
     virtual void OnCreate();
 private:
@@ -56,8 +56,8 @@ private:
     
     Camera* _currentCamera;
     
-    Au::Math::Vec3f ambientColor;
-    Au::Math::Vec3f rimColor;
+    gfxm::vec3 ambientColor;
+    gfxm::vec3 rimColor;
 };
 
 #endif
