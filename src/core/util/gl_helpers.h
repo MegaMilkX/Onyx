@@ -101,12 +101,12 @@ public:
         glEnableVertexAttribArray(bufId);
         glVertexAttribPointer(bufId, desc.size, desc.type, desc.normalized, desc.stride, 0);
     }
-    void FillIndexBuffer(const std::vector<unsigned short>& data)
+    void FillIndexBuffer(const std::vector<unsigned>& data)
     {
-        size_t szData = data.size() * sizeof(unsigned short);
+        size_t szData = data.size() * sizeof(unsigned);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, szData, (void*)data.data(), GL_STATIC_DRAW);
-        indexCount = szData / sizeof(unsigned short);
+        indexCount = szData / sizeof(unsigned);
     }
     void Bind() const 
     {
@@ -114,7 +114,7 @@ public:
     }
     void DrawElements(GLenum primitiveType) const
     {
-        glDrawElements(primitiveType, indexCount, GL_UNSIGNED_SHORT, (void*)0);
+        glDrawElements(primitiveType, indexCount, GL_UNSIGNED_INT, (void*)0);
     }
     
     GLuint GetGlName() { return vao; } const

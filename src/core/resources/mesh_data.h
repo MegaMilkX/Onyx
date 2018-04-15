@@ -9,6 +9,8 @@
 
 #include "../util/gl_helpers.h"
 
+#include <util/scoped_timer.h>
+
 struct GLAttribDesc
 {
     std::string name;
@@ -27,7 +29,7 @@ public:
         unsigned int offset;
     };
     std::vector<SubData> subDataArray;
-    
+    /*
     void FillMesh(Au::GFX::Mesh* mesh)
     {
         std::vector<Au::AttribInfo> fmt = mesh->Format();
@@ -53,7 +55,7 @@ public:
             );
         }
     }
-    
+    */
     template<typename ATTR, typename T>
     void SetAttribArray(const std::vector<T>& data)
     {
@@ -67,7 +69,7 @@ public:
             vaoDirty[i] = true;
     }
     
-    void SetIndices(const std::vector<unsigned short>& data)
+    void SetIndices(const std::vector<unsigned>& data)
     { 
         indices = data;
         for(unsigned i = 0; i < vaoDirty.size(); ++i)
@@ -106,7 +108,7 @@ public:
         return attribArrays[Au::Empty()];
     }
     
-    std::vector<unsigned short>& GetIndices()
+    std::vector<unsigned>& GetIndices()
     {
         return indices;
     }
@@ -159,7 +161,7 @@ public:
     std::vector<GLVertexArrayObject> vertexArrayObjects;
     std::vector<bool> vaoDirty;
     std::map<Au::AttribInfo, std::vector<unsigned char>> attribArrays;
-    std::vector<unsigned short> indices;
+    std::vector<unsigned> indices;
     
     bool _compareDesc(
         const std::vector<GLAttribDesc>& vertexDesc,
@@ -192,6 +194,8 @@ class MeshReaderFBX : public asset<MeshData>::reader
 public:
     bool operator()(const std::string& filename, MeshData* meshData)
     {
+        ScopedTimer timer("MeshReaderFBX '" + filename + "'");
+
         bool result = false;        
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())
@@ -208,12 +212,12 @@ public:
             fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
             
             fbxReader.DumpFile(filename);
-            
+
             int meshCount = fbxReader.MeshCount();
             std::vector<float> vertices;
             std::vector<float> normals;
             std::vector<float> uv;
-            std::vector<unsigned short> indices;
+            std::vector<unsigned> indices;
             std::vector<gfxm::vec4> boneIndices;
             std::vector<gfxm::vec4> boneWeights;
             unsigned int indexOffset = 0;
@@ -230,9 +234,9 @@ public:
                 uv.insert(uv.end(), u.begin(), u.end());
                 
                 MeshData::SubData subData;
-                subData.offset = indices.size() * sizeof(unsigned short); // BYTE OFFSET
+                subData.offset = indices.size() * sizeof(unsigned); // BYTE OFFSET
                 
-                std::vector<unsigned short> rawIndices = fbxMesh.GetIndices<unsigned short>();
+                std::vector<unsigned> rawIndices = fbxMesh.GetIndices<unsigned>();
                 for(unsigned j = 0; j < rawIndices.size(); ++j)
                     rawIndices[j] += indexOffset;
                 indices.insert(indices.end(), rawIndices.begin(), rawIndices.end());
@@ -248,6 +252,7 @@ public:
                 tmpBoneIndices.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                 tmpBoneWeights.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
                 boneDataCount.resize(vertexCount, 0);
+                memset(boneDataCount.data(), 0, boneDataCount.size() * sizeof(int));
                 for(unsigned j = 0; j < skin.BoneCount(); ++j)
                 {
                     int64_t uidBone = skin.GetBoneUID(j);
@@ -265,7 +270,7 @@ public:
                         int& dataCount = boneDataCount[vertexIndex];
                         if(dataCount > 3)
                             continue;
-                        
+                            
                         tmpBoneIndices[vertexIndex][dataCount] = (float)boneIndex;
                         tmpBoneWeights[vertexIndex][dataCount] = weight;
                         
@@ -292,7 +297,7 @@ public:
         }
         
         file.close();
-        
+
         return result;
     }
 };

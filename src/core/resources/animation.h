@@ -9,6 +9,7 @@
 #include <aurora/curve.h>
 #include <fstream>
 #include <util/animation/curve.h>
+#include <util/scoped_timer.h>
 
 struct AnimNode
 {
@@ -210,6 +211,8 @@ struct AnimationReaderFBX : public asset<Animation>::reader
 {
     bool operator()(const std::string& filename, Animation* animSet)
     {
+        ScopedTimer timer("AnimationReaderFBX '" + filename + "'");
+
         bool result = false;
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())

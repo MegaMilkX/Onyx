@@ -42,6 +42,8 @@ public:
     
     virtual void OnInit() 
     {
+        ScopedTimer timer(__FUNCTION__);
+        
         GameState::GetMouseHandler()->Locked(true);
         GameState::GetMouseHandler()->Visible(false);
 
@@ -99,6 +101,7 @@ public:
         title->SetFont("FantaisieArtistique");
         title->SetText("Irrelevant Text");
 
+        /*
         GuiBox* box = scene.CreateObject()->Get<GuiBox>();
         box->Get<GuiLayout>()->Dock(GuiLayout::UP);
         box->Get<GuiLayout>()->SetSize(25, 25);
@@ -108,7 +111,7 @@ public:
         GuiBox* box3 = scene.CreateObject()->Get<GuiBox>();
         box3->Get<GuiLayout>()->Dock(GuiLayout::LEFT);
         box3->Get<GuiLayout>()->SetSize(100, 100);
-
+        */
         testCube = scene.CreateObject()->Get<TestCube>();
         testCube->Get<Transform>()->Translate(1.0f, 1.0f, 0.0f);
         testCube->Object()->Name("cube");

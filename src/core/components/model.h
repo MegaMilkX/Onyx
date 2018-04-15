@@ -118,7 +118,7 @@ inline void fg_SolidDraw(
         glBindTexture(GL_TEXTURE_2D, unit.texDiffuse->GetGlName());
         
         glBindVertexArray(unit.vao);
-        glDrawElements(GL_TRIANGLES, unit.indexCount, GL_UNSIGNED_SHORT, (void*)0);
+        glDrawElements(GL_TRIANGLES, unit.indexCount, GL_UNSIGNED_INT, (void*)0);
     }
 }
 

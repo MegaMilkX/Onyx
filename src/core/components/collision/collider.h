@@ -128,7 +128,7 @@ public:
         
         int attrCount = meshData->GetAttribCount<Au::Position>();
         Au::Position* posData = meshData->GetAttribData<Au::Position>();
-        std::vector<unsigned short>& indices = meshData->GetIndices();
+        std::vector<unsigned>& indices = meshData->GetIndices();
         if(!posData || !attrCount)
             return;
         

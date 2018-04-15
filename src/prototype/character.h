@@ -95,7 +95,7 @@ public:
             "Idle",
             {
                 [this]()->bool{
-                    return velocity.length() <= FLT_EPSILON;
+                    return grounded && velocity.length() <= FLT_EPSILON;
                 },
                 [this](){
                     grav_velo = 0.0f;
@@ -111,7 +111,7 @@ public:
             "Walk",
             {
                 [this]()->bool{
-                    return velocity.length() > FLT_EPSILON;
+                    return grounded && velocity.length() > FLT_EPSILON;
                 },
                 [this](){
                     grav_velo = 0.0f;
@@ -136,14 +136,14 @@ public:
             "Turn180",
             {
                 [this]()->bool{
-                    return angleAbs > 2.0f;
+                    return grounded && angleAbs > 2.0f;
                 },
                 [this](){
                     motion->Blend("Turn180", 0.1f);
                 },
                 [this](){
                     if(Get<Animator>()->Stopped(0.15f))
-                        actor->SwitchState("Walk");
+                        actor->SwitchState("Idle");
                 },
                 {  }
             }
@@ -162,7 +162,7 @@ public:
                     grav_velo += 9.8f * GameState::DeltaTime() * GameState::DeltaTime();
                     Get<Transform>()->Translate(0.0, -grav_velo, 0.0);
                 },
-                { "Idle" }
+                { "Idle", "Walk" }
             }
         );
         actor->SwitchState("Idle");        

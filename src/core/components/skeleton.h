@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <mutex>
 #include "../util/gl_render_state.h"
+#include <util/scoped_timer.h>
 
 #undef GetObject
 
@@ -77,6 +78,8 @@ struct SkeletonDataReaderFBX : public asset<SkeletonData>::reader
 {
     bool operator()(const std::string& filename, SkeletonData* skel)
     {
+        ScopedTimer timer("SkeletonDataReaderFBX '" + filename + "'");
+
         bool result = false; 
         std::ifstream file(filename, std::ios::binary | std::ios::ate);
         if(!file.is_open())
@@ -512,7 +515,7 @@ inline void fg_SkinDraw(const FrameCommon& frame, const SkinDrawData& in)
         glDrawElements(
             GL_TRIANGLES, 
             unit.indexCount, 
-            GL_UNSIGNED_SHORT, 
+            GL_UNSIGNED_INT, 
             (void*)0
         );
     }
