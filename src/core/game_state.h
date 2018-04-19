@@ -192,8 +192,6 @@ public:
         deltaTime = 0.0f;
 
         ImGuiInit();
-
-        Update();
     }
     static ImGuiDbgConsole dbgConsole;
     
