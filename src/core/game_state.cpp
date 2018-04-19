@@ -1,5 +1,7 @@
 #include "game_state.h"
 
+ImGuiDbgConsole GameState::dbgConsole;
+
 uint64_t GameState::frameCount = 0;
 float GameState::deltaTime = 0.0f;
 Au::Timer GameState::timer;

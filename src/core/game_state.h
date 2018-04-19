@@ -16,6 +16,9 @@
 
 #include "lib/event.h"
 
+#include <util/imgui_wrapper.h>
+#include <util/imgui_console.h>
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
@@ -51,10 +54,30 @@ public:
     {
     public:
         void KeyUp(Au::Input::KEYCODE key) { 
+            ImGuiIO& io = ImGui::GetIO();            
+            if(key == Au::Input::KEY_LBUTTON)
+            {
+                io.MouseDown[0] = false;
+            }
+            if(key == Au::Input::KEY_RBUTTON)
+            {
+                io.MouseDown[1] = false;
+            }
+
             event_post(eMouseUp{key});
             PostMouseKeyUp(key); 
         }
         void KeyDown(Au::Input::KEYCODE key) { 
+            ImGuiIO& io = ImGui::GetIO();            
+            if(key == Au::Input::KEY_LBUTTON)
+            {
+                io.MouseDown[0] = true;
+            }
+            if(key == Au::Input::KEY_RBUTTON)
+            {
+                io.MouseDown[1] = true;
+            }
+
             POINT pt;
             GetCursorPos(&pt);
             ScreenToClient(hWnd, &pt);
@@ -65,6 +88,10 @@ public:
             POINT pt;
             GetCursorPos(&pt);
             ScreenToClient(hWnd, &pt);
+
+            ImGuiIO& io = ImGui::GetIO();
+            io.MousePos = ImVec2((float)pt.x, (float)pt.y);
+
             event_post(eMouseMove{x, y, pt.x, pt.y});
             PostMouseMove(x, y); 
         }
@@ -78,16 +105,25 @@ public:
     {
     public:
         void KeyUp(Au::Input::KEYCODE key) { 
+            ImGuiIO& io = ImGui::GetIO();
+            if(key < 512) io.KeysDown[key] = false;
+
             event_post(eKeyUp{key});
             PostKeyUp(key); 
         }
         void KeyDown(Au::Input::KEYCODE key) { 
+            ImGuiIO& io = ImGui::GetIO();
+            if(key < 512) io.KeysDown[key] = true;
+
             event_post(eKeyDown{key});
             PostKeyDown(key); 
         }
-        void OnChar(int charCode) { 
+        void OnChar(int charCode) {
+            ImGuiIO& io = ImGui::GetIO();
+            io.AddInputCharacter(charCode);
+             
             event_post(eChar{charCode});
-            PostOnChar(charCode); 
+            PostOnChar(charCode);
         }
     };
     
@@ -122,7 +158,7 @@ public:
         delete stateStack.top();
         stateStack.pop();
     }
-    
+
     static void Init()
     {
         if(!glfwInit())
@@ -154,7 +190,12 @@ public:
         mouseHandler.Init(glfwGetWin32Window(window));
         keyboardHandler.Init(glfwGetWin32Window(window));
         deltaTime = 0.0f;
+
+        ImGuiInit();
+
+        Update();
     }
+    static ImGuiDbgConsole dbgConsole;
     
     static DWORD WINAPI AudioThread(LPVOID lpParam)
     {
@@ -171,6 +212,9 @@ public:
     {
         timer.Start();
 
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiUpdate(DeltaTime());
+
         bool result = glfwWindowShouldClose(window) == 0;
         if(result)
         {
@@ -181,6 +225,9 @@ public:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             //gfxDevice.Clear();
             stateStack.top()->OnRender();
+            bool consoleOpen = true;
+            dbgConsole.Draw("Dev console", &consoleOpen);
+            ImGuiDraw();
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
@@ -200,6 +247,8 @@ public:
     
     static void Cleanup()
     {
+        ImGuiCleanup();
+
         audioMixer.Cleanup();
         glfwDestroyWindow(window);
         glfwTerminate();

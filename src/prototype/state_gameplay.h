@@ -25,6 +25,9 @@
 
 #include <motion_script.h>
 
+#include <util/fbx_scene.h>
+
+#include <external/imgui/imgui.h>
 
 #include "fps_display.h"
 #include "test_cube.h"
@@ -44,8 +47,8 @@ public:
     {
         ScopedTimer timer(__FUNCTION__);
         
-        GameState::GetMouseHandler()->Locked(true);
-        GameState::GetMouseHandler()->Visible(false);
+        GameState::GetMouseHandler()->Locked(false);
+        GameState::GetMouseHandler()->Visible(true);
 
         renderer = scene.GetComponent<Renderer>();
         renderer->AmbientColor(0.1f, 0.1f, 0.1f);
@@ -117,6 +120,7 @@ public:
 
         LoadSceneFromFbx(&scene, "data\\scene.fbx");
     }
+
     virtual void OnCleanup() 
     {
     }
@@ -127,13 +131,14 @@ public:
     event_dispatcher<eKeyUp> disp_KeyUp;
     event_dispatcher<eMouseMove> disp_onMouseMove;
     event_dispatcher<eMouseDown> disp_onMouseDown;
+    event_dispatcher<eMouseUp> disp_onMouseUp;
     TestCube* testCube;
     virtual void OnUpdate() 
     {
         fpsDisplay->Update(DeltaTime());
-
+        
         while(eChar* e = dispatcher_onChar.poll())    
-        {
+        {            
             if(e->code == 8)
             {
                 if(!str.empty())
@@ -193,6 +198,10 @@ public:
                 Interactable* i = o->FindComponent<Interactable>();
                 if(i) i->Activate();
             }
+        }
+        while(auto e = disp_onMouseUp.poll())
+        {
+            
         }
         testCube->Update();
 
