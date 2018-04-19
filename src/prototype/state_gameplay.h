@@ -114,6 +114,8 @@ public:
         testCube = scene.CreateObject()->Get<TestCube>();
         testCube->Get<Transform>()->Translate(1.0f, 1.0f, 0.0f);
         testCube->Object()->Name("cube");
+
+        LoadSceneFromFbx(&scene, "data\\scene.fbx");
     }
     virtual void OnCleanup() 
     {
