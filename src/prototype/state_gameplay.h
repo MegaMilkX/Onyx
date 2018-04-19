@@ -48,7 +48,6 @@ public:
         GameState::GetMouseHandler()->Visible(false);
 
         renderer = scene.GetComponent<Renderer>();
-        renderer->Init(GFXDevice());
         renderer->AmbientColor(0.1f, 0.1f, 0.1f);
         renderer->RimColor(0.4f, 0.4f, 0.8f);
         
@@ -212,7 +211,7 @@ public:
         //scene.FindObject("MIKU")->GetComponent<Transform>()->Track(character->GetComponent<Transform>()->WorldPosition());
         
     }
-    virtual void OnRender(Au::GFX::Device* device)
+    virtual void OnRender()
     {
         renderer->Render();
         //scene.GetComponent<Collision>()->DebugDraw();

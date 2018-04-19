@@ -16,6 +16,10 @@
 
 #include "lib/event.h"
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <glfw/glfw3.h>
+#include <glfw/glfw3native.h>
+
 struct eKeyDown{
     Au::Input::KEYCODE key;
 };
@@ -93,7 +97,7 @@ public:
     virtual void OnSwitch() {};
     virtual void OnCleanup() {};
     virtual void OnUpdate() {};
-    virtual void OnRender(Au::GFX::Device* device) {};
+    virtual void OnRender() {};
     
     virtual void MouseKeyUp(Au::Input::KEYCODE key) {}
     virtual void MouseKeyDown(Au::Input::KEYCODE key) {}
@@ -121,14 +125,34 @@ public:
     
     static void Init()
     {
-        window = Au::Window::Create("Onyx", 1920, 1080);
-        window->Show();
-        gfxDevice.Init(*window);
+        if(!glfwInit())
+        {
+            std::cout << "glfwInit() failed" << std::endl;
+            return;
+        }
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        window = glfwCreateWindow(1920, 1080, "qwe", glfwGetPrimaryMonitor(), NULL);
+        if(!window)
+        {
+            glfwTerminate();
+            std::cout << "failed to create a window" << std::endl;
+            return;
+        }
+        std::cout << window << std::endl;
+        glfwMakeContextCurrent(window);
+        WGLEXTLoadFunctions();
+        GLEXTLoadFunctions();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
         audioMixer.Init(48000, 16);
         DWORD threadId;
         HANDLE thread = CreateThread(NULL, 0, AudioThread, (void*)&audioMixer, 0, &threadId);
-        mouseHandler.Init(window);
-        keyboardHandler.Init(window);
+        
+        mouseHandler.Init(glfwGetWin32Window(window));
+        keyboardHandler.Init(glfwGetWin32Window(window));
         deltaTime = 0.0f;
     }
     
@@ -146,16 +170,19 @@ public:
     static bool Update()
     {
         timer.Start();
-        bool result = !window->Destroyed();
+
+        bool result = glfwWindowShouldClose(window) == 0;
         if(result)
         {
-            Au::Window::PollMessages();
+            //Au::Window::PollMessages();
             
             stateStack.top()->OnUpdate();
             
-            gfxDevice.Clear();
-            stateStack.top()->OnRender(&gfxDevice);
-            gfxDevice.SwapBuffers();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            //gfxDevice.Clear();
+            stateStack.top()->OnRender();
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
         deltaTime = timer.End() / 1000000.0f;
         
@@ -174,14 +201,13 @@ public:
     static void Cleanup()
     {
         audioMixer.Cleanup();
-        gfxDevice.Cleanup();
-        Au::Window::Destroy(window);
+        glfwDestroyWindow(window);
+        glfwTerminate();
     }
     
     static float DeltaTime() { return deltaTime; }
     static uint64_t FrameCount() { return frameCount; }
     
-    static Au::GFX::Device* GFXDevice() { return &gfxDevice; }
     static AudioMixer3D* GetAudioMixer() { return &audioMixer; }
     static MouseHandler* GetMouseHandler() { return &mouseHandler; }
     
@@ -199,8 +225,8 @@ private:
 
     static std::stack<GameState*> stateStack;
 
-    static Au::Window* window;
-    static Au::GFX::Device gfxDevice;
+    static GLFWwindow* window;
+    //static Au::Window* window;
     static AudioMixer3D audioMixer;
     static MouseHandler mouseHandler;
     static KeyboardHandler keyboardHandler;

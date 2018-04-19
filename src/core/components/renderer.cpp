@@ -11,12 +11,6 @@ Renderer::Renderer()
 {
 }
 
-bool Renderer::Init(Au::GFX::Device* gfxDevice)
-{
-    _gfxDevice = gfxDevice;
-    return true;
-}
-
 void Renderer::OnCreate()
 {
     GetObject()->GetComponent<Camera>();
@@ -25,7 +19,7 @@ void Renderer::OnCreate()
 #include <iostream>
 void Renderer::Render()
 {
-    _currentCamera->Render(_gfxDevice);
+    _currentCamera->Render();
 }
 
 void Renderer::Render(const gfxm::mat4& projection,

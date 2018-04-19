@@ -420,7 +420,7 @@ public:
         }
     }
     
-    virtual void OnRender(Au::GFX::Device* device)
+    virtual void OnRender()
     {
         renderer->Render();
     }

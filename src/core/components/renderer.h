@@ -26,12 +26,8 @@ class Renderer : public SceneObject::Component
 {
 public:
     Renderer();
-
-    bool Init(Au::GFX::Device* gfxDevice);
     
     task_graph::graph& GetFrameGraph() { return frameGraph; }
-    
-    Au::GFX::Device* GetDevice() { return _gfxDevice; }
     
     void Render();
     void Render(const gfxm::mat4& projection,
@@ -51,8 +47,6 @@ public:
     virtual void OnCreate();
 private:
     task_graph::graph frameGraph;
-
-    Au::GFX::Device* _gfxDevice;
     
     Camera* _currentCamera;
     

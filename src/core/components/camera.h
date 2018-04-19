@@ -42,7 +42,7 @@ public:
     gfxm::mat4 Projection() { return projection; }
     gfxm::mat4 InverseTransform() { return gfxm::inverse(transform->GetTransform()); }
 
-    void Render(Au::GFX::Device* device)
+    void Render()
     {
         renderer->Render(
             projection,
