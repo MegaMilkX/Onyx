@@ -11,12 +11,14 @@ set INCLUDE_PATHS=/I "%~dp0\..\Aurora\include" ^
 /I "%~dp0\src\core" ^
 /I "%~dp0\src\core\external" ^
 /I "%~dp0\src\core\resources" ^
-/I "%~dp0\src\core\components"
+/I "%~dp0\src\core\components" ^
+/I "%~dp0\..\lib\glfw\include"
 set LIB_PATHS=/LIBPATH:"%~dp0\..\Aurora\lib" ^
 /LIBPATH:"%~dp0\..\lib\lua\lib" ^
 /LIBPATH:"%~dp0\..\lib\bullet3-2.86.1\bin" ^
 /LIBPATH:"%~dp0\..\lib\freetype-2.8\objs\vc2010\Win32" ^
-/LIBPATH:"%~dp0\..\lib\serial\lib"
+/LIBPATH:"%~dp0\..\lib\serial\lib" ^
+/LIBPATH:"%~dp0\..\lib\glfw\lib"
 set LIBRARIES=kernel32.lib ^
 user32.lib ^
 gdi32.lib ^
@@ -39,7 +41,8 @@ BulletCollision_vs2010.lib ^
 BulletDynamics_vs2010.lib ^
 LinearMath_vs2010.lib ^
 freetype28MT.lib ^
-serial.lib
+serial.lib ^
+glfw3.lib
 
 set COMPILER_ARGS=/MP /D NOMINMAX /D _CRT_SECURE_NO_WARNINGS /D "_UNICODE" /D "UNICODE" /GS /GL /analyze- /W3 /Gy /Zc:wchar_t /EHsc /MT /WX- /Zc:forScope /Gd /Oy- /Oi /Gm- /O2 /nologo /Zi
 
