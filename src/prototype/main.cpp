@@ -1,11 +1,11 @@
-#include "prototype/state_gameplay.h"
+#include "state_gameplay.h"
 
 #define REG_COMP(NAME) SceneObject::RegisterComponent<NAME>(#NAME)
 
 int main()
 {
-    asset<MeshData>::add_search_path("data\\model");
-    asset<MeshData>::add_reader<MeshReaderFBX>("fbx");
+    asset<Mesh>::add_search_path("data\\model");
+    asset<Mesh>::add_reader<MeshReaderFBX>("fbx");
     asset<ScriptData>::add_search_path("data\\script");
     asset<ScriptData>::add_reader<ScriptReaderLUA>("lua");
     asset<Material>::add_search_path("data\\material");

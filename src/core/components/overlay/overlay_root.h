@@ -10,7 +10,7 @@
 #include <scene_object.h>
 #include <asset.h>
 #include <util/gl_render_state.h>
-#include <mesh_data.h>
+#include <mesh.h>
 
 #include "quad.h"
 #include "text2d.h"
@@ -134,8 +134,8 @@ public:
                 glUniform1i(prog_text->GetUniform("GlyphAtlas"), 0);
                 glUniform1i(prog_text->GetUniform("DiffuseTexture"), 0);
                 // ===
-                resource<MeshData> quad = 
-                    resource<MeshData>::get("$quad_mesh");
+                resource<Mesh> quad = 
+                    resource<Mesh>::get("$quad_mesh");
                 std::vector<float> vertices = {
                     0.0f, 0.0f, 0.0f,
                     1.0f, 0.0f, 0.0f,
@@ -162,7 +162,7 @@ public:
         GuiDrawData gdd{ 
             resource<gl::ShaderProgram>::get("gui_shader"),
             resource<gl::ShaderProgram>::get("gui_text_shader"),
-            resource<MeshData>::get("$quad_mesh")->GetVao({
+            resource<Mesh>::get("$quad_mesh")->GetVao({
                 { "Position", 3, GL_FLOAT, GL_FALSE },
                 { "UV", 2, GL_FLOAT, GL_FALSE }
             })

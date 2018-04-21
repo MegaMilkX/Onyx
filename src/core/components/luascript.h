@@ -103,7 +103,7 @@ public:
         _state.Bind(&gfxm::vec3::y, "y");
         _state.Bind(&gfxm::vec3::z, "z");
 
-        _state.Bind(&asset<MeshData>::set, "Set");
+        _state.Bind(&asset<Mesh>::set, "Set");
         _state.Bind(&asset<Material>::set, "Set");
         _state.Bind(&asset<Animation>::set, "Set");
         _state.Bind(&asset<SkeletonData>::set, "Set");

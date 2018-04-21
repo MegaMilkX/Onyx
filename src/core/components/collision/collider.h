@@ -3,7 +3,7 @@
 
 #include "../transform.h"
 #include "collision.h"
-#include <mesh_data.h>
+#include <mesh.h>
 
 #undef GetObject
 
@@ -118,9 +118,9 @@ public:
     }
     
     void SetMesh(const std::string& resourceName)
-    { SetMesh(asset<MeshData>::get(resourceName)); }
+    { SetMesh(asset<Mesh>::get(resourceName)); }
     
-    void SetMesh(asset<MeshData> meshData)
+    void SetMesh(asset<Mesh> meshData)
     {
         if(!meshData)
             return;
@@ -149,7 +149,7 @@ public:
     }
 private:
     btTriangleMesh* triMesh;
-    asset<MeshData> meshData;
+    asset<Mesh> meshData;
 };
 
 #endif

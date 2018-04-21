@@ -5,7 +5,7 @@
 
 #include <scene_object.h>
 #include <texture2d.h>
-#include <mesh_data.h>
+#include <mesh.h>
 
 #include <font_data.h>
 #include "../lib/nimbusmono_bold.otf.h"

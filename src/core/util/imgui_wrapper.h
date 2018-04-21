@@ -6,6 +6,7 @@
 #include <resource.h>
 #include <texture2d.h>
 #include <util/gfxm.h>
+#include <common.h>
 
 extern ImGuiContext* imGuiCtx;
 extern GLuint imGuiVBuf;
@@ -16,8 +17,8 @@ inline void ImGuiInit()
     imGuiProgram = new gl::ShaderProgram();
     imGuiCtx = ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize.x = 1920.0f;
-    io.DisplaySize.y = 1080.0f;
+    io.DisplaySize.x = (float)Common.frameSize.x;
+    io.DisplaySize.y = (float)Common.frameSize.y;
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -81,6 +82,8 @@ inline void ImGuiUpdate(float dt)
 {
     ImGuiIO& io = ImGui::GetIO();
     io.DeltaTime = dt;
+    io.DisplaySize.x = (float)Common.frameSize.x;
+    io.DisplaySize.y = (float)Common.frameSize.y;
     ImGui::NewFrame();
 }
 inline void ImGuiDraw()
@@ -101,7 +104,8 @@ inline void ImGuiDraw()
 
     glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height);
 
-    gfxm::mat4 proj = gfxm::ortho(0.0f, 1920.0f, 1080.0f, 0.0f, -1.0f, 1.0f);
+    gfxm::mat4 proj = 
+        gfxm::ortho(0.0f, (float)Common.frameSize.x, (float)Common.frameSize.y, 0.0f, -1.0f, 1.0f);
     imGuiProgram->Use();
     glUniform1i(imGuiProgram->GetUniform("Texture"), 0);
     glUniformMatrix4fv(imGuiProgram->GetUniform("ProjMtx"), 1, GL_FALSE, &proj[0][0]);

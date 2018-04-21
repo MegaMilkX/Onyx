@@ -98,8 +98,8 @@ public:
     void OnCreate()
     {
         Get<GuiLayout>()->docking = GuiLayout::FILL;
-        Get<GuiLayout>()->SetSize(1920, 1080);
-        Get<GuiLayout>()->Rebuild({ 0, 0, 1920, 1080 });
+        Get<GuiLayout>()->SetSize(Common.frameSize.x, Common.frameSize.y);
+        Get<GuiLayout>()->Rebuild({ 0, 0, Common.frameSize.x, Common.frameSize.y });
     }
 private:
     std::set<GuiListenerBase*> listeners;

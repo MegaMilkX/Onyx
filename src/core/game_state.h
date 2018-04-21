@@ -23,6 +23,10 @@
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
+#include <asset_storage.h>
+
+#include <common.h>
+
 struct eKeyDown{
     Au::Input::KEYCODE key;
 };
@@ -46,6 +50,12 @@ struct eMouseDown{
 struct eMouseUp{
     Au::Input::KEYCODE key;
 };
+
+inline void FramebufferResizeCallback(GLFWwindow* win, int width, int height)
+{
+    Common.frameSize.x = width;
+    Common.frameSize.y = height;
+}
 
 class GameState
 {
@@ -107,6 +117,8 @@ public:
         void KeyUp(Au::Input::KEYCODE key) { 
             ImGuiIO& io = ImGui::GetIO();
             if(key < 512) io.KeysDown[key] = false;
+            if(io.WantCaptureKeyboard)
+                return;
 
             event_post(eKeyUp{key});
             PostKeyUp(key); 
@@ -114,6 +126,8 @@ public:
         void KeyDown(Au::Input::KEYCODE key) { 
             ImGuiIO& io = ImGui::GetIO();
             if(key < 512) io.KeysDown[key] = true;
+            if(io.WantCaptureKeyboard)
+                return;
 
             event_post(eKeyDown{key});
             PostKeyDown(key); 
@@ -121,6 +135,8 @@ public:
         void OnChar(int charCode) {
             ImGuiIO& io = ImGui::GetIO();
             io.AddInputCharacter(charCode);
+            if(io.WantCaptureKeyboard)
+                return;
              
             event_post(eChar{charCode});
             PostOnChar(charCode);
@@ -170,15 +186,20 @@ public:
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        window = glfwCreateWindow(1920, 1080, "qwe", glfwGetPrimaryMonitor(), NULL);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        window = glfwCreateWindow(1280, 720, "qwe", NULL, NULL);
         if(!window)
         {
             glfwTerminate();
             std::cout << "failed to create a window" << std::endl;
             return;
         }
-        std::cout << window << std::endl;
+        glfwSetFramebufferSizeCallback(window, &FramebufferResizeCallback);
+        Common.frameSize.x = 1280;
+        Common.frameSize.y = 720;
         glfwMakeContextCurrent(window);
+        glfwSwapInterval(1);
+
         WGLEXTLoadFunctions();
         GLEXTLoadFunctions();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -192,6 +213,8 @@ public:
         deltaTime = 0.0f;
 
         ImGuiInit();
+
+        Update();
     }
     static ImGuiDbgConsole dbgConsole;
     
@@ -209,6 +232,7 @@ public:
     static bool Update()
     {
         timer.Start();
+        assets::sync();
 
         ImGuiIO& io = ImGui::GetIO();
         ImGuiUpdate(DeltaTime());
@@ -216,15 +240,21 @@ public:
         bool result = glfwWindowShouldClose(window) == 0;
         if(result)
         {
-            //Au::Window::PollMessages();
-            
-            stateStack.top()->OnUpdate();
-            
+            if(!stateStack.empty())
+            {
+                stateStack.top()->OnUpdate();
+            }
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             //gfxDevice.Clear();
-            stateStack.top()->OnRender();
+            if(!stateStack.empty())
+            {
+                stateStack.top()->OnRender();
+            }
             bool consoleOpen = true;
             dbgConsole.Draw("Dev console", &consoleOpen);
+            ShowProfOverlay(&consoleOpen, (int)(1.0f / deltaTime), 1);
+            //ShowFpsPlot((int)(1.0f / deltaTime));
             ImGuiDraw();
             glfwSwapBuffers(window);
             glfwPollEvents();
@@ -258,13 +288,13 @@ public:
     static AudioMixer3D* GetAudioMixer() { return &audioMixer; }
     static MouseHandler* GetMouseHandler() { return &mouseHandler; }
     
-    static void PostMouseKeyUp(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyUp(key); }
-    static void PostMouseKeyDown(Au::Input::KEYCODE key) { stateStack.top()->MouseKeyDown(key); }
-    static void PostMouseMove(int x, int y) { stateStack.top()->MouseMove(x, y); }
-    static void PostMouseWheel(short value) { stateStack.top()->MouseWheel(value); }
-    static void PostKeyUp(Au::Input::KEYCODE key) { stateStack.top()->KeyUp(key); }
-    static void PostKeyDown(Au::Input::KEYCODE key) { stateStack.top()->KeyDown(key); }
-    static void PostOnChar(int charCode) { stateStack.top()->OnChar(charCode); }
+    static void PostMouseKeyUp(Au::Input::KEYCODE key) { if(!stateStack.empty()) stateStack.top()->MouseKeyUp(key); }
+    static void PostMouseKeyDown(Au::Input::KEYCODE key) { if(!stateStack.empty()) stateStack.top()->MouseKeyDown(key); }
+    static void PostMouseMove(int x, int y) { if(!stateStack.empty()) stateStack.top()->MouseMove(x, y); }
+    static void PostMouseWheel(short value) { if(!stateStack.empty()) stateStack.top()->MouseWheel(value); }
+    static void PostKeyUp(Au::Input::KEYCODE key) { if(!stateStack.empty()) stateStack.top()->KeyUp(key); }
+    static void PostKeyDown(Au::Input::KEYCODE key) { if(!stateStack.empty()) stateStack.top()->KeyDown(key); }
+    static void PostOnChar(int charCode) { if(!stateStack.empty()) stateStack.top()->OnChar(charCode); }
 private:
     static uint64_t frameCount;
     static float deltaTime;

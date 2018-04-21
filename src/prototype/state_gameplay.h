@@ -40,8 +40,6 @@ class Gameplay : public GameState
 public:
     Gameplay()
     {}
-
-    FpsDisplay* fpsDisplay;
     
     virtual void OnInit() 
     {
@@ -90,12 +88,6 @@ public:
         quad = scene.CreateObject()->GetComponent<Quad>();
         quad->SetImage("V8fBNZhT");
         quad->SetSize(400, 250);
-        text = scene.CreateObject()->GetComponent<Text2d>();
-        text->GetComponent<Transform>()->Translate(0, 200, 0);
-        text->SetText(std::vector<int>{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21});
-        text->SetSize(20);
-
-        fpsDisplay = scene.Get<FpsDisplay>();
 
         title = scene.CreateObject()->GetComponent<Text2d>();
         title->GetComponent<Transform>()->Translate(960, 800, 0);
@@ -103,17 +95,6 @@ public:
         title->SetFont("FantaisieArtistique");
         title->SetText("Irrelevant Text");
 
-        /*
-        GuiBox* box = scene.CreateObject()->Get<GuiBox>();
-        box->Get<GuiLayout>()->Dock(GuiLayout::UP);
-        box->Get<GuiLayout>()->SetSize(25, 25);
-        GuiBox* box2 = scene.CreateObject()->Get<GuiBox>();
-        box2->Get<GuiLayout>()->Dock(GuiLayout::DOWN);
-        box2->Get<GuiLayout>()->SetSize(25, 25);
-        GuiBox* box3 = scene.CreateObject()->Get<GuiBox>();
-        box3->Get<GuiLayout>()->Dock(GuiLayout::LEFT);
-        box3->Get<GuiLayout>()->SetSize(100, 100);
-        */
         testCube = scene.CreateObject()->Get<TestCube>();
         testCube->Get<Transform>()->Translate(1.0f, 1.0f, 0.0f);
         testCube->Object()->Name("cube");
@@ -134,21 +115,17 @@ public:
     event_dispatcher<eMouseUp> disp_onMouseUp;
     TestCube* testCube;
     virtual void OnUpdate() 
-    {
-        fpsDisplay->Update(DeltaTime());
-        
+    {        
         while(eChar* e = dispatcher_onChar.poll())    
         {            
             if(e->code == 8)
             {
-                if(!str.empty())
-                    str.pop_back();
+                // Backspace
             }
             else
             {
                 //str.push_back(e->code);
             }
-            text->SetText(str);
         }
         while(auto e = disp_KeyDown.poll())
         {
@@ -182,8 +159,8 @@ public:
             title->SetText(o->Name());
             gfxm::vec2 p = renderer->CurrentCamera()->WorldToScreen(o->Get<Transform>()->WorldPosition());
             title->Get<Transform>()->Position(
-                (p.x * 0.5f + 0.5f) * 1920, 
-                (1080 - (p.y * 0.5f + 0.5f) * 1080), 
+                (p.x * 0.5f + 0.5f) * Common.frameSize.x, 
+                (Common.frameSize.y - (p.y * 0.5f + 0.5f) * Common.frameSize.y), 
                 0.0f
             );
         }
@@ -229,9 +206,6 @@ public:
         //camera->Render(device);
     }
     
-    Text2d* fpsText;
-    Text2d* text;
-    std::vector<int> str;
 private:    
     SceneObject scene;
     Renderer* renderer;

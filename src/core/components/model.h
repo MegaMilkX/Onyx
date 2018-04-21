@@ -6,7 +6,7 @@
 #include "renderer.h"
 #include <material.h>
 
-#include <mesh_data.h>
+#include <mesh.h>
 
 #include <light_omni.h>
 
@@ -129,7 +129,7 @@ public:
     Model();    
     ~Model();
 
-    asset<MeshData> mesh;
+    asset<Mesh> mesh;
     asset<Material> material;
     resource<gl::ShaderProgram> program;
     

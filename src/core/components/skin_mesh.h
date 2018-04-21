@@ -6,7 +6,7 @@
 #include "renderer.h"
 #include <material.h>
 
-#include <mesh_data.h>
+#include <mesh.h>
 
 #undef GetObject
 
@@ -16,18 +16,18 @@ public:
     SkinMesh()
     : meshData(0), material(0)
     {}
-    void SetMeshData(const std::string& name)
+    void SetMesh(const std::string& name)
     {
-        SetMeshData(asset<MeshData>::get(name));
+        SetMesh(asset<Mesh>::get(name));
     }
-    void SetMeshData(MeshData* md) { meshData = md; }
+    void SetMesh(Mesh* md) { meshData = md; }
     void SetMaterial(const std::string& name)
     {
         SetMaterial(asset<Material>::get(name));
     }
     void SetMaterial(Material* mat) { material = mat; }
     
-    MeshData* GetMeshData() { return meshData; }
+    Mesh* GetMesh() { return meshData; }
     Material* GetMaterial() { return material; }
     
     void OnCreate()
@@ -35,7 +35,7 @@ public:
         Renderer* renderer = GetObject()->Root()->GetComponent<Renderer>();
     }
 private:
-    asset<MeshData> meshData;
+    asset<Mesh> meshData;
     asset<Material> material;
 };
 

@@ -2,7 +2,7 @@
 #define GFX_TEXT_H
 
 #include <texture2d.h>
-#include <mesh_data.h>
+#include <mesh.h>
 
 #include <font_data.h>
 #include "../lib/nimbusmono_bold.otf.h"
@@ -15,7 +15,7 @@ public:
     {
         static FontData* fd = CreateDefaultFontData();
         fontData = fd;
-        mesh = new MeshData();
+        mesh = new Mesh();
     }
     ~GfxText()
     {
@@ -108,7 +108,7 @@ public:
         mesh->SetAttribArray<Au::UVW>(uvw);
     }
 private:
-    MeshData* mesh;
+    Mesh* mesh;
     FontData* fontData;
     int charCount;
     std::vector<int> string;

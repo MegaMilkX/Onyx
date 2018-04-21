@@ -30,11 +30,11 @@ void Renderer::Render(const gfxm::mat4& projection,
             projection,
             gfxm::inverse(transform),
             transform[3],
-            1920, 1080,
+            (float)Common.frameSize.x, (float)Common.frameSize.y,
             GetObject() 
         }
     );
     glEnable(GL_DEPTH_TEST);
-    glViewport(0, 0, 1920, 1080);
+    glViewport(0, 0, Common.frameSize.x, Common.frameSize.y);
     frameGraph.run();
 }

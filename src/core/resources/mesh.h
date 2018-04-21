@@ -19,7 +19,7 @@ struct GLAttribDesc
     GLboolean normalized;
 };
 
-class MeshData
+class Mesh
 {
 public:
     struct SubData
@@ -189,10 +189,10 @@ public:
     }
 };
 
-class MeshReaderFBX : public asset<MeshData>::reader
+class MeshReaderFBX : public asset<Mesh>::reader
 {
 public:
-    bool operator()(const std::string& filename, MeshData* meshData)
+    bool operator()(const std::string& filename, Mesh* meshData)
     {
         ScopedTimer timer("MeshReaderFBX '" + filename + "'");
 
@@ -233,7 +233,7 @@ public:
                 std::vector<float> u = fbxMesh.GetUV(0);
                 uv.insert(uv.end(), u.begin(), u.end());
                 
-                MeshData::SubData subData;
+                Mesh::SubData subData;
                 subData.offset = indices.size() * sizeof(unsigned); // BYTE OFFSET
                 
                 std::vector<unsigned> rawIndices = fbxMesh.GetIndices<unsigned>();

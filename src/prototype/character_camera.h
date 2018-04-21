@@ -23,6 +23,8 @@ public:
     event_dispatcher<eMouseMove> disp_onMouseMove;
     void Update(float dt)
     {
+        cam->Perspective(1.4f, (float)Common.frameSize.x / (float)Common.frameSize.y, 0.01f, 1000.0f);
+        
         while(eMouseMove* e = disp_onMouseMove.poll())
             MouseMove(e->dx, e->dy);
         
