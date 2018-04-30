@@ -207,106 +207,102 @@ private:
     float fps;
 };
 
-struct AnimationReaderFBX : public asset<Animation>::reader
+template<>
+inline bool LoadAsset<Animation, FBX>(Animation* animSet, const std::string& filename)
 {
-    bool operator()(const std::string& filename, Animation* animSet)
+    ScopedTimer timer("LoadAsset<Animation, FBX> '" + filename + "'");
+
+    bool result = false;
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if(!file.is_open())
+        return result;
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    std::vector<char> buffer((unsigned int)size);
+    if(file.read(buffer.data(), size))
     {
-        ScopedTimer timer("AnimationReaderFBX '" + filename + "'");
-
-        bool result = false;
-        std::ifstream file(filename, std::ios::binary | std::ios::ate);
-        if(!file.is_open())
-            return result;
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<char> buffer((unsigned int)size);
-        if(file.read(buffer.data(), size))
+        result = true;
+        Au::Media::FBX::Reader fbxReader;
+        fbxReader.ReadMemory(buffer.data(), buffer.size());
+        //fbxReader.DumpFile(filename);
+        fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
+        
+        std::vector<Au::Media::FBX::AnimationStack>& stacks =
+            fbxReader.GetAnimationStacks();
+        double fps = fbxReader.GetFrameRate();
+        double timePerFrame = Au::Media::FBX::TimeSecond / fps;
+        
+        animSet->FrameRate((float)fps);
+        AnimPose& pose = animSet->GetBindPose();
+        for(unsigned i = 0; i < fbxReader.ModelCount(); ++i)
         {
-            result = true;
-            Au::Media::FBX::Reader fbxReader;
-            fbxReader.ReadMemory(buffer.data(), buffer.size());
-            //fbxReader.DumpFile(filename);
-            fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
-            
-            std::vector<Au::Media::FBX::AnimationStack>& stacks =
-                fbxReader.GetAnimationStacks();
-            double fps = fbxReader.GetFrameRate();
-            double timePerFrame = Au::Media::FBX::TimeSecond / fps;
-            
-            animSet->FrameRate((float)fps);
-            AnimPose& pose = animSet->GetBindPose();
-            for(unsigned i = 0; i < fbxReader.ModelCount(); ++i)
-            {
-                Au::Media::FBX::Model* fbxModel = 
-                    fbxReader.GetModel(i);
-                pose.poses[fbxModel->name].set_transform(*(gfxm::mat4*)&fbxModel->transform);
-            }
+            Au::Media::FBX::Model* fbxModel = 
+                fbxReader.GetModel(i);
+            pose.poses[fbxModel->name].set_transform(*(gfxm::mat4*)&fbxModel->transform);
+        }
 
-            for(unsigned i = 0; i < stacks.size(); ++i)
+        for(unsigned i = 0; i < stacks.size(); ++i)
+        {
+            double length = stacks[i].GetLength() / timePerFrame;
+            std::string animName = stacks[i].GetName();
             {
-                double length = stacks[i].GetLength() / timePerFrame;
-                std::string animName = stacks[i].GetName();
+                // TODO: Check if fbx is made in blender, only then cut by first pipe symbol
+                size_t pipe_pos = animName.find_first_of("|");
+                if(pipe_pos != std::string::npos)
                 {
-                    // TODO: Check if fbx is made in blender, only then cut by first pipe symbol
-                    size_t pipe_pos = animName.find_first_of("|");
-                    if(pipe_pos != std::string::npos)
-                    {
-                        animName = animName.substr(pipe_pos + 1);
-                    }
+                    animName = animName.substr(pipe_pos + 1);
                 }
-                
-                AnimTrack* anim = animSet->operator[](animName);
-                anim->Length((float)length);
-                anim->Name(animName);
+            }
+            
+            AnimTrack* anim = animSet->operator[](animName);
+            anim->Length((float)length);
+            anim->Name(animName);
 
-                //std::cout << "AnimStack " << animName << " len: " << length << std::endl;
-                
-                std::vector<Au::Media::FBX::SceneNode> nodes = stacks[i].GetAnimatedNodes();
-                for(unsigned j = 0; j < nodes.size(); ++j)
+            //std::cout << "AnimStack " << animName << " len: " << length << std::endl;
+            
+            std::vector<Au::Media::FBX::SceneNode> nodes = stacks[i].GetAnimatedNodes();
+            for(unsigned j = 0; j < nodes.size(); ++j)
+            {
+                if(!stacks[i].HasPositionCurve(nodes[i]) &&
+                    !stacks[i].HasRotationCurve(nodes[i]) &&
+                    !stacks[i].HasScaleCurve(nodes[i]))
                 {
-                    if(!stacks[i].HasPositionCurve(nodes[i]) &&
-                        !stacks[i].HasRotationCurve(nodes[i]) &&
-                        !stacks[i].HasScaleCurve(nodes[i]))
-                    {
-                        continue;
-                    }
-                    std::string nodeName = nodes[j].Name();
-                    AnimNode& animNode = anim->operator[](nodeName);
-                    float frame = 0.0f;
-                    //std::cout << "  CurveNode " << nodeName << std::endl;
-                    for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
-                    {
-                        gfxm::vec3 pos = 
-                            *(gfxm::vec3*)&stacks[i].EvaluatePosition(nodes[j], (int64_t)t);
-                        animNode.position.x[frame] = pos.x;
-                        animNode.position.y[frame] = pos.y;
-                        animNode.position.z[frame] = pos.z;
+                    continue;
+                }
+                std::string nodeName = nodes[j].Name();
+                AnimNode& animNode = anim->operator[](nodeName);
+                float frame = 0.0f;
+                //std::cout << "  CurveNode " << nodeName << std::endl;
+                for(double t = 0.0f; t < length * timePerFrame; t += timePerFrame)
+                {
+                    gfxm::vec3 pos = 
+                        *(gfxm::vec3*)&stacks[i].EvaluatePosition(nodes[j], (int64_t)t);
+                    animNode.position.x[frame] = pos.x;
+                    animNode.position.y[frame] = pos.y;
+                    animNode.position.z[frame] = pos.z;
 
-                        gfxm::quat rot = 
-                            *(gfxm::quat*)&stacks[i].EvaluateRotation(nodes[j], (int64_t)t);
-                        animNode.rotation.x[frame] = rot.x;
-                        animNode.rotation.y[frame] = rot.y;
-                        animNode.rotation.z[frame] = rot.z;
-                        animNode.rotation.w[frame] = rot.w;
-                        
-                        gfxm::vec3 scale = 
-                            *(gfxm::vec3*)&stacks[i].EvaluateScale(nodes[j], (int64_t)t);
-                        animNode.scale.x[frame] = scale.x;
-                        animNode.scale.y[frame] = scale.y;
-                        animNode.scale.z[frame] = scale.z;
-                        
-                        frame += 1.0f;
-                    }
+                    gfxm::quat rot = 
+                        *(gfxm::quat*)&stacks[i].EvaluateRotation(nodes[j], (int64_t)t);
+                    animNode.rotation.x[frame] = rot.x;
+                    animNode.rotation.y[frame] = rot.y;
+                    animNode.rotation.z[frame] = rot.z;
+                    animNode.rotation.w[frame] = rot.w;
+                    
+                    gfxm::vec3 scale = 
+                        *(gfxm::vec3*)&stacks[i].EvaluateScale(nodes[j], (int64_t)t);
+                    animNode.scale.x[frame] = scale.x;
+                    animNode.scale.y[frame] = scale.y;
+                    animNode.scale.z[frame] = scale.z;
+                    
+                    frame += 1.0f;
                 }
             }
         }
-        
-        file.close();
-        
-        return result;
     }
-
-private:
-};
+    
+    file.close();
+    
+    return result;
+}
 
 #endif

@@ -30,25 +30,18 @@ private:
     AudioBuffer* buffer;
 };
 
-class SoundClipReaderOGG : public asset<SoundClip>::reader
+template<>
+inline bool LoadAsset<SoundClip, OGG>(SoundClip* clip, const std::string& filename)
 {
-public:
-    bool operator()(const std::string& filename, SoundClip* clip)
-    {
-        bool result = false;        
-        int channels = 2;
-        int sampleRate = 48000;
-        short* decoded;
-        int len;
-        len = stb_vorbis_decode_filename(filename.c_str(), &channels, &sampleRate, &decoded);
-        if(len == 0)
-            return result;
-        
-        result = true;
-        clip->Upload((void*)decoded, len * sizeof(short) * channels, sampleRate, 16, channels);
-        
-        return result;
-    }
-};
+    int channels = 2;
+    int sampleRate = 48000;
+    short* decoded;
+    int len;
+    len = stb_vorbis_decode_filename(filename.c_str(), &channels, &sampleRate, &decoded);
+    if(len == 0)
+        return false;
+    clip->Upload((void*)decoded, len * sizeof(short) * channels, sampleRate, 16, channels);
+    return true;
+}
 
 #endif

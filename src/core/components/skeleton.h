@@ -74,70 +74,58 @@ struct SkeletonData
     int boneCount;
 };
 
-struct SkeletonDataReaderFBX : public asset<SkeletonData>::reader
+template<>
+inline bool LoadAsset<SkeletonData, FBX>(SkeletonData* skel, const std::string& filename)
 {
-    bool operator()(const std::string& filename, SkeletonData* skel)
-    {
-        ScopedTimer timer("SkeletonDataReaderFBX '" + filename + "'");
+    ScopedTimer timer("SkeletonDataReaderFBX '" + filename + "'");
 
-        bool result = false; 
-        std::ifstream file(filename, std::ios::binary | std::ios::ate);
-        if(!file.is_open())
-            return result;
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<char> buffer((unsigned int)size);
-        if(file.read(buffer.data(), size))
+    bool result = false; 
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if(!file.is_open())
+        return result;
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    std::vector<char> buffer((unsigned int)size);
+    if(file.read(buffer.data(), size))
+    {
+        result = true;
+        
+        Au::Media::FBX::Reader fbxReader;
+        fbxReader.ReadMemory(buffer.data(), buffer.size());
+        fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
+        
+        for(unsigned i = 0; i < fbxReader.ModelCount(); ++i)
         {
-            result = true;
-            
-            Au::Media::FBX::Reader fbxReader;
-            fbxReader.ReadMemory(buffer.data(), buffer.size());
-            fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
-            
-            for(unsigned i = 0; i < fbxReader.ModelCount(); ++i)
-            {
-                Au::Media::FBX::Model* fbxModel = 
-                    fbxReader.GetModel(i);
-                Au::Media::FBX::Model* fbxParentModel = 
-                    fbxReader.GetModelByUID(fbxModel->parentUID);
-                std::string parentName = fbxParentModel ? fbxParentModel->name : "";
-                skel->AddNode(fbxModel->name, *(gfxm::mat4*)&fbxModel->transform, parentName, fbxModel->IsBone());
-            }
-            
-            skel->Finalize();
-            
-            /*
-            std::vector<Au::Media::FBX::Bone> bones = 
-                fbxReader.GetBones();
-            
-            for(unsigned i = 0; i < bones.size(); ++i)
-            {
-                Au::Media::FBX::Bone* pb = GetBoneByUID(bones, bones[i].puid);
-                std::string parentName = pb ? pb->name : "";
-                skel->AddBone(bones[i].name, bones[i].transform, parentName);
-            }
-            skel->Finalize();
-            */
-            //fbxReader.GetHelpers();
-            //fbxReader.Print();
+            Au::Media::FBX::Model* fbxModel = 
+                fbxReader.GetModel(i);
+            Au::Media::FBX::Model* fbxParentModel = 
+                fbxReader.GetModelByUID(fbxModel->parentUID);
+            std::string parentName = fbxParentModel ? fbxParentModel->name : "";
+            skel->AddNode(fbxModel->name, *(gfxm::mat4*)&fbxModel->transform, parentName, fbxModel->IsBone());
         }
         
-        file.close();
+        skel->Finalize();
         
-        return result;
-    }
-    
-    Au::Media::FBX::Bone* GetBoneByUID(std::vector<Au::Media::FBX::Bone>& bones, int64_t uid)
-    {
+        /*
+        std::vector<Au::Media::FBX::Bone> bones = 
+            fbxReader.GetBones();
+        
         for(unsigned i = 0; i < bones.size(); ++i)
         {
-            if(bones[i].uid == uid)
-                return &bones[i];
+            Au::Media::FBX::Bone* pb = GetBoneByUID(bones, bones[i].puid);
+            std::string parentName = pb ? pb->name : "";
+            skel->AddBone(bones[i].name, bones[i].transform, parentName);
         }
-        return 0;
+        skel->Finalize();
+        */
+        //fbxReader.GetHelpers();
+        //fbxReader.Print();
     }
-};
+    
+    file.close();
+    
+    return result;
+}
 
 class Skeleton;
 struct RenderUnitSkin

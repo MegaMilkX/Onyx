@@ -37,44 +37,39 @@ private:
     std::map<std::string, std::string> strstr;
 };
 
-class MaterialReaderJSON : public asset<Material>::reader
+template<>
+inline bool LoadAsset<Material, JSON>(Material* material, const std::string& filename)
 {
-public:
-    bool operator()(const std::string& filename, Material* material)
-    {
-        bool result = false;
-        using json = nlohmann::json;
-        
-        std::ifstream file(filename, std::ios::in);
-        if(!file.is_open())
-            return result;
-        
-        json j;
-        try
-        {
-            j = json::parse(file);
-        }
-        catch(std::exception& e)
-        {
-            std::cout << "Material json parse error: " << e.what() << std::endl;
-            file.close();
-            return result;
-        }
+    using json = nlohmann::json;
 
-        result = true;
-        for(json::iterator it = j.begin(); it != j.end(); ++it)
-        {
-            if(it.value().is_string())
-            {
-                material->Set(it.key(), it.value().get<std::string>());
-            }
-        }
-    
-        
-        file.close();
-        
-        return result;
+    std::ifstream file(filename, std::ios::in);
+    if(!file.is_open())
+        return false;
+
+    json j;
+    try
+    {
+        j = json::parse(file);
     }
-};
+    catch(std::exception& e)
+    {
+        std::cout << "Material json parse error: " << e.what() << std::endl;
+        file.close();
+        return false;
+    }
+
+    for(json::iterator it = j.begin(); it != j.end(); ++it)
+    {
+        if(it.value().is_string())
+        {
+            material->Set(it.key(), it.value().get<std::string>());
+        }
+    }
+
+    
+    file.close();
+    
+    return true;
+}
 
 #endif

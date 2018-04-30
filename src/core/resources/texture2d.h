@@ -3,6 +3,7 @@
 
 #include <asset.h>
 #include <aurora/gfx.h>
+#include <util/load_asset.h>
 
 extern "C"{
 #include "../lib/stb_image.h"
@@ -77,45 +78,31 @@ private:
     }
 };
 
-class Texture2DReaderJPG : public asset<Texture2D>::reader
+template<>
+inline bool LoadAsset<Texture2D, JPG>(Texture2D* tex, const std::string& filename)
 {
-public:
-    bool operator()(const std::string& filename, Texture2D* texture)
-    {
-        bool result = false;
-        stbi_set_flip_vertically_on_load(1);
-        int w, h, bpp;
-        unsigned char* data = 
-            stbi_load(filename.c_str(), &w, &h, &bpp, 4);
-        if(!data)
-            return result;
-     
-        result = true;
-        texture->Data(data, w, h, 4);
-        
-        return result;
-    }
-};
+    stbi_set_flip_vertically_on_load(1);
+    int w, h, bpp;
+    unsigned char* data =
+        stbi_load(filename.c_str(), &w, &h, &bpp, 4);
+    if(!data)
+        return false;
+    tex->Data(data, w, h, 4);
+    return true;
+}
 
-class Texture2DReaderPNG : public asset<Texture2D>::reader
+template<>
+inline bool LoadAsset<Texture2D, PNG>(Texture2D* tex, const std::string& filename)
 {
-public:
-    bool operator()(const std::string& filename, Texture2D* texture)
-    {
-        bool result = false;
-        stbi_set_flip_vertically_on_load(1);
-        int w, h, bpp;
-        unsigned char* data = 
-            stbi_load(filename.c_str(), &w, &h, &bpp, 4);
-        if(!data)
-            return result;
-     
-        result = true;
-        texture->Data(data, w, h, 4);
-        
-        return result;
-    }
-};
+    stbi_set_flip_vertically_on_load(1);
+    int w, h, bpp;
+    unsigned char* data =
+        stbi_load(filename.c_str(), &w, &h, &bpp, 4);
+    if(!data)
+        return false;
+    tex->Data(data, w, h, 4);
+    return true;
+}
 
 class Texture2DReader : public asset<Texture2D>::reader
 {

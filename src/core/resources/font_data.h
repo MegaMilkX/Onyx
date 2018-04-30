@@ -150,14 +150,11 @@ private:
     FontRasterizer rasterizer;
 };
 
-class FontDataReader : public asset<FontData>::reader
+template<>
+inline bool LoadAsset<FontData, TTF>(FontData* fontData, const std::string& filename)
 {
-public:
-    bool operator()(const std::string& filename, FontData* fontData)
-    {
-        fontData->Load(filename);
-        return true;
-    }
-};
+    fontData->Load(filename);
+    return true;
+}
 
 #endif

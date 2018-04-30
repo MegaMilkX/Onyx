@@ -189,117 +189,107 @@ public:
     }
 };
 
-class MeshReaderFBX : public asset<Mesh>::reader
+template<>
+inline bool LoadAsset<Mesh, FBX>(Mesh* meshData, const std::string& filename)
 {
-public:
-    bool operator()(const std::string& filename, Mesh* meshData)
+    ScopedTimer timer("LoadAsset<Mesh, FBX>: '" + filename + "'");
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if(!file.is_open())
+        return false;
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    std::vector<char> buffer((unsigned int)size);
+    if(file.read(buffer.data(), size))
     {
-        ScopedTimer timer("MeshReaderFBX '" + filename + "'");
-
-        bool result = false;        
-        std::ifstream file(filename, std::ios::binary | std::ios::ate);
-        if(!file.is_open())
-            return result;
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        std::vector<char> buffer((unsigned int)size);
-        if(file.read(buffer.data(), size))
+        Au::Media::FBX::Reader fbxReader;
+        fbxReader.ReadMemory(buffer.data(), buffer.size());
+        fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
+        fbxReader.DumpFile(filename);
+        
+        int meshCount = fbxReader.MeshCount();
+        std::vector<float> vertices;
+        std::vector<float> normals;
+        std::vector<float> uv;
+        std::vector<unsigned> indices;
+        std::vector<gfxm::vec4> boneIndices;
+        std::vector<gfxm::vec4> boneWeights;
+        unsigned int indexOffset = 0;
+        for(int i = 0; i < meshCount; ++i)
         {
-            result = true;
+            Au::Media::FBX::Mesh& fbxMesh = fbxReader.GetMesh(i);
+            int vertexCount = fbxMesh.VertexCount();
             
-            Au::Media::FBX::Reader fbxReader;
-            fbxReader.ReadMemory(buffer.data(), buffer.size());
-            fbxReader.ConvertCoordSys(Au::Media::FBX::OPENGL);
+            std::vector<float> v = fbxMesh.GetVertices();
+            vertices.insert(vertices.end(), v.begin(), v.end());
+            std::vector<float> n = fbxMesh.GetNormals(0);
+            normals.insert(normals.end(), n.begin(), n.end());
+            std::vector<float> u = fbxMesh.GetUV(0);
+            uv.insert(uv.end(), u.begin(), u.end());
             
-            fbxReader.DumpFile(filename);
-
-            int meshCount = fbxReader.MeshCount();
-            std::vector<float> vertices;
-            std::vector<float> normals;
-            std::vector<float> uv;
-            std::vector<unsigned> indices;
-            std::vector<gfxm::vec4> boneIndices;
-            std::vector<gfxm::vec4> boneWeights;
-            unsigned int indexOffset = 0;
-            for(int i = 0; i < meshCount; ++i)
+            Mesh::SubData subData;
+            subData.offset = indices.size() * sizeof(unsigned); // BYTE OFFSET
+            
+            std::vector<unsigned> rawIndices = fbxMesh.GetIndices<unsigned>();
+            for(unsigned j = 0; j < rawIndices.size(); ++j)
+                rawIndices[j] += indexOffset;
+            indices.insert(indices.end(), rawIndices.begin(), rawIndices.end());
+            
+            subData.name = fbxMesh.name;
+            subData.indexCount = rawIndices.size();
+            meshData->subDataArray.push_back(subData);
+            
+            Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
+            std::vector<gfxm::vec4> tmpBoneIndices;
+            std::vector<gfxm::vec4> tmpBoneWeights;
+            std::vector<int> boneDataCount;
+            tmpBoneIndices.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            tmpBoneWeights.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            boneDataCount.resize(vertexCount, 0);
+            memset(boneDataCount.data(), 0, boneDataCount.size() * sizeof(int));
+            for(unsigned j = 0; j < skin.BoneCount(); ++j)
             {
-                Au::Media::FBX::Mesh& fbxMesh = fbxReader.GetMesh(i);
-                int vertexCount = fbxMesh.VertexCount();
+                int64_t uidBone = skin.GetBoneUID(j);
+                Au::Media::FBX::Bone* bone = fbxReader.GetBoneByUID(uidBone);
+                if(!bone)
+                    continue;
+                unsigned boneIndex = bone->Index();
                 
-                std::vector<float> v = fbxMesh.GetVertices();
-                vertices.insert(vertices.end(), v.begin(), v.end());
-                std::vector<float> n = fbxMesh.GetNormals(0);
-                normals.insert(normals.end(), n.begin(), n.end());
-                std::vector<float> u = fbxMesh.GetUV(0);
-                uv.insert(uv.end(), u.begin(), u.end());
-                
-                Mesh::SubData subData;
-                subData.offset = indices.size() * sizeof(unsigned); // BYTE OFFSET
-                
-                std::vector<unsigned> rawIndices = fbxMesh.GetIndices<unsigned>();
-                for(unsigned j = 0; j < rawIndices.size(); ++j)
-                    rawIndices[j] += indexOffset;
-                indices.insert(indices.end(), rawIndices.begin(), rawIndices.end());
-                
-                subData.name = fbxMesh.name;
-                subData.indexCount = rawIndices.size();
-                meshData->subDataArray.push_back(subData);
-                
-                Au::Media::FBX::Skin skin = fbxMesh.GetSkin();
-                std::vector<gfxm::vec4> tmpBoneIndices;
-                std::vector<gfxm::vec4> tmpBoneWeights;
-                std::vector<int> boneDataCount;
-                tmpBoneIndices.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                tmpBoneWeights.resize(vertexCount, gfxm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
-                boneDataCount.resize(vertexCount, 0);
-                memset(boneDataCount.data(), 0, boneDataCount.size() * sizeof(int));
-                for(unsigned j = 0; j < skin.BoneCount(); ++j)
+                for(unsigned k = 0; k < bone->indices.size() && k < bone->weights.size(); ++k)
                 {
-                    int64_t uidBone = skin.GetBoneUID(j);
-                    Au::Media::FBX::Bone* bone = fbxReader.GetBoneByUID(uidBone);
-                    if(!bone)
+                    int32_t vertexIndex = bone->indices[k];
+                    float weight = bone->weights[k];
+                    if(weight < 0.01f)
                         continue;
-                    unsigned boneIndex = bone->Index();
-                    
-                    for(unsigned k = 0; k < bone->indices.size() && k < bone->weights.size(); ++k)
-                    {
-                        int32_t vertexIndex = bone->indices[k];
-                        float weight = bone->weights[k];
-                        if(weight < 0.01f)
-                            continue;
-                        int& dataCount = boneDataCount[vertexIndex];
-                        if(dataCount > 3)
-                            continue;
-                            
-                        tmpBoneIndices[vertexIndex][dataCount] = (float)boneIndex;
-                        tmpBoneWeights[vertexIndex][dataCount] = weight;
+                    int& dataCount = boneDataCount[vertexIndex];
+                    if(dataCount > 3)
+                        continue;
                         
-                        dataCount++;
-                    }
+                    tmpBoneIndices[vertexIndex][dataCount] = (float)boneIndex;
+                    tmpBoneWeights[vertexIndex][dataCount] = weight;
+                    
+                    dataCount++;
                 }
-                
-                //for(int j = 0; j < vertexCount; ++j)
-                //    gfxm::normalize(tmpBoneWeights[j]);
-                
-                boneIndices.insert(boneIndices.end(), tmpBoneIndices.begin(), tmpBoneIndices.end());
-                boneWeights.insert(boneWeights.end(), tmpBoneWeights.begin(), tmpBoneWeights.end());
-                
-                indexOffset = vertices.size() / 3;
             }
             
-            meshData->SetAttribArray<Au::Position>(vertices);
-            meshData->SetAttribArray<Au::Normal>(normals);
-            meshData->SetAttribArray<Au::UV>(uv);
-            meshData->SetIndices(indices);
+            //for(int j = 0; j < vertexCount; ++j)
+            //    gfxm::normalize(tmpBoneWeights[j]);
             
-            meshData->SetAttribArray<Au::BoneIndex4>(boneIndices);
-            meshData->SetAttribArray<Au::BoneWeight4>(boneWeights);
+            boneIndices.insert(boneIndices.end(), tmpBoneIndices.begin(), tmpBoneIndices.end());
+            boneWeights.insert(boneWeights.end(), tmpBoneWeights.begin(), tmpBoneWeights.end());
+            
+            indexOffset = vertices.size() / 3;
         }
-        
-        file.close();
 
-        return result;
+        meshData->SetAttribArray<Au::Position>(vertices);
+        meshData->SetAttribArray<Au::Normal>(normals);
+        meshData->SetAttribArray<Au::UV>(uv);
+        meshData->SetIndices(indices);
+        
+        meshData->SetAttribArray<Au::BoneIndex4>(boneIndices);
+        meshData->SetAttribArray<Au::BoneWeight4>(boneWeights);
     }
-};
+    file.close();
+    return true;
+}
 
 #endif
