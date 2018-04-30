@@ -23,7 +23,7 @@
 #include <glfw/glfw3.h>
 #include <glfw/glfw3native.h>
 
-#include <asset_storage.h>
+#include <asset.h>
 
 #include <common.h>
 
@@ -235,8 +235,7 @@ public:
     
     static bool Update()
     {
-        timer.Start();
-        assets::sync();
+        timer.Start();        
 
         ImGuiIO& io = ImGui::GetIO();
         ImGuiUpdate(DeltaTime());
@@ -255,9 +254,10 @@ public:
             {
                 stateStack.top()->OnRender();
             }
-            bool consoleOpen = true;
+            bool consoleOpen = false;
+            bool profOverlay = true;
             dbgConsole.Draw("Dev console", &consoleOpen);
-            ShowProfOverlay(&consoleOpen, (int)(1.0f / deltaTime), 1);
+            ShowProfOverlay(&profOverlay, (int)(1.0f / deltaTime), 1);
             //ShowFpsPlot((int)(1.0f / deltaTime));
             ImGuiDraw();
             glfwSwapBuffers(window);
