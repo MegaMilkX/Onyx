@@ -1,6 +1,8 @@
 #ifndef ASSET_H
 #define ASSET_H
 
+#include <functional>
+#include <util/load_asset.h>
 #include "resources/resource.h"
 
 template<typename T>
@@ -25,13 +27,19 @@ public:
     {}
     static void add_search_path(const std::string& path)
     { searchPaths.push_back(path); }
-    
+    /*
     template<typename READER>
     static void add_reader(const std::string& extension)
     {
         READER* rdr = new READER();
         rdr->extension = extension;
         readers.push_back(rdr);
+    }
+    */
+    static void add_reader(const std::string& extension, std::function<bool(T*, const std::string&)> func)
+    {
+        extensions.push_back(extension);
+        readers.push_back(func);
     }
     
     void set(const std::string& name)
@@ -47,6 +55,7 @@ public:
     operator bool() const { return data != 0; }
     operator T*() const { return data; }
     bool empty() { return data == 0; }
+
     static asset<T> get(const std::string& name) 
     {
         std::string filename;
@@ -57,7 +66,7 @@ public:
             resource<T> r = resource<T>::get(name);
             for(unsigned i = 0; i < searchPaths.size(); ++i)
             {
-                for(unsigned j = 0; j < readers.size(); ++j)
+                for(unsigned j = 0; j < extensions.size(); ++j)
                 {
                     // TODO: REMOVE PLATFORM DEPENDENT CODE
                     // TODO: RESPECT EMPTY SEARCH PATHS
@@ -67,9 +76,9 @@ public:
                         "\\" + 
                         name +
                         "." +
-                        readers[j]->extension;
+                        extensions[j];
                     
-                    if(readers[j]->operator()(filename, r))
+                    if(readers[j](r, filename))
                     {
                         return asset<T>(r);
                     }
@@ -83,12 +92,15 @@ public:
 private:
     resource<T> data;
     static std::vector<std::string> searchPaths;
-    static std::vector<reader*> readers;
+    static std::vector<std::function<bool(T*, const std::string&)>> readers;
+    static std::vector<std::string> extensions;
 };
 
 template<typename T>
 std::vector<std::string> asset<T>::searchPaths;
 template<typename T>
-std::vector<typename asset<T>::reader*> asset<T>::readers;
+std::vector<std::function<bool(T*, const std::string&)>> asset<T>::readers;
+template<typename T>
+std::vector<std::string> asset<T>::extensions;
 
 #endif
