@@ -1,4 +1,5 @@
 #include "state_gameplay.h"
+#include "state_loading.h"
 
 #define REG_COMP(NAME) SceneObject::RegisterComponent<NAME>(#NAME)
 
@@ -36,6 +37,7 @@ int main()
 
     GameState::Init();
     GameState::Push<Gameplay>();
+    //GameState::Push<StateLoading>();
     while(GameState::Update());
     GameState::Cleanup();
     
