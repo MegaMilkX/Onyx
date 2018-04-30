@@ -15,6 +15,7 @@ set INCLUDE_PATHS=/I "%~dp0\..\Aurora\include" ^
 /I "%~dp0\src\core\external" ^
 /I "%~dp0\src\core\resources" ^
 /I "%~dp0\src\core\components" ^
+/I "%~dp0\src\core\lib" ^
 /I "%~dp0\..\lib\glfw\include"
 set LIB_PATHS=/LIBPATH:"%~dp0\..\Aurora\lib" ^
 /LIBPATH:"%~dp0\..\lib\lua\lib" ^
