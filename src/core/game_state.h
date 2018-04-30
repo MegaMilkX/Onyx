@@ -198,7 +198,7 @@ public:
         Common.frameSize.x = 1280;
         Common.frameSize.y = 720;
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
+        glfwSwapInterval(0);
 
         WGLEXTLoadFunctions();
         GLEXTLoadFunctions();
