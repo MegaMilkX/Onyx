@@ -12,14 +12,15 @@
 class Job;
 typedef std::function<void(Job&)> job_fn_t;
 typedef int thread_id_t;
+typedef int worker_id_t;
 
 #define JOB_PAYLOAD_SIZE 64
 class Job
 {
 public:
-    Job() : task(0), parent(0), dependency(0), open_work_items(0) {}
-    Job(job_fn_t task, Job* parent = 0, Job* dependency = 0, std::thread::id affinity = std::thread::id()) 
-    : task(task), parent(parent), dependency(dependency), open_work_items(1)
+    Job() : task(0), parent(0), dependency(0), affinity(0), open_work_items(0) {}
+    Job(job_fn_t task, Job* parent = 0, Job* dependency = 0, worker_id_t affinity = 0)
+    : task(task), parent(parent), dependency(dependency), affinity(affinity), open_work_items(1)
     {
         if(parent) SetParent(parent);
     }
@@ -28,10 +29,12 @@ public:
         this->parent = parent;
         parent->open_work_items++;
     }
-    void SetAffinity(std::thread::id thread) {
-        this->affinity = thread;
+    void SetAffinity(worker_id_t worker) {
+        this->affinity = worker;
     }
-    std::thread::id GetAffinity() { return affinity; }
+    worker_id_t GetAffinity() { 
+        return affinity;
+    }
     template<typename T>
     void SetData(const T& data){
         assert(sizeof(T) <= JOB_PAYLOAD_SIZE);
@@ -70,7 +73,7 @@ private:
     job_fn_t task;
     Job* parent;
     Job* dependency;
-    std::thread::id affinity;
+    worker_id_t affinity;
     std::atomic_size_t open_work_items;
 public:
     unsigned char payload[JOB_PAYLOAD_SIZE];

@@ -23,8 +23,8 @@ class JobWorker
 {
 public:
     JobWorker() : _running(false), _manager(0) {}
-    JobWorker(JobManager* man)
-    : _running(false), _manager(man)
+    JobWorker(JobManager* man, worker_id_t worker_id = 0)
+    : _running(false), _manager(man), _worker_id(worker_id)
     {
 
     }
@@ -56,12 +56,14 @@ private:
         Job* j = GetJob();
         if(j != 0)
         {
+            std::cout << "Worker: " <<  _worker_id << std::endl; 
             j->Run();
         }
     }
     Job* GetJob();
 
     moodycamel::ConcurrentQueue<Job*> _queue;
+    worker_id_t _worker_id;
     JobManager* _manager;
     std::atomic<bool> _running;
 };

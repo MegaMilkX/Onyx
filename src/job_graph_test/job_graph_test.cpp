@@ -1,64 +1,7 @@
 #ifndef JOB_GRAPH_H
 #define JOB_GRAPH_H
 
-#include "job_worker.h"
-
-class JobManager
-{
-public:
-    JobManager(size_t nWorkers)
-    {
-        for(size_t i = 0; i < nWorkers; ++i)
-        {
-            _workers.emplace_back(
-                new JobWorker(this)
-            );
-            _threads.emplace_back([this, i](){
-                _workers[i]->Run();
-            });
-        }
-    }
-    ~JobManager()
-    {
-        for(auto& w : _workers)
-        {
-            w->Stop();
-        }
-        for(auto& t : _threads)
-        {
-            t.join();
-        }
-    }
-    JobManager& Submit(Job* j)
-    {
-        _queue.enqueue(j);
-        return *this;
-    }
-    void Wait(Job* j){}
-
-    Job* GetJob(std::thread::id thread)
-    {
-        Job* j = 0;
-        _queue.try_dequeue(j);
-        if(!j) return 0;
-        if(!j->ReadyToRun() ||
-        (j->GetAffinity() != std::thread::id() && j->GetAffinity() != thread))
-        {
-            _queue.enqueue(j);
-            return 0;
-        }
-        return j;
-    }
-private:
-    moodycamel::ConcurrentQueue<Job*> _queue;
-    std::vector<JobWorker*> _workers;
-    std::vector<std::thread> _threads;
-};
-
-Job* JobWorker::GetJob()
-{
-    return _manager->GetJob(std::this_thread::get_id());
-}
+#include "job_manager.h"
 
 #include <set>
 
@@ -82,7 +25,8 @@ private:
     std::set<Job*> _jobs;
 };
 
-#define THREAD_AFFINITY_MAIN 1
+#define WORKER_MAIN_THREAD 1
+#define WORKER_DEFAULT 2
 
 #endif
 
@@ -104,17 +48,17 @@ void test_b()
     Job* job_frameEnd = frameGraph.CreateJob([](Job& j)
     {
         std::cout << "frameEnd" << std::endl;
-    }, 0, THREAD_AFFINITY_MAIN);
+    }, 0, WORKER_MAIN_THREAD);
     
     Job* job_drawStage = frameGraph.CreateJob([](Job& j)
     {
         std::cout << "DrawStage" << std::endl;
-    }, job_frameEnd, THREAD_AFFINITY_MAIN);
+    }, job_frameEnd, WORKER_MAIN_THREAD);
 
     Job* job_frameStart = frameGraph.CreateJob([](Job& j)
     {
         std::cout << "frameStart" << std::endl;
-    }, 0, THREAD_AFFINITY_MAIN);
+    }, 0, WORKER_MAIN_THREAD);
     
     frameGraph.CreateJob([](Job& j)
     {
@@ -127,7 +71,7 @@ void test_a()
     {
         ScopedTimer timer("JobsDone!");
         Job job_end([](Job& j){
-            //std::cout << "RootJob" << std::endl;
+            std::cout << "RootJob" << std::endl;
         });
 
         /*
@@ -142,24 +86,30 @@ void test_a()
             //std::cout << "SomeRandomJob" << std::endl;
         }, &job_end);
         */
+
+        Job required_job([](Job& job){
+            std::cout << "Required job done" << std::endl;
+        });
+
         std::cout << "nCores: " << std::thread::hardware_concurrency() << std::endl;
-        JobManager jobManager(std::thread::hardware_concurrency() - 1);
+        JobManager jobManager(std::thread::hardware_concurrency() - 1, WORKER_DEFAULT);
         std::cout << "threadId: " << std::this_thread::get_id() << std::endl;
         //jobManager.Submit(&job).Submit(&job_end).Submit(&some_random_job);
-        jobManager.Submit(&job_end);
         std::vector<Job*> jobs(500);
         for(unsigned i = 0; i < jobs.size(); ++i)
         {
             jobs[i] = new Job([](Job& j)
             { 
-                std::cout << std::this_thread::get_id() << std::endl; 
-            }, &job_end, 0, std::this_thread::get_id());
+                std::cout << "test" << std::endl;
+            }, &job_end, &required_job, WORKER_MAIN_THREAD);
         }
         for(unsigned i = 0; i < jobs.size(); ++i)
         {
             jobManager.Submit(jobs[i]);
         }
-        JobWorker worker(&jobManager);
+        jobManager.Submit(&job_end);
+        jobManager.Submit(&required_job);
+        JobWorker worker(&jobManager, WORKER_MAIN_THREAD);
         worker.Wait(&job_end);
     }
 }
