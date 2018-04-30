@@ -1,7 +1,7 @@
 #ifndef JOB_GRAPH_H
 #define JOB_GRAPH_H
 
-#include "job_manager.h"
+#include <util/job_graph/job_manager.h>
 
 #include <set>
 
@@ -32,6 +32,31 @@ private:
 
 void test_a();
 void test_b();
+void test_c()
+{/*
+    static Job job_frameStart([&](Job& job){
+        std::cout << "job_frameStart" << std::endl;
+    }, 0, 0, AFFINITY_MAIN_THREAD);
+    jobManager->SubmitAndReset(&job_frameStart);
+
+    static Job job_frameEnd([](Job& j){
+        std::cout << "job_frameEnd" << std::endl;
+    });
+
+    static Job job_updateState([](Job& j){
+        std::cout << "job_updateState" << std::endl;
+    }, &job_frameEnd, &job_frameStart);
+
+    static Job job_renderState([](Job& j){
+        std::cout << "job_renderState" << std::endl;
+    }, &job_frameEnd, &job_updateState, AFFINITY_MAIN_THREAD);
+
+    jobManager->SubmitAndReset(&job_frameStart);
+    jobManager->SubmitAndReset(&job_renderState);
+    jobManager->SubmitAndReset(&job_updateState);
+    jobManager->SubmitAndReset(&job_frameEnd);
+    jobWorkerForeground->Wait(&job_frameEnd);*/
+}
 
 int main()
 {
@@ -93,9 +118,10 @@ void test_a()
 
         std::cout << "nCores: " << std::thread::hardware_concurrency() << std::endl;
         JobManager jobManager(std::thread::hardware_concurrency() - 1, WORKER_DEFAULT);
+        JobWorker worker(&jobManager, WORKER_MAIN_THREAD);
         std::cout << "threadId: " << std::this_thread::get_id() << std::endl;
         //jobManager.Submit(&job).Submit(&job_end).Submit(&some_random_job);
-        std::vector<Job*> jobs(500);
+        std::vector<Job*> jobs(1);
         for(unsigned i = 0; i < jobs.size(); ++i)
         {
             jobs[i] = new Job([](Job& j)
@@ -103,13 +129,18 @@ void test_a()
                 std::cout << "test" << std::endl;
             }, &job_end, &required_job, WORKER_MAIN_THREAD);
         }
-        for(unsigned i = 0; i < jobs.size(); ++i)
+
+        while(true)
         {
-            jobManager.Submit(jobs[i]);
+            for(unsigned i = 0; i < jobs.size(); ++i)
+            {
+                jobManager.SubmitAndReset(jobs[i]);
+            }
+            jobManager.SubmitAndReset(&job_end);
+            jobManager.SubmitAndReset(&required_job);
+            
+            worker.Wait(&job_end);
+            std::cout << std::endl;
         }
-        jobManager.Submit(&job_end);
-        jobManager.Submit(&required_job);
-        JobWorker worker(&jobManager, WORKER_MAIN_THREAD);
-        worker.Wait(&job_end);
     }
 }

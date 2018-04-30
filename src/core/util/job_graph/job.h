@@ -10,7 +10,7 @@
 #include <atomic>
 
 class Job;
-typedef std::function<void(Job&)> job_fn_t;
+typedef void (*job_fn_t)(Job&);
 typedef int thread_id_t;
 typedef int worker_id_t;
 
@@ -22,10 +22,20 @@ public:
     Job(job_fn_t task, Job* parent = 0, Job* dependency = 0, worker_id_t affinity = 0)
     : task(task), parent(parent), dependency(dependency), affinity(affinity), open_work_items(1)
     {
-        if(parent) SetParent(parent);
+        SetParent(parent);
+    }
+
+    void Reset()
+    {
+        if(open_work_items == 0)
+        {
+            open_work_items++;
+            SetParent(parent);
+        }
     }
 
     void SetParent(Job* parent) {
+        if(!parent) return;
         this->parent = parent;
         parent->open_work_items++;
     }
@@ -77,6 +87,42 @@ private:
     std::atomic_size_t open_work_items;
 public:
     unsigned char payload[JOB_PAYLOAD_SIZE];
+};
+
+class JobItem
+{
+public:
+    JobItem()
+    : job(0)
+    {}
+    JobItem(Job* j)
+    : job(j)
+    {}
+    JobItem(job_fn_t task, Job* parent = 0, Job* dependency = 0, worker_id_t affinity = 0)
+    {
+        job = new Job(task, parent, dependency, affinity);
+    }
+    JobItem(JobItem&& other)
+    {
+        job = other.job;
+        other.job = 0;
+    }
+    ~JobItem()
+    {
+        if(job) delete job;
+    }
+    JobItem& operator=(Job* j)
+    {
+        if(job) delete job;
+        job = j;
+    }
+    operator Job*()
+    {
+        return job;
+    }
+    Job* Get() { return job; }
+private:
+    Job* job;
 };
 
 #endif
