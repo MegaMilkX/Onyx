@@ -24,18 +24,23 @@ Init = function()
     --SceneObject:CreateObject():Script():SetScript("sphere2");
     
     model = SceneObject:CreateObject():Model();
-    model.mesh:Set("env2");
+    model.mesh:Set("env3");
     model.material:Set("env");
     --model:GetObject():Transform():Scale(0.1);
-    model:GetObject():MeshCollider():SetMesh("env2");
+    model:GetObject():MeshCollider():SetMesh("env3");
     model:GetObject():SetName("environment");
     
     model = SceneObject:CreateObject():Model();
-    model.mesh:Set("naga");
+    model.mesh:Set("stylized");
     model.material:Set("material1");
     model:GetObject():MeshCollider():SetMesh("cube");
     model:GetObject():SetName("Secret!");
-    --model:GetObject():Transform():Translate(0.0, 0.5, 0.0);
+    model:GetObject():Transform():Translate(0.0, 0, 1.0);
+    
+    model = SceneObject:CreateObject():Model();
+    model.mesh:Set("eve_j_gonzales");
+    model.material:Set("material2");
+    model:GetObject():Transform():Translate(0.0, 0.0, -2.0);
     
     lightHinge = SceneObject:CreateObject();
     lightHinge:Transform():Translate(0.0, 0.5, 0.0);
