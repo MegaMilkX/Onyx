@@ -45,7 +45,8 @@ public:
     Job* GetJob(worker_id_t worker_id)
     {
         Job* j = 0;
-        _queue.try_dequeue(j);
+        if(!_queue.try_dequeue(j))
+            return 0;
         if(!j) return 0;
         if(!j->ReadyToRun())
         {

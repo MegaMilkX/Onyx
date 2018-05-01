@@ -39,6 +39,12 @@ public:
         this->parent = parent;
         parent->open_work_items++;
     }
+    Job* GetParent() {
+        return parent;
+    }
+    Job* GetDependency() {
+        return dependency;
+    }
     void SetAffinity(worker_id_t worker) {
         this->affinity = worker;
     }
@@ -54,6 +60,11 @@ public:
     T& GetData(){
         assert(sizeof(T) <= JOB_PAYLOAD_SIZE);
         return *(T*)payload;
+    }
+
+    job_fn_t GetTask()
+    {
+        return task;
     }
 
     bool ReadyToRun() { 
