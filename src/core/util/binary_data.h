@@ -39,6 +39,7 @@ public:
         _end = _data.data() + _data.size();
     }
     unsigned char* cursor() const { return _cursor; }
+    unsigned char* ptr() { return _data.data(); }
     size_t size() const { return _data.size(); }
 private:
     uint32_t offset(const unsigned char* begin, const unsigned char* cursor)
