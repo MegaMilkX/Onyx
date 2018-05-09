@@ -38,6 +38,14 @@ public:
         _cursor = _data.data();
         _end = _data.data() + _data.size();
     }
+    
+    template<typename T>
+    void write(const T* data, size_t count)
+    {
+        _data.insert(_data.end(), (unsigned char*)data, (unsigned char*)data + count * sizeof(T));
+        _cursor = _data.data();
+        _end = _data.data() + _data.size();
+    }
     unsigned char* cursor() const { return _cursor; }
     unsigned char* ptr() { return _data.data(); }
     size_t size() const { return _data.size(); }
