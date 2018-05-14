@@ -208,6 +208,7 @@ public:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         audioMixer.Init(48000, 16);      
@@ -231,9 +232,15 @@ public:
 
         if(result)
         {
-            Job* job_frameStart = frameGraph.Add(&FrameStart, 0, 0, AFFINITY_MAIN_THREAD);
-            Job* job_audioMix = frameGraph.Add(&AudioMix, 0);
-            Job* job_updateState = frameGraph.Add(&UpdateState, 0, job_frameStart);
+            Job* job_frameStart = frameGraph.Add(
+                &FrameStart, 0, 0, AFFINITY_MAIN_THREAD
+            );
+            Job* job_audioMix = frameGraph.Add(
+                &AudioMix, 0
+            );
+            Job* job_updateState = frameGraph.Add(
+                &UpdateState, 0, job_frameStart
+            );
             Job* job_renderState = frameGraph.Add(
                 &RenderState, 
                 0, 
