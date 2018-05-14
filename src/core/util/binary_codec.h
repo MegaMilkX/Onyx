@@ -93,10 +93,6 @@ public:
         return true;
     }
 
-    uint32_t write_chunk(uint32_t type, unsigned char* data, size_t size)
-    {
-        
-    }
     template<typename T>
     void add_chunk(const T& data, const std::string& name = "")
     {
@@ -133,6 +129,11 @@ public:
         header.size = map_data.size();
         data.write(header);
         data.write(map_data.ptr(), map_data.size());
+    }
+
+    void add_chunk(uint32_t type, void* data, size_t size)
+    {
+
     }
 
     bool save(const std::string& filename)
