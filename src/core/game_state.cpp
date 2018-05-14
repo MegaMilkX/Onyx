@@ -1,5 +1,7 @@
 #include "game_state.h"
 
+FrameGraph GameState::frameGraph;
+
 ImGuiDbgConsole GameState::dbgConsole;
 
 uint64_t GameState::frameCount = 0;

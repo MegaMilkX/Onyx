@@ -27,6 +27,8 @@
 
 #include <common.h>
 
+#include <util/frame_graph.h>
+
 struct eKeyDown{
     Au::Input::KEYCODE key;
 };
@@ -208,10 +210,8 @@ public:
         glDisable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        audioMixer.Init(48000, 16);
-        DWORD threadId;
-        HANDLE thread = CreateThread(NULL, 0, AudioThread, (void*)&audioMixer, 0, &threadId);
-        
+        audioMixer.Init(48000, 16);      
+
         mouseHandler.Init(glfwGetWin32Window(window));
         keyboardHandler.Init(glfwGetWin32Window(window));
         deltaTime = 0.0f;
@@ -222,56 +222,28 @@ public:
     }
     static ImGuiDbgConsole dbgConsole;
     
-    static DWORD WINAPI AudioThread(LPVOID lpParam)
-    {
-        AudioMixer3D* mix = (AudioMixer3D*)lpParam;
-        while(1)
-        {
-            Sleep(5);
-            mix->Update();
-        }
-        return 0;
-    }
-    
     static bool Update()
     {
-        timer.Start();        
+        bool result;
+        timer.Start();
 
-        ImGuiIO& io = ImGui::GetIO();
-        ImGuiUpdate(DeltaTime());
+        result = glfwWindowShouldClose(window) == 0;
 
-        bool result = glfwWindowShouldClose(window) == 0;
         if(result)
         {
-            if(!stateStack.empty())
-            {
-                stateStack.top()->OnUpdate();
-            }
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            //gfxDevice.Clear();
-            if(!stateStack.empty())
-            {
-                stateStack.top()->OnRender();
-            }
-            bool consoleOpen = false;
-            bool profOverlay = true;
-            dbgConsole.Draw("Dev console", &consoleOpen);
-            ShowProfOverlay(&profOverlay, (int)(1.0f / deltaTime), 1);
-            //ShowFpsPlot((int)(1.0f / deltaTime));
-            ImGuiDraw();
-            glfwSwapBuffers(window);
-            glfwPollEvents();
+            Job* job_frameStart = frameGraph.Add(&FrameStart, 0, 0, AFFINITY_MAIN_THREAD);
+            Job* job_audioMix = frameGraph.Add(&AudioMix, 0);
+            Job* job_updateState = frameGraph.Add(&UpdateState, 0, job_frameStart);
+            Job* job_renderState = frameGraph.Add(
+                &RenderState, 
+                0, 
+                job_updateState, 
+                AFFINITY_MAIN_THREAD
+            );
+            
+            frameGraph.Run();
         }
         deltaTime = timer.End() / 1000000.0f;
-        
-        // Maintaining 60fps, TODO: remove hack, add fps limiting system
-        /*
-        while(deltaTime < 1.0f/30.0f)
-        {
-            deltaTime = timer.End() / 1000000.0f;
-        }
-        */
         frameCount++;
 
         return result;
@@ -289,6 +261,7 @@ public:
     static float DeltaTime() { return deltaTime; }
     static uint64_t FrameCount() { return frameCount; }
     
+    static FrameGraph* GetFrameGraph() { return &frameGraph; }
     static AudioMixer3D* GetAudioMixer() { return &audioMixer; }
     static MouseHandler* GetMouseHandler() { return &mouseHandler; }
     
@@ -300,6 +273,45 @@ public:
     static void PostKeyDown(Au::Input::KEYCODE key) { if(!stateStack.empty()) stateStack.top()->KeyDown(key); }
     static void PostOnChar(int charCode) { if(!stateStack.empty()) stateStack.top()->OnChar(charCode); }
 private:
+    static void FrameStart(Job&)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiUpdate(DeltaTime());
+    }
+
+    static void AudioMix(Job&)
+    {
+        AudioMixer3D* mixer = GetAudioMixer();
+        mixer->Update();
+    }
+
+    static void UpdateState(Job&)
+    {
+        if(!stateStack.empty())
+        {
+            stateStack.top()->OnUpdate();
+        }
+    }
+
+    static void RenderState(Job&)
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if(!stateStack.empty())
+        {
+            stateStack.top()->OnRender();
+        }
+        bool consoleOpen = false;
+        bool profOverlay = true;
+        //dbgConsole.Draw("Dev console", &consoleOpen);
+        ShowProfOverlay(&profOverlay, (int)(1.0f / deltaTime), 1);
+        //ShowFpsPlot((int)(1.0f / deltaTime));
+        ImGuiDraw();
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    static FrameGraph frameGraph;
+
     static uint64_t frameCount;
     static float deltaTime;
     static Au::Timer timer;

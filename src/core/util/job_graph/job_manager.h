@@ -34,12 +34,19 @@ public:
         _queue.enqueue(j);
         return *this;
     }
+    JobManager& SubmitAndReset(Job* j)
+    {
+        j->Reset();
+        _queue.enqueue(j);
+        return *this;
+    }
     void Wait(Job* j){}
 
     Job* GetJob(worker_id_t worker_id)
     {
         Job* j = 0;
-        _queue.try_dequeue(j);
+        if(!_queue.try_dequeue(j))
+            return 0;
         if(!j) return 0;
         if(!j->ReadyToRun())
         {
@@ -59,7 +66,7 @@ private:
     std::vector<std::thread> _threads;
 };
 
-Job* JobWorker::GetJob()
+inline Job* JobWorker::GetJob()
 {
     return _manager->GetJob(_worker_id);
 }
